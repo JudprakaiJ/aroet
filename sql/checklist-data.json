@@ -1,0 +1,2256 @@
+[
+  {
+    "machine_type": "DLM",
+    "version": null,
+    "name": "46-ARCARR LensMapper DLM",
+    "sections": [
+      {
+        "section_no": "1",
+        "title": "General",
+        "items": [
+          {
+            "item_no": "1.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "1.2",
+            "text": "Exchange fan filter"
+          },
+          {
+            "item_no": "1.3",
+            "text": "Check backplane voltages"
+          },
+          {
+            "item_no": "1.4",
+            "text": "Check motherboard fan"
+          },
+          {
+            "item_no": "1.5",
+            "text": "Check convex lens holder fingers sleeves"
+          },
+          {
+            "item_no": "1.6",
+            "text": "Check drawer"
+          },
+          {
+            "item_no": "1.7",
+            "text": "Check drawer touch bouton"
+          },
+          {
+            "item_no": "1.8",
+            "text": "Check convex lens holder position in AR mode"
+          },
+          {
+            "item_no": "1.9",
+            "text": "Dimension calibration"
+          },
+          {
+            "item_no": "2.0",
+            "text": "Reflection calibration"
+          },
+          {
+            "item_no": "2.1",
+            "text": "Transmission calibration"
+          },
+          {
+            "item_no": "2.2",
+            "text": "Run all checks to control correct operation"
+          }
+        ]
+      },
+      {
+        "section_no": "2",
+        "title": "LensMapper",
+        "items": [
+          {
+            "item_no": "2.1",
+            "text": "Control the cleanliness of the LCD glass"
+          },
+          {
+            "item_no": "2.2",
+            "text": "Control the brightness of the screen LVDS"
+          },
+          {
+            "item_no": "2.3",
+            "text": "Control of the mirror condition"
+          },
+          {
+            "item_no": "2.4",
+            "text": "Control motor diaphragm condition"
+          },
+          {
+            "item_no": "2.5",
+            "text": "Measurment without lens"
+          },
+          {
+            "item_no": "2.6",
+            "text": "Check LED matrix"
+          }
+        ]
+      },
+      {
+        "section_no": "3",
+        "title": "Concave holder (option)",
+        "items": [
+          {
+            "item_no": "3.1",
+            "text": "Check concave lens holder fingers sleeves"
+          },
+          {
+            "item_no": "3.2",
+            "text": "Check concave lens holder position"
+          },
+          {
+            "item_no": "3.3",
+            "text": "Reflection calibration"
+          },
+          {
+            "item_no": "3.4",
+            "text": "Transmission calibration"
+          },
+          {
+            "item_no": "3.5",
+            "text": "Run all chels to control correct operation"
+          }
+        ]
+      },
+      {
+        "section_no": "4",
+        "title": "Edged lens holder (option)",
+        "items": [
+          {
+            "item_no": "4.1",
+            "text": "Check state of the edged lens holder gripper fingers"
+          },
+          {
+            "item_no": "4.2",
+            "text": "Check general state of the edged lens holder gripper"
+          },
+          {
+            "item_no": "4.3",
+            "text": "Check edged lens holder position"
+          },
+          {
+            "item_no": "4.4",
+            "text": "Reflection calibration"
+          },
+          {
+            "item_no": "4.5",
+            "text": "Transmission calibration"
+          },
+          {
+            "item_no": "4.6",
+            "text": "Run all checks to control correct operation"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "machine_type": "MCVP4",
+    "version": null,
+    "name": "F2 MCVP4 AutoMapper",
+    "sections": [
+      {
+        "section_no": "1",
+        "title": "Loading station",
+        "items": [
+          {
+            "item_no": "1.1",
+            "text": "Exchange of the suction cups caps"
+          },
+          {
+            "item_no": "1.2",
+            "text": "Exchange of suction cups"
+          },
+          {
+            "item_no": "1.3",
+            "text": "Control of the height locking cylinder"
+          },
+          {
+            "item_no": "1.4",
+            "text": "Control stops and shock absorber"
+          },
+          {
+            "item_no": "1.5",
+            "text": "Control of the chain cable carrier cable"
+          },
+          {
+            "item_no": "1.6",
+            "text": "Control the cylinders play and axes cleaning"
+          },
+          {
+            "item_no": "1.7",
+            "text": "Control of suction cup telescopic"
+          },
+          {
+            "item_no": "1.8",
+            "text": "Control and cleaning filters venturi"
+          },
+          {
+            "item_no": "1.9",
+            "text": "Exchange of the 5 one way valves"
+          },
+          {
+            "item_no": "1.10",
+            "text": "Exchange of the 5 rubber fingers of the centering gripper"
+          },
+          {
+            "item_no": "1.11",
+            "text": "Control of the belt"
+          },
+          {
+            "item_no": "1.12",
+            "text": "Control of the fingers grippers bearings"
+          },
+          {
+            "item_no": "1.13",
+            "text": "Control of the vibration device"
+          },
+          {
+            "item_no": "1.14",
+            "text": "Control of pressure regulators for gripper centering"
+          },
+          {
+            "item_no": "1.15",
+            "text": "Control the condition of the loading platform"
+          },
+          {
+            "item_no": "1.16",
+            "text": "Control of the X-Y position and rotation of the platform"
+          },
+          {
+            "item_no": "1.17",
+            "text": "Control of the complete loading sequence"
+          }
+        ]
+      },
+      {
+        "section_no": "2",
+        "title": "Turntable",
+        "items": [
+          {
+            "item_no": "2.1",
+            "text": ".Control of the belt tension"
+          },
+          {
+            "item_no": "2.2",
+            "text": ".Control of the gap of the indexing table"
+          },
+          {
+            "item_no": "2.3",
+            "text": "Control of grippers general condition"
+          },
+          {
+            "item_no": "2.4",
+            "text": "Control of the fingers rotation"
+          },
+          {
+            "item_no": "2.5",
+            "text": "Control of grippers opening"
+          },
+          {
+            "item_no": "2.6",
+            "text": "Control of gripper support bearings"
+          },
+          {
+            "item_no": "2.7",
+            "text": "Control of the grippers brakes"
+          },
+          {
+            "item_no": "2.8",
+            "text": "Control of the electrovalves"
+          }
+        ]
+      },
+      {
+        "section_no": "3",
+        "title": "PPOS",
+        "items": [
+          {
+            "item_no": "3.1",
+            "text": "Control the cleanliness of the LCD glass"
+          },
+          {
+            "item_no": "3.2",
+            "text": "Control LCD hight and level"
+          },
+          {
+            "item_no": "3.3",
+            "text": "Control LVD position according to the camera"
+          },
+          {
+            "item_no": "3.4",
+            "text": "Control of the LCD polar filter condition"
+          },
+          {
+            "item_no": "3.5",
+            "text": "Control the brightness of the screen LVDS"
+          },
+          {
+            "item_no": "3.6",
+            "text": "Control of the condition and clealiness of the field lens"
+          },
+          {
+            "item_no": "3.7",
+            "text": "Control of the polar option"
+          },
+          {
+            "item_no": "3.8",
+            "text": "Control of the condition and clealiness of the additionnal lens"
+          },
+          {
+            "item_no": "3.9",
+            "text": "Control of the focus camera"
+          },
+          {
+            "item_no": "3.10",
+            "text": "Control motor diaphragm condition"
+          },
+          {
+            "item_no": "3.11",
+            "text": "Control of the couplings"
+          },
+          {
+            "item_no": "3.12",
+            "text": "Control of the X,Y tables"
+          },
+          {
+            "item_no": "3.13",
+            "text": "Control of the shaft wear condition"
+          },
+          {
+            "item_no": "3.14",
+            "text": "Control of the shaft tightening"
+          },
+          {
+            "item_no": "3.15",
+            "text": "Control of the motor cables"
+          },
+          {
+            "item_no": "3.16",
+            "text": "Control of the pression regulator"
+          },
+          {
+            "item_no": "3.17",
+            "text": "Control the cylinders play and axes cleaning"
+          },
+          {
+            "item_no": "3.18",
+            "text": "Calibration of the motor diaphragm aperture"
+          },
+          {
+            "item_no": "3.19",
+            "text": "Brightness calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "4",
+        "title": "General",
+        "items": [
+          {
+            "item_no": "4.1",
+            "text": "Control push buttons and indicator lamps"
+          },
+          {
+            "item_no": "4.2",
+            "text": "Control lamp voltage presence"
+          },
+          {
+            "item_no": "4.3",
+            "text": "Control of the light tower"
+          },
+          {
+            "item_no": "4.4",
+            "text": "Control of doors detectors"
+          },
+          {
+            "item_no": "4.5",
+            "text": "Control the fans and filters"
+          },
+          {
+            "item_no": "4.6",
+            "text": "Control of the filter and speed of the filter group"
+          },
+          {
+            "item_no": "4.7",
+            "text": "General cleaning of the machines"
+          }
+        ]
+      },
+      {
+        "section_no": "5",
+        "title": "TLS",
+        "items": [
+          {
+            "item_no": "5.1",
+            "text": "Control of cleanliness of the heads of the lenses"
+          },
+          {
+            "item_no": "5.2",
+            "text": "Control the alignment of the heads"
+          },
+          {
+            "item_no": "5.3",
+            "text": ".Control of homing height"
+          },
+          {
+            "item_no": "5.4",
+            "text": "Control signal interference"
+          },
+          {
+            "item_no": "5.5",
+            "text": "Control signals in general"
+          },
+          {
+            "item_no": "5.6",
+            "text": "Test of the 1000 mesures"
+          }
+        ]
+      },
+      {
+        "section_no": "6",
+        "title": "Computer cabinet",
+        "items": [
+          {
+            "item_no": "6.1",
+            "text": "Cleaning the PC filters and the frame"
+          },
+          {
+            "item_no": "6.2",
+            "text": "Control UPS battery"
+          }
+        ]
+      },
+      {
+        "section_no": "7",
+        "title": "DLM",
+        "items": [
+          {
+            "item_no": "7.1",
+            "text": "Control the cleanliness of the LCD glass"
+          },
+          {
+            "item_no": "7.2",
+            "text": "Control the brightness of the screen LVDS"
+          },
+          {
+            "item_no": "7.3",
+            "text": "Control of the mirror condition"
+          },
+          {
+            "item_no": "7.4",
+            "text": "Control motor diaphragm condition"
+          },
+          {
+            "item_no": "7.5",
+            "text": "Measurment without lens"
+          },
+          {
+            "item_no": "7.6",
+            "text": "Check LED matrix"
+          },
+          {
+            "item_no": "7.7",
+            "text": "Check DLM after calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "8",
+        "title": "Unloading",
+        "items": [
+          {
+            "item_no": "8.1",
+            "text": "Exchange of suction cup cap"
+          },
+          {
+            "item_no": "8.2",
+            "text": "Exchange suction cap"
+          },
+          {
+            "item_no": "8.3",
+            "text": "Control of the chain cable carrier cable"
+          },
+          {
+            "item_no": "8.4",
+            "text": "For V1: control of the cylinders play and axes cleaning"
+          },
+          {
+            "item_no": "8.5",
+            "text": "For V2: control of the belt of the electric cylinder"
+          },
+          {
+            "item_no": "8.6",
+            "text": "Control of suction cup telescopic"
+          },
+          {
+            "item_no": "8.7",
+            "text": "Control and cleaning of venturi filters"
+          }
+        ]
+      },
+      {
+        "section_no": "9",
+        "title": "Reset station",
+        "items": [
+          {
+            "item_no": "9.1",
+            "text": "Control of the state of shaft wear"
+          },
+          {
+            "item_no": "9.2",
+            "text": "Control of the conec condition"
+          },
+          {
+            "item_no": "9.3",
+            "text": "Control of the shaft tightening"
+          },
+          {
+            "item_no": "9.4",
+            "text": "Control of the motor cables"
+          },
+          {
+            "item_no": "9.5",
+            "text": "Control of the pression regulator"
+          },
+          {
+            "item_no": "9.6",
+            "text": "Control of the cylinder play"
+          }
+        ]
+      },
+      {
+        "section_no": "10",
+        "title": "Conveyor",
+        "items": [
+          {
+            "item_no": "10.1",
+            "text": "Control of the chain"
+          },
+          {
+            "item_no": "10.2",
+            "text": "Control the pad brake cylinder"
+          },
+          {
+            "item_no": "10.3",
+            "text": "Control bar code reader"
+          },
+          {
+            "item_no": "10.4",
+            "text": "Control of the stop tray"
+          },
+          {
+            "item_no": "10.5",
+            "text": "Control of detectors and reflector"
+          }
+        ]
+      },
+      {
+        "section_no": "11",
+        "title": "Reject printer",
+        "items": [
+          {
+            "item_no": "11.1",
+            "text": "Cleaninif device"
+          },
+          {
+            "item_no": "11.2",
+            "text": "Control state of the printer head"
+          }
+        ]
+      },
+      {
+        "section_no": "12",
+        "title": "Calibration and backup",
+        "items": [
+          {
+            "item_no": "12.1",
+            "text": "Complete calibration sequence"
+          },
+          {
+            "item_no": "12.2",
+            "text": "Backup of every vision system and machine folder after calibration"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "machine_type": "MCVP8",
+    "version": "V1",
+    "name": "11' MCVP8 Control Unit V1",
+    "sections": [
+      {
+        "section_no": "1",
+        "title": "Loading station",
+        "items": [
+          {
+            "item_no": "1.1",
+            "text": "Exchange of the suction cups caps"
+          },
+          {
+            "item_no": "1.2",
+            "text": "Control of the téléscopic cylinder"
+          },
+          {
+            "item_no": "1.3",
+            "text": "Control of the play of the téléscopic cylinder"
+          },
+          {
+            "item_no": "1.4",
+            "text": "Control stops and shock absorber"
+          },
+          {
+            "item_no": "1.5",
+            "text": "Control of the chain cable carrier cable"
+          },
+          {
+            "item_no": "1.6",
+            "text": "Control the rubber covering on the loading platform"
+          },
+          {
+            "item_no": "1.7",
+            "text": "contrôle of the gripper and dampers"
+          },
+          {
+            "item_no": "1.8",
+            "text": "cleaning the vacum filter of venturi and tubing"
+          },
+          {
+            "item_no": "1.9",
+            "text": "Calibration of the diameter measurement device"
+          },
+          {
+            "item_no": "1.10",
+            "text": "Control of the diameter gripper"
+          }
+        ]
+      },
+      {
+        "section_no": "2",
+        "title": "Turntable",
+        "items": [
+          {
+            "item_no": "2.1",
+            "text": "Contrôle of the brake pressure and the bake membranes"
+          },
+          {
+            "item_no": "2.2",
+            "text": "Control of the gripper and refurbishement according part availability"
+          },
+          {
+            "item_no": "2.3",
+            "text": "Lubrification of the carrier"
+          },
+          {
+            "item_no": "2.4",
+            "text": "Control of the cone"
+          },
+          {
+            "item_no": "2.5",
+            "text": "Control of cannele"
+          },
+          {
+            "item_no": "2.6",
+            "text": "Control of the cone and the shaft correspondance"
+          }
+        ]
+      },
+      {
+        "section_no": "3",
+        "title": "PPOS",
+        "items": [
+          {
+            "item_no": "3.1",
+            "text": "Control the cleanliness of the LCD glass"
+          },
+          {
+            "item_no": "3.2",
+            "text": "Control LCD hight and level"
+          },
+          {
+            "item_no": "3.3",
+            "text": "Control LCD position according to the camera"
+          },
+          {
+            "item_no": "3.4",
+            "text": "Control of the LCD polar filter condition"
+          },
+          {
+            "item_no": "3.5",
+            "text": "Control the brightness of the screen LVDS"
+          },
+          {
+            "item_no": "3.6",
+            "text": "Control of the condition and clealiness of the field lens"
+          },
+          {
+            "item_no": "3.7",
+            "text": "Control of the polar option"
+          },
+          {
+            "item_no": "3.8",
+            "text": "Control of the condition and clealiness of the additionnal lens"
+          },
+          {
+            "item_no": "3.9",
+            "text": "Control of the focus camera"
+          },
+          {
+            "item_no": "3.10",
+            "text": "Control motor diaphragm condition"
+          },
+          {
+            "item_no": "3.11",
+            "text": "Control of the couplings"
+          },
+          {
+            "item_no": "3.12",
+            "text": "Control of the X,Y tables"
+          },
+          {
+            "item_no": "3.13",
+            "text": "Control of the shaft wear condition"
+          },
+          {
+            "item_no": "3.14",
+            "text": "Control of the shaft tightening"
+          },
+          {
+            "item_no": "3.15",
+            "text": "Control of the motor cables"
+          },
+          {
+            "item_no": "3.16",
+            "text": "Control of the pression regulator"
+          },
+          {
+            "item_no": "3.17",
+            "text": "Control the cylinders play and axes cleaning"
+          },
+          {
+            "item_no": "3.18",
+            "text": "Calibration of the motor diaphragm aperture"
+          },
+          {
+            "item_no": "3.19",
+            "text": "Brightness calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "4",
+        "title": "General",
+        "items": [
+          {
+            "item_no": "4.1",
+            "text": "Control push buttons and indicator lamps"
+          },
+          {
+            "item_no": "4.2",
+            "text": "Control lamp voltage presence"
+          },
+          {
+            "item_no": "4.3",
+            "text": "Control of the light tower"
+          },
+          {
+            "item_no": "4.4",
+            "text": "Control of security"
+          },
+          {
+            "item_no": "4.5",
+            "text": "Control the fans and filters"
+          },
+          {
+            "item_no": "4.6",
+            "text": "Control of the filter and speed of the filter group"
+          },
+          {
+            "item_no": "4.7",
+            "text": "General cleaning of the machines"
+          }
+        ]
+      },
+      {
+        "section_no": "5",
+        "title": "TLS",
+        "items": [
+          {
+            "item_no": "5.1",
+            "text": "Control of cleanliness of the heads of the lenses"
+          },
+          {
+            "item_no": "5.2",
+            "text": "Control the alignment of the heads"
+          },
+          {
+            "item_no": "5.3",
+            "text": "Control of homing height"
+          },
+          {
+            "item_no": "5.4",
+            "text": "Control signal interference"
+          },
+          {
+            "item_no": "5.5",
+            "text": "Control signals in general"
+          },
+          {
+            "item_no": "5.6",
+            "text": "Test of the 1000 mesures"
+          }
+        ]
+      },
+      {
+        "section_no": "6",
+        "title": "Computer cabinet",
+        "items": [
+          {
+            "item_no": "6.1",
+            "text": "Cleaning the PC filters and the frame"
+          },
+          {
+            "item_no": "6.2",
+            "text": "Clean / change the filter for vision computers (rack)"
+          },
+          {
+            "item_no": "6.2",
+            "text": "Control UPS battery"
+          }
+        ]
+      },
+      {
+        "section_no": "7",
+        "title": "DLM",
+        "items": [
+          {
+            "item_no": "7.1",
+            "text": "Control the cleanliness of the LCD glass"
+          },
+          {
+            "item_no": "7.2",
+            "text": "Control the brightness of the screen LVDS"
+          },
+          {
+            "item_no": "7.3",
+            "text": "Control of the mirror condition"
+          },
+          {
+            "item_no": "7.4",
+            "text": "Control motor diaphragm condition"
+          },
+          {
+            "item_no": "7.5",
+            "text": "Measurment without lens"
+          },
+          {
+            "item_no": "7.6",
+            "text": "Check LED matrix"
+          },
+          {
+            "item_no": "7.7",
+            "text": "Check DLM after calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "8",
+        "title": "Focovision mobile",
+        "items": [
+          {
+            "item_no": "8.1",
+            "text": "Control of the shaft wear condition"
+          },
+          {
+            "item_no": "8.2",
+            "text": "Control of the shaft tightening"
+          },
+          {
+            "item_no": "8.3",
+            "text": "Control of the motor cables"
+          },
+          {
+            "item_no": "8.4",
+            "text": "Control of the pression regulator"
+          },
+          {
+            "item_no": "8.5",
+            "text": "Control the cylinders play and axes cleaning"
+          },
+          {
+            "item_no": "8.6",
+            "text": "Control of the additional prisme"
+          },
+          {
+            "item_no": "8.7",
+            "text": "Control of the couplings"
+          },
+          {
+            "item_no": "8.9",
+            "text": "Control of the X, Y tables"
+          },
+          {
+            "item_no": "8.10",
+            "text": "Control the ball screw of the fixe axes"
+          },
+          {
+            "item_no": "8.11",
+            "text": "Control of the truck and guide Star"
+          },
+          {
+            "item_no": "8.12",
+            "text": "Exchange the protective glass and the depositing ring"
+          },
+          {
+            "item_no": "8.13",
+            "text": "Exchange the bulb"
+          },
+          {
+            "item_no": "8.14",
+            "text": "Control of the optical alignment"
+          },
+          {
+            "item_no": "8.15",
+            "text": "Focovision calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "9",
+        "title": "Spectrometer",
+        "items": [
+          {
+            "item_no": "9.1",
+            "text": "Control of the rotary switch for transmition and reflection"
+          },
+          {
+            "item_no": "9.2",
+            "text": "Cleaning of the optic"
+          },
+          {
+            "item_no": "9.3",
+            "text": "Control of the lamps and cleaning of the reflectors"
+          },
+          {
+            "item_no": "9.4",
+            "text": "Control of the UV led"
+          },
+          {
+            "item_no": "9.5",
+            "text": "Control Bright and dark calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "11",
+        "title": "Printing control",
+        "items": [
+          {
+            "item_no": "11.1",
+            "text": "Control the cleanliness of the LCD glass"
+          },
+          {
+            "item_no": "11.2",
+            "text": "Control LCD hight and level"
+          },
+          {
+            "item_no": "11.3",
+            "text": "Control LVD position according to the camera"
+          },
+          {
+            "item_no": "11.4",
+            "text": "Control of the LCD polar filter condition"
+          },
+          {
+            "item_no": "11.5",
+            "text": "Control the brightness of the screen LVDS"
+          },
+          {
+            "item_no": "11.6",
+            "text": "Control of the condition and clealiness of the field lens"
+          },
+          {
+            "item_no": "11.7",
+            "text": "Control of the focus camera"
+          },
+          {
+            "item_no": "11.8",
+            "text": "Control motor diaphragm condition"
+          },
+          {
+            "item_no": "11.9",
+            "text": "Calibration of the aperture motor diaphragm"
+          },
+          {
+            "item_no": "11.10",
+            "text": "Brightness calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "12",
+        "title": "Unloading",
+        "items": [
+          {
+            "item_no": "12.1",
+            "text": "Exchange of suction cup cap"
+          },
+          {
+            "item_no": "12.2",
+            "text": "Exchange suction cup"
+          },
+          {
+            "item_no": "12.3",
+            "text": "Control of the chain cable carrier cable"
+          },
+          {
+            "item_no": "12.4",
+            "text": "For V1: control of the cylinders play and axes cleaning"
+          },
+          {
+            "item_no": "12.5",
+            "text": "For V2: control of the belt of the electric cylinder"
+          },
+          {
+            "item_no": "12.6",
+            "text": "Control of suction cup telescopic"
+          },
+          {
+            "item_no": "12.7",
+            "text": "Control and cleaning of venturi filters"
+          }
+        ]
+      },
+      {
+        "section_no": "13",
+        "title": "Reset station",
+        "items": [
+          {
+            "item_no": "13.1",
+            "text": "Control of the state of shaft wear"
+          },
+          {
+            "item_no": "13.2",
+            "text": "Control of the cone condition"
+          },
+          {
+            "item_no": "13.3",
+            "text": "Control of the shaft tightening"
+          },
+          {
+            "item_no": "13.4",
+            "text": "Control of the motor cables"
+          },
+          {
+            "item_no": "13.5",
+            "text": "Control of the pression regulator"
+          },
+          {
+            "item_no": "13.6",
+            "text": "Control of the cylinder play"
+          }
+        ]
+      },
+      {
+        "section_no": "14",
+        "title": "Conveyor",
+        "items": [
+          {
+            "item_no": "14.1",
+            "text": "Control of the chain"
+          },
+          {
+            "item_no": "14.2",
+            "text": "Control and clean the bar code reader"
+          },
+          {
+            "item_no": "14.3",
+            "text": "Control of the stop tray"
+          },
+          {
+            "item_no": "14.4",
+            "text": "Control of detectors and reflector"
+          }
+        ]
+      },
+      {
+        "section_no": "15",
+        "title": "Horizontal accumulator",
+        "items": [
+          {
+            "item_no": "15.1",
+            "text": "Control of all shoch absorber"
+          },
+          {
+            "item_no": "15.2",
+            "text": "contrôle of the condition of the pusher and guiding plates"
+          },
+          {
+            "item_no": "15.3",
+            "text": "Cleaning of the platfroms and adjustment if required"
+          }
+        ]
+      },
+      {
+        "section_no": "16",
+        "title": "Reject printer",
+        "items": [
+          {
+            "item_no": "16.1",
+            "text": "Cleaninif device"
+          },
+          {
+            "item_no": "16.2",
+            "text": "Control state of the printer head"
+          },
+          {
+            "item_no": "17.1",
+            "text": "Control of the state of the UV lamp"
+          },
+          {
+            "item_no": "17.2",
+            "text": "Check 0° Inclinaison"
+          },
+          {
+            "item_no": "18.1",
+            "text": "Control the robot belt"
+          },
+          {
+            "item_no": "18.2",
+            "text": "remplace the battery"
+          },
+          {
+            "item_no": "18.3",
+            "text": "Grease the harmonic drives if necessary"
+          },
+          {
+            "item_no": "18.4",
+            "text": "Control of all air tubes and cables"
+          },
+          {
+            "item_no": "19.1",
+            "text": "Control of the smoothness of the pistont"
+          },
+          {
+            "item_no": "19.2",
+            "text": "Control tightness of screws of motor couplings"
+          }
+        ]
+      },
+      {
+        "section_no": "20",
+        "title": "Calibration and backup",
+        "items": [
+          {
+            "item_no": "20.1",
+            "text": "Check the shaft alignments"
+          },
+          {
+            "item_no": "20.2",
+            "text": "Control of station-to-station alignment (CALI30)"
+          },
+          {
+            "item_no": "20.10",
+            "text": "Backup of every vision system and machine folder after calibration"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "machine_type": "MCVP8",
+    "version": "V2",
+    "name": "11 MCVP8 Control Unit V2",
+    "sections": [
+      {
+        "section_no": "1",
+        "title": "Loading station",
+        "items": [
+          {
+            "item_no": "1.1",
+            "text": "Exchange of the suction cups caps"
+          },
+          {
+            "item_no": "1.2",
+            "text": "Exchange of suction cups"
+          },
+          {
+            "item_no": "1.3",
+            "text": "Control of the height locking cylinder"
+          },
+          {
+            "item_no": "1.4",
+            "text": "Control stops and shock absorber"
+          },
+          {
+            "item_no": "1.5",
+            "text": "Control of the chain cable carrier cable"
+          },
+          {
+            "item_no": "1.6",
+            "text": "Control the cylinders play and axes cleaning"
+          },
+          {
+            "item_no": "1.7",
+            "text": "Control of suction cup telescopic"
+          },
+          {
+            "item_no": "1.8",
+            "text": "Control and cleaning filters venturi"
+          },
+          {
+            "item_no": "1.9",
+            "text": "Exchange of the 5 one way valves"
+          },
+          {
+            "item_no": "1.10",
+            "text": "Exchange of the 5 rubber fingers of the centering gripper"
+          },
+          {
+            "item_no": "1.11",
+            "text": "Control of the belt"
+          },
+          {
+            "item_no": "1.12",
+            "text": "Control of the fingers grippers bearings"
+          },
+          {
+            "item_no": "1.13",
+            "text": "Control of the vibration device"
+          },
+          {
+            "item_no": "1.14",
+            "text": "Control of pressure regulators for gripper centering"
+          },
+          {
+            "item_no": "1.15",
+            "text": "Control the condition of the loading platform"
+          },
+          {
+            "item_no": "1.16",
+            "text": "Control of the X-Y position and rotation of the platform"
+          },
+          {
+            "item_no": "1.17",
+            "text": "Control of the complete loading sequence"
+          }
+        ]
+      },
+      {
+        "section_no": "2",
+        "title": "Turntable",
+        "items": [
+          {
+            "item_no": "2.1",
+            "text": "Control of the belt tension"
+          },
+          {
+            "item_no": "2.2",
+            "text": "Control of the gap of the indexing table"
+          },
+          {
+            "item_no": "2.3",
+            "text": "Control of grippers general condition"
+          },
+          {
+            "item_no": "2.4",
+            "text": "Control of the fingers rotation"
+          },
+          {
+            "item_no": "2.5",
+            "text": "Control of grippers opening"
+          },
+          {
+            "item_no": "2.6",
+            "text": "Control of gripper support bearings"
+          },
+          {
+            "item_no": "2.7",
+            "text": "Control of the grippers brakes"
+          },
+          {
+            "item_no": "2.8",
+            "text": "Control of the electrovalves"
+          }
+        ]
+      },
+      {
+        "section_no": "3",
+        "title": "PPOS",
+        "items": [
+          {
+            "item_no": "3.1",
+            "text": "Control the cleanliness of the LCD glass"
+          },
+          {
+            "item_no": "3.2",
+            "text": "Control LCD hight and level"
+          },
+          {
+            "item_no": "3.3",
+            "text": "Control LCD position according to the camera"
+          },
+          {
+            "item_no": "3.4",
+            "text": "Control of the LCD polar filter condition"
+          },
+          {
+            "item_no": "3.5",
+            "text": "Control the brightness of the screen LVDS"
+          },
+          {
+            "item_no": "3.6",
+            "text": "Control of the condition and clealiness of the field lens"
+          },
+          {
+            "item_no": "3.7",
+            "text": "Control of the polar option"
+          },
+          {
+            "item_no": "3.8",
+            "text": "Control of the condition and clealiness of the additionnal lens"
+          },
+          {
+            "item_no": "3.9",
+            "text": "Control of the focus camera"
+          },
+          {
+            "item_no": "3.10",
+            "text": "Control motor diaphragm condition"
+          },
+          {
+            "item_no": "3.11",
+            "text": "Control of the couplings"
+          },
+          {
+            "item_no": "3.12",
+            "text": "Control of the X,Y tables"
+          },
+          {
+            "item_no": "3.13",
+            "text": "Control of the shaft wear condition"
+          },
+          {
+            "item_no": "3.14",
+            "text": "Control of the shaft tightening"
+          },
+          {
+            "item_no": "3.15",
+            "text": "Control of the motor cables"
+          },
+          {
+            "item_no": "3.16",
+            "text": "Control of the pression regulator"
+          },
+          {
+            "item_no": "3.17",
+            "text": "Control the cylinders play and axes cleaning"
+          },
+          {
+            "item_no": "3.18",
+            "text": "Calibration of the motor diaphragm aperture"
+          },
+          {
+            "item_no": "3.19",
+            "text": "Brightness calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "4",
+        "title": "General",
+        "items": [
+          {
+            "item_no": "4.1",
+            "text": "Control push buttons and indicator lamps"
+          },
+          {
+            "item_no": "4.2",
+            "text": "Control lamp voltage presence"
+          },
+          {
+            "item_no": "4.3",
+            "text": "Control of the light tower"
+          },
+          {
+            "item_no": "4.4",
+            "text": "Control of doors detectors"
+          },
+          {
+            "item_no": "4.5",
+            "text": "Control the fans and filters"
+          },
+          {
+            "item_no": "4.6",
+            "text": "Control of the filter and speed of the filter group"
+          },
+          {
+            "item_no": "4.7",
+            "text": "General cleaning of the machines"
+          }
+        ]
+      },
+      {
+        "section_no": "5",
+        "title": "TLS",
+        "items": [
+          {
+            "item_no": "5.1",
+            "text": "Control of cleanliness of the heads of the lenses"
+          },
+          {
+            "item_no": "5.2",
+            "text": "Control the alignment of the heads"
+          },
+          {
+            "item_no": "5.3",
+            "text": "Control of homing height"
+          },
+          {
+            "item_no": "5.4",
+            "text": "Control signal interference"
+          },
+          {
+            "item_no": "5.5",
+            "text": "Control signals in general"
+          },
+          {
+            "item_no": "5.6",
+            "text": "Test of the 1000 mesures"
+          }
+        ]
+      },
+      {
+        "section_no": "6",
+        "title": "Computer cabinet",
+        "items": [
+          {
+            "item_no": "6.1",
+            "text": "Cleaning the PC filters and the frame"
+          },
+          {
+            "item_no": "6.2",
+            "text": "Control UPS battery"
+          }
+        ]
+      },
+      {
+        "section_no": "7",
+        "title": "DLM",
+        "items": [
+          {
+            "item_no": "7.1",
+            "text": "Control the cleanliness of the LCD glass"
+          },
+          {
+            "item_no": "7.2",
+            "text": "Control the brightness of the screen LVDS"
+          },
+          {
+            "item_no": "7.3",
+            "text": "Control of the mirror condition"
+          },
+          {
+            "item_no": "7.4",
+            "text": "Control motor diaphragm condition"
+          },
+          {
+            "item_no": "7.5",
+            "text": "Measurment without lens"
+          },
+          {
+            "item_no": "7.6",
+            "text": "Check LED matrix"
+          },
+          {
+            "item_no": "7.7",
+            "text": "Check DLM after calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "8",
+        "title": "Focovision mobile",
+        "items": [
+          {
+            "item_no": "8.1",
+            "text": "Control of the shaft wear condition"
+          },
+          {
+            "item_no": "8.2",
+            "text": "Control of the shaft tightening"
+          },
+          {
+            "item_no": "8.3",
+            "text": "Control of the motor cables"
+          },
+          {
+            "item_no": "8.4",
+            "text": "Control of the pression regulator"
+          },
+          {
+            "item_no": "8.5",
+            "text": "Control the cylinders play and axes cleaning"
+          },
+          {
+            "item_no": "8.6",
+            "text": "Control of the additional prisme"
+          },
+          {
+            "item_no": "8.7",
+            "text": "Control of the couplings"
+          },
+          {
+            "item_no": "8.9",
+            "text": "Control of the X, Y tables"
+          },
+          {
+            "item_no": "8.10",
+            "text": "Control the ball screw of the fixe axes"
+          },
+          {
+            "item_no": "8.11",
+            "text": "Control of the truck and guide Star"
+          },
+          {
+            "item_no": "8.12",
+            "text": "Exchange the protective glass and the depositing ring"
+          },
+          {
+            "item_no": "8.13",
+            "text": "Exchange the bulb"
+          },
+          {
+            "item_no": "8.14",
+            "text": "Control of the optical alignment"
+          },
+          {
+            "item_no": "8.15",
+            "text": "Focovision calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "9",
+        "title": "Spectrometer",
+        "items": [
+          {
+            "item_no": "9.1",
+            "text": "Control of the rotary switch for transmition and reflection"
+          },
+          {
+            "item_no": "9.2",
+            "text": "Cleaning of the optic"
+          },
+          {
+            "item_no": "9.3",
+            "text": "Control of the lamps and cleaning of the reflectors"
+          },
+          {
+            "item_no": "9.4",
+            "text": "Control of the UV led"
+          },
+          {
+            "item_no": "9.5",
+            "text": "Control Bright and dark calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "10",
+        "title": "Inkjet-Wax",
+        "items": [
+          {
+            "item_no": "10.1",
+            "text": "Open all Inking module covers"
+          },
+          {
+            "item_no": "10.2",
+            "text": "removingÊdustÊwithÊaÊvacuumÊcleaner, cleaning with a suitable product and cloth"
+          },
+          {
+            "item_no": "10.3",
+            "text": "Clean the covers"
+          },
+          {
+            "item_no": "10.4",
+            "text": "Oil the linear bearing"
+          },
+          {
+            "item_no": "10.5",
+            "text": "Check cleannes of whole system"
+          },
+          {
+            "item_no": "10.6",
+            "text": "Wiper assembly Exchange"
+          },
+          {
+            "item_no": "10.7",
+            "text": "Remove the solidified ink from the bin"
+          },
+          {
+            "item_no": "10.8",
+            "text": "Inlet filter assembly exchange"
+          },
+          {
+            "item_no": "10.9",
+            "text": "Pump filter exchange"
+          },
+          {
+            "item_no": "10.10",
+            "text": "Tubing pump exchange"
+          },
+          {
+            "item_no": "10.11",
+            "text": "Check the status and clean the pump assembly"
+          },
+          {
+            "item_no": "10.12",
+            "text": "Check the status (visual) of Flat cable. exchange if the flat seems damaged"
+          },
+          {
+            "item_no": "10.13",
+            "text": "Check the cleaness of the head"
+          },
+          {
+            "item_no": "10.14",
+            "text": "Check the head cleaning sequence"
+          },
+          {
+            "item_no": "10.15",
+            "text": "Check axis alignement"
+          },
+          {
+            "item_no": "10.16",
+            "text": "Check and ajust double layout"
+          },
+          {
+            "item_no": "10.17",
+            "text": "Check inking quality"
+          }
+        ]
+      },
+      {
+        "section_no": "11",
+        "title": "Printing control",
+        "items": [
+          {
+            "item_no": "11.1",
+            "text": "Control the cleanliness of the LCD glass"
+          },
+          {
+            "item_no": "11.2",
+            "text": "Control LCD hight and level"
+          },
+          {
+            "item_no": "11.3",
+            "text": "Control LVD position according to the camera"
+          },
+          {
+            "item_no": "11.4",
+            "text": "Control of the LCD polar filter condition"
+          },
+          {
+            "item_no": "11.5",
+            "text": "Control the brightness of the screen LVDS"
+          },
+          {
+            "item_no": "11.6",
+            "text": "Control of the condition and clealiness of the field lens"
+          },
+          {
+            "item_no": "11.7",
+            "text": "Control of the focus camera"
+          },
+          {
+            "item_no": "11.8",
+            "text": "Control motor diaphragm condition"
+          },
+          {
+            "item_no": "11.9",
+            "text": "Calibration of the aperture motor diaphragm"
+          },
+          {
+            "item_no": "11.10",
+            "text": "Brightness calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "12",
+        "title": "Unloading",
+        "items": [
+          {
+            "item_no": "12.1",
+            "text": "Exchange of suction cup cap"
+          },
+          {
+            "item_no": "12.2",
+            "text": "Exchange suction caup"
+          },
+          {
+            "item_no": "12.3",
+            "text": "Control of the chain cable carrier cable"
+          },
+          {
+            "item_no": "12.4",
+            "text": "For V1: control of the cylinders play and axes cleaning"
+          },
+          {
+            "item_no": "12.5",
+            "text": "For V2: control of the belt of the electric cylinder"
+          },
+          {
+            "item_no": "12.6",
+            "text": "Control of suction cup telescopic"
+          },
+          {
+            "item_no": "12.7",
+            "text": "Control and cleaning of venturi filters"
+          }
+        ]
+      },
+      {
+        "section_no": "13",
+        "title": "Reset station",
+        "items": [
+          {
+            "item_no": "13.1",
+            "text": "Control of the state of shaft wear"
+          },
+          {
+            "item_no": "13.2",
+            "text": "Control of the conec condition"
+          },
+          {
+            "item_no": "13.3",
+            "text": "Control of the shaft tightening"
+          },
+          {
+            "item_no": "13.4",
+            "text": "Control of the motor cables"
+          },
+          {
+            "item_no": "13.5",
+            "text": "Control of the pression regulator"
+          },
+          {
+            "item_no": "13.6",
+            "text": "Control of the cylinder play"
+          }
+        ]
+      },
+      {
+        "section_no": "14",
+        "title": "Conveyor",
+        "items": [
+          {
+            "item_no": "14.1",
+            "text": "Control of the chain"
+          },
+          {
+            "item_no": "14.2",
+            "text": "Control the pad brake cylinder"
+          },
+          {
+            "item_no": "14.3",
+            "text": "Control bar code reader"
+          },
+          {
+            "item_no": "14.4",
+            "text": "Control of the stop tray"
+          },
+          {
+            "item_no": "14.5",
+            "text": "Control of detectors and reflector"
+          }
+        ]
+      },
+      {
+        "section_no": "15",
+        "title": "Reject printer",
+        "items": [
+          {
+            "item_no": "15.1",
+            "text": "Cleaninif device"
+          },
+          {
+            "item_no": "15.2",
+            "text": "Control state of the printer head"
+          }
+        ]
+      },
+      {
+        "section_no": "16",
+        "title": "Calibration and backup",
+        "items": [
+          {
+            "item_no": "16.1",
+            "text": "Complete calibration sequence"
+          },
+          {
+            "item_no": "16.2",
+            "text": "Backup of every vision system and machine folder after calibration"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "machine_type": "SPV2",
+    "version": null,
+    "name": "H1 ARFOCV Focovision SPV2",
+    "sections": [
+      {
+        "section_no": "1",
+        "title": "General",
+        "items": [
+          {
+            "item_no": "1.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "1.2",
+            "text": "Exchange fan filter"
+          },
+          {
+            "item_no": "1.4",
+            "text": "Check backplane voltages"
+          },
+          {
+            "item_no": "1.5",
+            "text": "Check motherboard fan and the compensator drive fans"
+          },
+          {
+            "item_no": "1.6",
+            "text": "Check the communication of the printer and the thickness measurment"
+          }
+        ]
+      },
+      {
+        "section_no": "2",
+        "title": "Focovision",
+        "items": [
+          {
+            "item_no": "2.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "2.2",
+            "text": "Exchange the bulb"
+          },
+          {
+            "item_no": "2.3",
+            "text": "Check bulb voltage"
+          },
+          {
+            "item_no": "2.4",
+            "text": "Clean the E-line or D-line filter and the prism"
+          },
+          {
+            "item_no": "2.5",
+            "text": "Exchange the protection glass"
+          },
+          {
+            "item_no": "2.6",
+            "text": "Exchange the lens holder ring"
+          },
+          {
+            "item_no": "2.7",
+            "text": "Open prism compensator, clean and check bearings"
+          },
+          {
+            "item_no": "2.8",
+            "text": "Check prism compensator belts"
+          },
+          {
+            "item_no": "2.9",
+            "text": "Check motor hears tightness"
+          },
+          {
+            "item_no": "3.0",
+            "text": "Check motor connections"
+          },
+          {
+            "item_no": "3.1",
+            "text": "Check motor belts tension"
+          },
+          {
+            "item_no": "3.2",
+            "text": "Check Focovision optical alignment"
+          },
+          {
+            "item_no": "3.3",
+            "text": "Diopter calibration"
+          },
+          {
+            "item_no": "3.4",
+            "text": "Prism calibration"
+          },
+          {
+            "item_no": "3.5",
+            "text": "Prism compensator test"
+          }
+        ]
+      },
+      {
+        "section_no": "3",
+        "title": "Visualization",
+        "items": [
+          {
+            "item_no": "3.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "3.2",
+            "text": "Check and clean beam splitter"
+          },
+          {
+            "item_no": "3.3",
+            "text": "Check visualization camera position"
+          },
+          {
+            "item_no": "3.4",
+            "text": "Clear visualization camera protection glass"
+          },
+          {
+            "item_no": "3.5",
+            "text": "Check visualization camera focus"
+          },
+          {
+            "item_no": "3.6",
+            "text": "Check differents holders of visualization"
+          },
+          {
+            "item_no": "3.7",
+            "text": "Check LED's and fibers for the visualization"
+          },
+          {
+            "item_no": "3.8",
+            "text": "Dimension calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "4",
+        "title": "Marking (option)",
+        "items": [
+          {
+            "item_no": "4.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "4.2",
+            "text": "Check marking device general state"
+          },
+          {
+            "item_no": "4.3",
+            "text": "Rail clean and lubrication"
+          },
+          {
+            "item_no": "4.4",
+            "text": "Check marking position according dimension calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "5",
+        "title": "Vacuum (option)",
+        "items": [
+          {
+            "item_no": "5.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "5.2",
+            "text": "Exchange vacuum sleeve"
+          },
+          {
+            "item_no": "5.3",
+            "text": "Check and cleaning vacuum tubing"
+          },
+          {
+            "item_no": "5.4",
+            "text": "Check sealing ring"
+          },
+          {
+            "item_no": "5.5",
+            "text": "Clean vacuum metal tube"
+          },
+          {
+            "item_no": "5.6",
+            "text": "Check vacuum on different lens curvatures"
+          }
+        ]
+      },
+      {
+        "section_no": "6",
+        "title": "Centring gripper (option)",
+        "items": [
+          {
+            "item_no": "6.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "6.2",
+            "text": "Check gripper device general state"
+          },
+          {
+            "item_no": "6.3",
+            "text": "Check the bearings play"
+          },
+          {
+            "item_no": "6.4",
+            "text": "Rail clean and lubrication"
+          },
+          {
+            "item_no": "6.5",
+            "text": "Exchange the gripper fingers"
+          }
+        ]
+      },
+      {
+        "section_no": "7",
+        "title": "Polarisation (option)",
+        "items": [
+          {
+            "item_no": "7.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "7.2",
+            "text": "Check the ajdustment"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "machine_type": "SPV3",
+    "version": null,
+    "name": "H1 ARFOCV Focovision SPV3",
+    "sections": [
+      {
+        "section_no": "1",
+        "title": "General",
+        "items": [
+          {
+            "item_no": "1.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "1.2",
+            "text": "Exchange fan filter"
+          },
+          {
+            "item_no": "1.4",
+            "text": "Check backplane voltages"
+          },
+          {
+            "item_no": "1.5",
+            "text": "Check motherboard fan and the compensator drive fans"
+          },
+          {
+            "item_no": "1.6",
+            "text": "Check the communication of the printer and the thickness measurment"
+          }
+        ]
+      },
+      {
+        "section_no": "2",
+        "title": "Focovision",
+        "items": [
+          {
+            "item_no": "2.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "2.2",
+            "text": "Check LED current"
+          },
+          {
+            "item_no": "2.3",
+            "text": "Clean the E-line or D-line filter and the prism"
+          },
+          {
+            "item_no": "2.4",
+            "text": "Exchange the protection glass"
+          },
+          {
+            "item_no": "2.5",
+            "text": "Exchange the lens holder ring"
+          },
+          {
+            "item_no": "2.6",
+            "text": "Open prism compensator, clean and check bearings"
+          },
+          {
+            "item_no": "2.7",
+            "text": "Check prism compensator belts"
+          },
+          {
+            "item_no": "2.8",
+            "text": "Check motor hears tightness"
+          },
+          {
+            "item_no": "2.9",
+            "text": "Check motor connections"
+          },
+          {
+            "item_no": "2.10",
+            "text": "Check motor belts tension"
+          },
+          {
+            "item_no": "2.11",
+            "text": "Check Focovision optical alignment"
+          },
+          {
+            "item_no": "2.12",
+            "text": "Diopter calibration"
+          },
+          {
+            "item_no": "2.13",
+            "text": "Prism calibration"
+          },
+          {
+            "item_no": "2.14",
+            "text": "Prism compensator test"
+          }
+        ]
+      },
+      {
+        "section_no": "3",
+        "title": "Visualization",
+        "items": [
+          {
+            "item_no": "3.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "3.2",
+            "text": "Check and clean beam splitter"
+          },
+          {
+            "item_no": "3.3",
+            "text": "Check visualization camera position"
+          },
+          {
+            "item_no": "3.4",
+            "text": "Clear visualization camera protection glass"
+          },
+          {
+            "item_no": "3.5",
+            "text": "Check visualization camera focus"
+          },
+          {
+            "item_no": "3.6",
+            "text": "Check differents holders of visualization"
+          },
+          {
+            "item_no": "3.7",
+            "text": "Check LED's and fibers for the visualization"
+          },
+          {
+            "item_no": "3.8",
+            "text": "Dimension calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "4",
+        "title": "Marking (option)",
+        "items": [
+          {
+            "item_no": "4.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "4.2",
+            "text": "Check marking device general state"
+          },
+          {
+            "item_no": "4.3",
+            "text": "Rail clean and lubrication"
+          },
+          {
+            "item_no": "4.4",
+            "text": "Check marking position according dimension calibration"
+          }
+        ]
+      },
+      {
+        "section_no": "5",
+        "title": "Vacuum (option)",
+        "items": [
+          {
+            "item_no": "5.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "5.2",
+            "text": "Exchange vacuum sleeve"
+          },
+          {
+            "item_no": "5.3",
+            "text": "Check and cleaning vacuum tubing"
+          },
+          {
+            "item_no": "5.4",
+            "text": "Check sealing ring"
+          },
+          {
+            "item_no": "5.5",
+            "text": "Clean vacuum metal tube"
+          },
+          {
+            "item_no": "5.6",
+            "text": "Check vacuum on different lens curvatures"
+          }
+        ]
+      },
+      {
+        "section_no": "6",
+        "title": "Centring gripper (option)",
+        "items": [
+          {
+            "item_no": "6.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "6.2",
+            "text": "Check gripper device general state"
+          },
+          {
+            "item_no": "6.3",
+            "text": "Check the bearings play"
+          },
+          {
+            "item_no": "6.4",
+            "text": "Rail clean and lubrication"
+          },
+          {
+            "item_no": "6.5",
+            "text": "Exchange the gripper fingers"
+          }
+        ]
+      },
+      {
+        "section_no": "7",
+        "title": "Polarisation (option)",
+        "items": [
+          {
+            "item_no": "7.1",
+            "text": "General cleaning"
+          },
+          {
+            "item_no": "7.2",
+            "text": "Check the ajdustment"
+          }
+        ]
+      }
+    ]
+  }
+]
