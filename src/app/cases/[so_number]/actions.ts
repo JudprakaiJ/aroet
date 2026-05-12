@@ -4,7 +4,19 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { parsePlannerNote } from "@/lib/planner/parser";
 import { revalidatePath } from "next/cache";
 
+function checkEnv() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    throw new Error("NEXT_PUBLIC_SUPABASE_URL missing from .env.local");
+  }
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error(
+      "SUPABASE_SERVICE_ROLE_KEY missing from .env.local — get it from Supabase Dashboard → Settings → API → service_role key, then restart dev server"
+    );
+  }
+}
+
 export async function reparseCase(so_number: string) {
+  checkEnv();
   const supabase = createServiceClient();
 
   // Get the case to get planner_note + machine_no
@@ -14,12 +26,15 @@ export async function reparseCase(so_number: string) {
     .eq("so_number", so_number)
     .single();
 
-  if (caseErr || !caseData) {
-    throw new Error("Case not found");
+  if (caseErr) {
+    throw new Error(`Case lookup failed (${so_number}): ${caseErr.message} [code: ${caseErr.code}]`);
+  }
+  if (!caseData) {
+    throw new Error(`Case "${so_number}" not found in DB. Verify .env.local SUPABASE_SERVICE_ROLE_KEY matches the project.`);
   }
 
   if (!caseData.planner_note) {
-    throw new Error("No planner note to parse");
+    throw new Error("No planner note to parse on this case");
   }
 
   // Delete all planner-sourced data (keep manual)
@@ -52,7 +67,8 @@ export async function reparseCase(so_number: string) {
       raw_line: s.raw_line,
     }));
     const { error } = await supabase.from("sessions").insert(sessionRows);
-    if (!error) inserted.sessions = sessionRows.length;
+    if (error) throw new Error(`Insert sessions failed: ${error.message}`);
+    inserted.sessions = sessionRows.length;
   }
 
   if (parsed.references.length > 0) {
@@ -98,6 +114,7 @@ export async function addManualSession(input: {
   activity_type: string;
   work_done: string;
 }) {
+  checkEnv();
   const supabase = createServiceClient();
 
   const sessionDate = new Date(input.session_date);
@@ -125,6 +142,7 @@ export async function addManualSession(input: {
 }
 
 export async function deleteSession(id: number, so_number: string) {
+  checkEnv();
   const supabase = createServiceClient();
   await supabase.from("sessions").delete().eq("id", id);
   revalidatePath(`/cases/${so_number}`);

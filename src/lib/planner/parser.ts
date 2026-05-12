@@ -356,6 +356,9 @@ function parseHeaderToSessions(
   // Determine if it's a weekend
   const weekend = isWeekend(header.date);
 
+  // Detect holiday from inline keywords: (Bank Holiday), (Holiday), (Public Holiday), (วันหยุด)
+  const holidayInline = /\(([^)]*\b(?:bank\s*holiday|public\s*holiday|holiday|วันหยุด)\b[^)]*)\)/i.test(rest);
+
   // Build one session per engineer
   const sessions: ParsedSession[] = [];
   for (const eng of header.engineers) {
@@ -371,7 +374,7 @@ function parseHeaderToSessions(
       switched_to_so: soSwitch?.otherSo,
       is_partial_day: !!soSwitch,
       is_weekend: weekend,
-      is_holiday: false, // could be enhanced with holiday calendar later
+      is_holiday: holidayInline,
       parse_warning: warning,
       raw_line: rawLine,
     });

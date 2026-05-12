@@ -10,24 +10,32 @@ Built on Next.js 15 + TypeScript + Tailwind v4 + Supabase + Vercel.
 ```
 aroet-phase1/
 ├── sql/
-│   ├── 01_migration.sql          # Schema changes + new tables
-│   ├── 02_seed_checklists.sql    # Seeds 6 PM templates from A&R PDFs
-│   └── checklist-data.json       # Reference (inspect-only)
+│   ├── 01_migration.sql              # Schema changes + new tables
+│   ├── 02_seed_checklists.sql        # Seeds 6 PM templates from A&R PDFs
+│   ├── 03_workforce_approvals.sql    # NEW: session approvals + engineer role
+│   └── checklist-data.json           # Reference (inspect-only)
 └── src/
     ├── app/
     │   ├── layout.tsx, page.tsx, globals.css
     │   ├── cases/
-    │   │   ├── page.tsx                  # Card list with filter chips
-    │   │   ├── new/                      # New case form (paste & parse)
-    │   │   └── [so_number]/              # Detail with 6 tabs
+    │   │   ├── page.tsx                # Card list with filter chips + Bulk parse button
+    │   │   ├── new/                    # New case form (paste & parse)
+    │   │   └── [so_number]/            # Detail with 6 tabs
     │   ├── customers/page.tsx
     │   ├── machines/page.tsx, [machine_no]/page.tsx
-    │   ├── engineers/page.tsx            # Timesheet
-    │   ├── planning/page.tsx             # Overdue / Due 30d / Later
-    │   └── calendar/page.tsx             # Month grid
-    ├── components/top-nav.tsx
+    │   ├── engineers/page.tsx          # Timesheet
+    │   ├── planning/page.tsx           # Overdue / Due 30d / Later
+    │   ├── workforce/                  # NEW
+    │   │   ├── page.tsx                  # Server: load engineers + sessions
+    │   │   ├── calendar.tsx              # Client: heat map + expandable rows + approval
+    │   │   └── actions.ts                # submit / approve / return / bulkApproveByPeriod
+    │   └── admin/bulk-reparse/         # Bulk parse all cases
+    ├── components/top-nav.tsx          # 6 menu items (added Workforce)
     └── lib/
         ├── format.ts                     # Badges, time formatting
+        ├── pay-period.ts                 # NEW: 1-20 / 21-end / custom helper
+        ├── planner/parser.ts             # v5 parser (with holiday detection)
+        └── supabase/{client,server,service}.ts
         ├── planner/
         │   ├── parser.ts                 # Parser v5 (sessions+refs+admin_log)
         │   └── time-input.ts             # "1h30" → 90 helper for forms
@@ -48,6 +56,7 @@ Paste & run **in order**:
 
 1. **`sql/01_migration.sql`** — adds columns to `sessions`, creates new tables (`case_references`, `admin_log`, `checklist_templates`, etc.), grants permissions, disables RLS.
 2. **`sql/02_seed_checklists.sql`** — seeds 6 templates from official A&R Belgium PDFs (DLM 29 items, MCVP4 88, MCVP8 V1 120, MCVP8 V2 134, SPV2 45, SPV3 44 = **460 items total**).
+3. **`sql/03_workforce_approvals.sql`** — adds `is_customer_related` + `approval_status` columns to `sessions`, creates `session_approval_log` audit table, adds `role` to `engineers` and backfills team roles (PPI=boss, SPE=tech_manager, CCH/LRO=admin, others=engineer).
 
 After both run, you should see:
 ```

@@ -64,13 +64,22 @@ export default async function CasesPage({
           <h1 className="text-lg font-semibold text-slate-900">Cases</h1>
           <p className="text-xs text-slate-500">{cases?.length ?? 0} shown</p>
         </div>
-        <Link
-          href="/cases/new"
-          className="text-xs px-3 py-1.5 rounded-md font-medium"
-          style={{ background: "#C8102E", color: "white" }}
-        >
-          + New case
-        </Link>
+        <div className="flex gap-2 items-center">
+          <Link
+            href="/admin/bulk-reparse"
+            className="text-xs px-3 py-1.5 rounded-md font-medium border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+            title="Re-run parser on all cases with planner_note"
+          >
+            ⚡ Bulk parse
+          </Link>
+          <Link
+            href="/cases/new"
+            className="text-xs px-3 py-1.5 rounded-md font-medium"
+            style={{ background: "#C8102E", color: "white" }}
+          >
+            + New case
+          </Link>
+        </div>
       </div>
 
       <div className="flex gap-2 mb-4 text-xs flex-wrap">

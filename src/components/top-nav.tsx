@@ -6,10 +6,10 @@ import { useState } from "react";
 
 const NAV_ITEMS = [
   { label: "Cases", href: "/cases" },
+  { label: "Workforce", href: "/workforce" },
   { label: "Customers", href: "/customers" },
   { label: "Machines", href: "/machines" },
   { label: "Planning", href: "/planning" },
-  { label: "Calendar", href: "/calendar" },
   { label: "Team", href: "/engineers" },
 ];
 
