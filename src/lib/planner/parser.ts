@@ -317,11 +317,12 @@ function parseHeaderToSessions(
     }
   }
 
-  // FIX D: Compute travel + work ourselves, prefer computed over planner
+  // FIX D (v6): Smart compute — 2 blocks compute, 3+ blocks trust planner
   let computedTravel = 0;
   let computedWork = 0;
 
-  if (timeBlocks.length >= 2) {
+  if (timeBlocks.length === 2) {
+    // Standard case: out + back → compute
     const first = timeBlocks[0];
     const last = timeBlocks[timeBlocks.length - 1];
     computedTravel = first.duration + last.duration;
@@ -329,9 +330,10 @@ function parseHeaderToSessions(
     const totalBreak = breaks.reduce((a, b) => a + b, 0);
     computedWork = Math.max(0, onSite - totalBreak);
   } else if (timeBlocks.length === 1) {
-    // Single time block = travel only day (one direction)
+    // Single time block = travel-only day
     computedTravel = timeBlocks[0].duration;
   }
+  // 3+ blocks: complex schedule (split travel, multiple sites, etc.) — fall through to planner
 
   // Inline duration for remote/short entries
   let inlineWork = 0;
@@ -342,15 +344,18 @@ function parseHeaderToSessions(
 
   const soSwitch = detectSoSwitch(rest);
 
-  // FIX D: prefer computed if available, fall back to planner
-  const travel = computedTravel || plannerTravel;
-  const work = computedWork || plannerWork || inlineWork;
+  // Use computed if 2-block case, otherwise trust planner values
+  const travel = timeBlocks.length === 2 ? (computedTravel || plannerTravel) : plannerTravel;
+  const work = timeBlocks.length === 2 ? (computedWork || plannerWork || inlineWork) : (plannerWork || inlineWork);
   const totalBreak = breaks.reduce((a, b) => a + b, 0);
 
-  // Warning if computed and planner differ significantly (engineer should review)
+  // Warning if 2-block case shows mismatch (planner vs computed)
   let warning: string | undefined;
-  if (computedWork > 0 && plannerWork > 0 && Math.abs(computedWork - plannerWork) > 15) {
+  if (timeBlocks.length === 2 && computedWork > 0 && plannerWork > 0 && Math.abs(computedWork - plannerWork) > 15) {
     warning = `Planner C=${plannerWork}min, computed ${computedWork}min — using computed`;
+  }
+  if (timeBlocks.length >= 3 && (plannerTravel === 0 || plannerWork === 0)) {
+    warning = `${timeBlocks.length} time blocks but planner T/C incomplete — verify`;
   }
 
   // Determine if it's a weekend

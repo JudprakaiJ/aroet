@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition, Fragment } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { daysInRange, dayLabel, type PayPeriodPreset, type PayPeriod } from "@/lib/pay-period";
@@ -253,6 +253,9 @@ export default function WorkforceCalendar({
                     </th>
                   );
                 })}
+                <th className="text-right p-2 font-medium text-slate-500" title="Travel (T=)">ΣT</th>
+                <th className="text-right p-2 font-medium text-slate-500" title="Work (C=)">ΣC</th>
+                <th className="text-right p-2 font-medium text-slate-500" title="Office (AR=)">ΣAR</th>
                 <th className="text-right p-2 font-medium text-slate-500">Σ</th>
                 <th className="text-right p-2 font-medium text-slate-500">OT</th>
                 <th className="text-center p-2 font-medium text-slate-500">Status</th>
@@ -286,6 +289,14 @@ export default function WorkforceCalendar({
                   bySO.get(key)!.push(s);
                 }
 
+                // Engineer-level T/C/AR sums
+                let engT = 0, engC = 0, engAR = 0;
+                for (const s of allEngSessions) {
+                  engT += s.travel_minutes || 0;
+                  engC += s.work_minutes || 0;
+                  engAR += s.office_minutes || 0;
+                }
+
                 return (
                   <>
                     <tr key={eng.code} className="border-t border-slate-100 bg-slate-50 hover:bg-slate-100 cursor-pointer" onClick={() => toggleExpand(eng.code)}>
@@ -310,9 +321,12 @@ export default function WorkforceCalendar({
                           </td>
                         );
                       })}
-                      <td className="p-2 text-right font-bold">{Math.round(engTotal / 60)}h</td>
+                      <td className="p-2 text-right text-[10px]" style={{ color: ACTIVITY_COLORS.travel }}>{fmtH(engT)}</td>
+                      <td className="p-2 text-right text-[10px]" style={{ color: ACTIVITY_COLORS.field }}>{fmtH(engC)}</td>
+                      <td className="p-2 text-right text-[10px]" style={{ color: ACTIVITY_COLORS.office }}>{fmtH(engAR)}</td>
+                      <td className="p-2 text-right font-bold">{fmtH(engTotal)}</td>
                       <td className="p-2 text-right font-bold" style={{ color: engOT > 0 ? "#993556" : "#94a3b8" }}>
-                        {Math.round(engOT / 60)}h
+                        {fmtH(engOT)}
                       </td>
                       <td className="p-2 text-center">
                         <StatusBadge status={overallStatus} />
@@ -322,77 +336,145 @@ export default function WorkforceCalendar({
                       Array.from(bySO.entries()).map(([soKey, soSessions]) => {
                         const c = caseMap.get(soKey);
                         const isOffice = soKey === "__office__";
-                        let caseTotal = 0;
-                        let caseOT = 0;
+                        let caseTotal = 0, caseOT = 0;
+                        let caseT = 0, caseC = 0, caseAR = 0;
                         for (const s of soSessions) {
                           const t = (s.travel_minutes || 0) + (s.work_minutes || 0) + (s.office_minutes || 0);
                           caseTotal += t;
                           if (t > 480) caseOT += t - 480;
+                          caseT += s.travel_minutes || 0;
+                          caseC += s.work_minutes || 0;
+                          caseAR += s.office_minutes || 0;
                         }
                         const dominantActivity = soSessions[0]?.activity_type || "field";
                         return (
-                          <tr key={`${eng.code}-${soKey}`} className="bg-white border-t border-slate-100">
-                            <td className="p-2 pl-8 sticky left-0 bg-white">
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className="inline-block w-0.5 h-5 rounded"
-                                  style={{ background: ACTIVITY_COLORS[dominantActivity] || "#94a3b8" }}
-                                />
-                                {!isOffice ? (
-                                  <>
-                                    <Link href={`/cases/${soKey}`} className="font-mono text-[10px] font-medium hover:underline" style={{ color: "#C8102E" }}>
-                                      {soKey}
-                                    </Link>
-                                    {c?.service_type && (
-                                      <span className="text-[9px] px-1 py-0.5 rounded bg-slate-100 text-slate-600">{c.service_type.split(" ")[0]}</span>
-                                    )}
-                                  </>
-                                ) : (
-                                  <span className="text-[10px] text-slate-500 italic">Office (no SO)</span>
-                                )}
-                              </div>
-                              {!isOffice && c && (
-                                <div className="text-[9px] text-slate-500 ml-3 mt-0.5">
-                                  {c.machine_no || ""} · {c.customer_code || ""}
-                                </div>
-                              )}
-                            </td>
-                            {days.map((d) => {
-                              const s = soSessions.find((x) => x.session_date === d);
-                              const total = s
-                                ? Math.round(
-                                    ((s.travel_minutes || 0) + (s.work_minutes || 0) + (s.office_minutes || 0)) / 60
-                                  )
-                                : 0;
-                              return (
-                                <td key={d} className="p-px text-center">
-                                  {total > 0 ? (
-                                    <span className="text-[10px] text-slate-700">{total}</span>
-                                  ) : (
-                                    <span className="text-[10px] text-slate-300">—</span>
-                                  )}
-                                </td>
-                              );
-                            })}
-                            <td className="p-2 text-right text-[10px] font-medium">{Math.round(caseTotal / 60)}h</td>
-                            <td className="p-2 text-right text-[10px]" style={{ color: caseOT > 0 ? "#993556" : "#94a3b8" }}>
-                              {Math.round(caseOT / 60)}h
-                            </td>
-                            <td className="p-2 text-center">
-                              <div className="flex gap-1 justify-center">
-                                {soSessions.map((s) => (
-                                  <SessionApprovalControl
-                                    key={s.id}
-                                    session={s}
-                                    pending={pending}
-                                    onApprove={() => handleApprove(s.id)}
-                                    onReturn={() => handleReturn(s.id)}
-                                    onSubmit={() => handleSubmit(s.id)}
+                          <Fragment key={`${eng.code}-${soKey}`}>
+                            {/* Case header row */}
+                            <tr className="bg-white border-t border-slate-100">
+                              <td className="p-2 pl-8 sticky left-0 bg-white">
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className="inline-block w-0.5 h-5 rounded"
+                                    style={{ background: ACTIVITY_COLORS[dominantActivity] || "#94a3b8" }}
                                   />
-                                ))}
-                              </div>
-                            </td>
-                          </tr>
+                                  {!isOffice ? (
+                                    <>
+                                      <Link href={`/cases/${soKey}`} className="font-mono text-[10px] font-medium hover:underline" style={{ color: "#C8102E" }}>
+                                        {soKey}
+                                      </Link>
+                                      {c?.service_type && (
+                                        <span className="text-[9px] px-1 py-0.5 rounded bg-slate-100 text-slate-600">{c.service_type.split(" ")[0]}</span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <span className="text-[10px] text-slate-500 italic">Office (no SO)</span>
+                                  )}
+                                </div>
+                                {!isOffice && c && (
+                                  <div className="text-[9px] text-slate-500 ml-3 mt-0.5">
+                                    {c.machine_no || ""} · {c.customer_code || ""}
+                                  </div>
+                                )}
+                              </td>
+                              {days.map((d) => {
+                                const s = soSessions.find((x) => x.session_date === d);
+                                const total = s
+                                  ? Math.round(((s.travel_minutes || 0) + (s.work_minutes || 0) + (s.office_minutes || 0)) / 60)
+                                  : 0;
+                                return (
+                                  <td key={d} className="p-px text-center">
+                                    {total > 0 ? (
+                                      <span className="text-[10px] font-medium text-slate-700">{total}</span>
+                                    ) : (
+                                      <span className="text-[10px] text-slate-300">—</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                              <td className="p-2 text-right text-[10px]" style={{ color: ACTIVITY_COLORS.travel }}>{fmtH(caseT)}</td>
+                              <td className="p-2 text-right text-[10px]" style={{ color: ACTIVITY_COLORS.field }}>{fmtH(caseC)}</td>
+                              <td className="p-2 text-right text-[10px]" style={{ color: ACTIVITY_COLORS.office }}>{fmtH(caseAR)}</td>
+                              <td className="p-2 text-right text-[10px] font-medium">{fmtH(caseTotal)}</td>
+                              <td className="p-2 text-right text-[10px]" style={{ color: caseOT > 0 ? "#993556" : "#94a3b8" }}>{fmtH(caseOT)}</td>
+                              <td className="p-2 text-center">
+                                <div className="flex gap-1 justify-center flex-wrap">
+                                  {soSessions.map((s) => (
+                                    <SessionApprovalControl
+                                      key={s.id}
+                                      session={s}
+                                      pending={pending}
+                                      onApprove={() => handleApprove(s.id)}
+                                      onReturn={() => handleReturn(s.id)}
+                                      onSubmit={() => handleSubmit(s.id)}
+                                    />
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                            {/* Travel sub-row */}
+                            {caseT > 0 && (
+                              <tr className="bg-slate-50/40 border-t border-slate-50">
+                                <td className="py-1 pl-12 sticky left-0 bg-slate-50/40">
+                                  <span className="text-[10px]" style={{ color: ACTIVITY_COLORS.travel }}>T= Travel</span>
+                                </td>
+                                {days.map((d) => {
+                                  const ts = soSessions.find((x) => x.session_date === d && (x.travel_minutes || 0) > 0);
+                                  return (
+                                    <td key={d} className="py-1 text-center">
+                                      {ts ? (
+                                        <span className="text-[9px]" style={{ color: ACTIVITY_COLORS.travel }}>{fmtMinShort(ts.travel_minutes || 0)}</span>
+                                      ) : null}
+                                    </td>
+                                  );
+                                })}
+                                <td className="py-1 text-right text-[10px] font-semibold" style={{ color: ACTIVITY_COLORS.travel }}>{fmtH(caseT)}</td>
+                                <td colSpan={5}></td>
+                              </tr>
+                            )}
+                            {/* Work sub-row */}
+                            {caseC > 0 && (
+                              <tr className="bg-slate-50/40 border-t border-slate-50">
+                                <td className="py-1 pl-12 sticky left-0 bg-slate-50/40">
+                                  <span className="text-[10px]" style={{ color: ACTIVITY_COLORS.field }}>C= Work</span>
+                                </td>
+                                {days.map((d) => {
+                                  const ws = soSessions.find((x) => x.session_date === d && (x.work_minutes || 0) > 0);
+                                  return (
+                                    <td key={d} className="py-1 text-center">
+                                      {ws ? (
+                                        <span className="text-[9px]" style={{ color: ACTIVITY_COLORS.field }}>{fmtMinShort(ws.work_minutes || 0)}</span>
+                                      ) : null}
+                                    </td>
+                                  );
+                                })}
+                                <td></td>
+                                <td className="py-1 text-right text-[10px] font-semibold" style={{ color: ACTIVITY_COLORS.field }}>{fmtH(caseC)}</td>
+                                <td colSpan={4}></td>
+                              </tr>
+                            )}
+                            {/* Office sub-row */}
+                            {caseAR > 0 && (
+                              <tr className="bg-slate-50/40 border-t border-slate-50">
+                                <td className="py-1 pl-12 sticky left-0 bg-slate-50/40">
+                                  <span className="text-[10px]" style={{ color: ACTIVITY_COLORS.office }}>AR= Office</span>
+                                </td>
+                                {days.map((d) => {
+                                  const os = soSessions.find((x) => x.session_date === d && (x.office_minutes || 0) > 0);
+                                  return (
+                                    <td key={d} className="py-1 text-center">
+                                      {os ? (
+                                        <span className="text-[9px]" style={{ color: ACTIVITY_COLORS.office }}>{fmtMinShort(os.office_minutes || 0)}</span>
+                                      ) : null}
+                                    </td>
+                                  );
+                                })}
+                                <td></td>
+                                <td></td>
+                                <td className="py-1 text-right text-[10px] font-semibold" style={{ color: ACTIVITY_COLORS.office }}>{fmtH(caseAR)}</td>
+                                <td colSpan={3}></td>
+                              </tr>
+                            )}
+                          </Fragment>
                         );
                       })}
                   </>
@@ -400,7 +482,7 @@ export default function WorkforceCalendar({
               })}
               {visibleEngineers.length === 0 && (
                 <tr>
-                  <td colSpan={days.length + 4} className="p-8 text-center text-slate-400 text-xs">
+                  <td colSpan={days.length + 7} className="p-8 text-center text-slate-400 text-xs">
                     No sessions in this period
                   </td>
                 </tr>
@@ -428,6 +510,24 @@ export default function WorkforceCalendar({
       </div>
     </div>
   );
+}
+
+function fmtH(minutes: number): string {
+  if (!minutes) return "0";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h && m) return `${h}h${m.toString().padStart(2, "0")}`;
+  if (h) return `${h}h`;
+  return `${m}m`;
+}
+
+function fmtMinShort(minutes: number): string {
+  if (!minutes) return "";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h${m}`;
 }
 
 function Stat({ label, value, accent }: { label: string; value: string; accent?: string }) {
