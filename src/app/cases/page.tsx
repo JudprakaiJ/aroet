@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { fmtDate, statusBadge } from "@/lib/format";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 type FilterKey = "all" | "active" | "overdue" | "pm" | "curative";
 
 export default async function CasesPage({

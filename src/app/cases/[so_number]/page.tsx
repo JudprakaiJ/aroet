@@ -14,6 +14,8 @@ import { notFound } from "next/navigation";
 import CaseTabs from "./tabs";
 import ReparseButton from "./reparse-button";
 
+export const dynamic = "force-dynamic";
+
 export default async function CaseDetail({
   params,
   searchParams,

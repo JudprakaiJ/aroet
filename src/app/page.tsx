@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { fmtDate, statusBadge } from "@/lib/format";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 export default async function Dashboard() {
   const supabase = await createClient();
 

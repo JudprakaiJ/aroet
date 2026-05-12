@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { fmtTime } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
+
 export default async function EngineersPage() {
   const supabase = await createClient();
 
