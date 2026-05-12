@@ -38,11 +38,11 @@ export default async function WorkforcePage({ searchParams }: Props) {
     role: e.role,
   }));
 
-  // 2. Sessions within period
+  // 2. Sessions within period (including shared session info)
   const { data: sessions } = await supabase
     .from("sessions")
     .select(
-      "id, so_number, session_date, engineer_code, activity_type, travel_minutes, break_minutes, work_minutes, office_minutes, is_holiday, is_weekend, approval_status, work_done"
+      "id, so_number, session_date, engineer_code, activity_type, travel_minutes, break_minutes, work_minutes, office_minutes, is_holiday, is_weekend, approval_status, work_done, is_shared, shared_with_so"
     )
     .gte("session_date", period.start)
     .lte("session_date", period.end)

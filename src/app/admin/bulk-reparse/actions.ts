@@ -137,7 +137,94 @@ export async function bulkReparseBatch(
     }
   }
 
-  // 3. Bulk insert in parallel — 3 inserts for whole batch
+  // 3. Detect shared sessions (same engineer + date + raw_line across multiple SOs)
+  // Group by (engineer + date + raw_line) → find dups within batch
+  const sessionKey = (r: any) => `${r.engineer_code}|${r.session_date}|${r.raw_line || ""}`;
+  const sharedMap = new Map<string, string[]>(); // key → list of SO numbers
+  for (const r of sessionRows) {
+    const k = sessionKey(r);
+    if (!sharedMap.has(k)) sharedMap.set(k, []);
+    sharedMap.get(k)!.push(r.so_number);
+  }
+
+  // Also check existing DB rows (for cross-batch sharing)
+  // Get all session keys we need to look up
+  const checkKeys = sessionRows.map(sessionKey);
+  if (checkKeys.length > 0) {
+    // Find any existing sessions with same engineer+date+raw_line that we kept (not in soList for delete)
+    // Note: we already deleted source='planner' sessions for these soList, so anything matching
+    // must be from a DIFFERENT SO not in this batch.
+    const engineerDates = Array.from(new Set(sessionRows.map((r) => `${r.engineer_code}|${r.session_date}`)));
+    const orFilters = engineerDates.map((ed) => {
+      const [eng, date] = ed.split("|");
+      return `and(engineer_code.eq.${eng},session_date.eq.${date})`;
+    });
+    if (orFilters.length > 0) {
+      // Query in chunks to avoid URL length limits
+      const chunkSize = 50;
+      for (let i = 0; i < orFilters.length; i += chunkSize) {
+        const chunk = orFilters.slice(i, i + chunkSize).join(",");
+        const { data: existing } = await supabase
+          .from("sessions")
+          .select("so_number, engineer_code, session_date, raw_line")
+          .eq("source", "planner")
+          .or(chunk);
+        if (existing) {
+          for (const e of existing) {
+            // Skip sessions we're about to insert (their SOs are in soList — already deleted)
+            if (soList.includes(e.so_number)) continue;
+            const k = `${e.engineer_code}|${e.session_date}|${e.raw_line || ""}`;
+            if (sharedMap.has(k)) {
+              sharedMap.get(k)!.push(e.so_number);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Apply shared flag to rows we're about to insert
+  for (const r of sessionRows) {
+    const k = sessionKey(r);
+    const allSOs = sharedMap.get(k) || [];
+    if (allSOs.length > 1) {
+      r.is_shared = true;
+      r.shared_with_so = allSOs.filter((so) => so !== r.so_number);
+    } else {
+      r.is_shared = false;
+      r.shared_with_so = [];
+    }
+  }
+
+  // Also need to UPDATE existing rows that became shared due to a new SO joining
+  // (their shared_with_so list needs the new SO added)
+  const updatePromises: Promise<any>[] = [];
+  for (const [k, allSOs] of sharedMap.entries()) {
+    if (allSOs.length < 2) continue;
+    const [eng, date, rawLine] = k.split("|");
+    const existingSOs = allSOs.filter((so) => !soList.includes(so));
+    if (existingSOs.length === 0) continue;
+    // For each existing SO, update is_shared + shared_with_so
+    for (const existingSO of existingSOs) {
+      updatePromises.push(
+        Promise.resolve(
+          supabase
+            .from("sessions")
+            .update({
+              is_shared: true,
+              shared_with_so: allSOs.filter((so) => so !== existingSO),
+            })
+            .eq("so_number", existingSO)
+            .eq("engineer_code", eng)
+            .eq("session_date", date)
+            .eq("raw_line", rawLine)
+        )
+      );
+    }
+  }
+  if (updatePromises.length > 0) await Promise.all(updatePromises);
+
+  // 4. Bulk insert in parallel — 3 inserts for whole batch
   const inserts: Promise<any>[] = [];
   if (sessionRows.length > 0) inserts.push(Promise.resolve(supabase.from("sessions").insert(sessionRows)));
   if (refRows.length > 0) inserts.push(Promise.resolve(supabase.from("case_references").insert(refRows)));

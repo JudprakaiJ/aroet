@@ -26,6 +26,8 @@ interface Session {
   is_weekend: boolean | null;
   approval_status: string | null;
   work_done: string | null;
+  is_shared?: boolean | null;
+  shared_with_so?: string[] | null;
 }
 
 interface Case {
@@ -86,20 +88,36 @@ export default function WorkforceCalendar({
     return m;
   }, [cases]);
 
-  // Build engineer → date → sessions[] map
+  // Deduplicate sessions: when a session is shared across multiple SOs,
+  // keep only 1 row per (engineer + date + raw signature) for time aggregation purposes.
+  // We pick the one with alphabetically-first SO as canonical.
+  const dedupedSessions = useMemo(() => {
+    const sigMap = new Map<string, Session>();
+    for (const s of sessions) {
+      // signature = engineer + date + minutes (treat as same shared if numbers match)
+      const sig = `${s.engineer_code}|${s.session_date}|${s.travel_minutes}|${s.work_minutes}|${s.office_minutes}|${s.activity_type}`;
+      const existing = sigMap.get(sig);
+      if (!existing || s.so_number < existing.so_number) {
+        sigMap.set(sig, s);
+      }
+    }
+    return Array.from(sigMap.values());
+  }, [sessions]);
+
+  // Build engineer → date → sessions[] map (using DEDUPED sessions for accurate totals)
   const grid = useMemo(() => {
     const g = new Map<string, Map<string, Session[]>>();
     for (const eng of engineers) {
       g.set(eng.code, new Map());
     }
-    for (const s of sessions) {
+    for (const s of dedupedSessions) {
       if (!g.has(s.engineer_code)) g.set(s.engineer_code, new Map());
       const byDate = g.get(s.engineer_code)!;
       if (!byDate.has(s.session_date)) byDate.set(s.session_date, []);
       byDate.get(s.session_date)!.push(s);
     }
     return g;
-  }, [engineers, sessions]);
+  }, [engineers, dedupedSessions]);
 
   // Filter to visible engineers (have any sessions in period, or filterEngineer)
   const visibleEngineers = useMemo(() => {
@@ -114,12 +132,16 @@ export default function WorkforceCalendar({
   const totalStats = useMemo(() => {
     let totalWork = 0;
     let totalOT = 0;
-    let casesWorked = new Set<string>();
-    for (const s of sessions) {
+    const casesWorked = new Set<string>();
+    for (const s of dedupedSessions) {
       const total = (s.travel_minutes || 0) + (s.work_minutes || 0) + (s.office_minutes || 0);
       totalWork += total;
       if (total > 480) totalOT += total - 480;
       if (s.so_number) casesWorked.add(s.so_number);
+      // Also count shared_with_so as cases worked
+      if (s.shared_with_so && s.shared_with_so.length > 0) {
+        s.shared_with_so.forEach((so) => casesWorked.add(so));
+      }
     }
     return {
       engineers: visibleEngineers.length,
