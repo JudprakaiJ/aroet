@@ -13,7 +13,7 @@ interface Engineer {
 }
 
 interface Session {
-  id: number;
+  id: string; // uuid
   so_number: string;
   session_date: string;
   engineer_code: string;
@@ -155,14 +155,14 @@ export default function WorkforceCalendar({
     setExpanded(next);
   }
 
-  function handleApprove(sessionId: number) {
+  function handleApprove(sessionId: string) {
     startTransition(async () => {
       await approveSession(sessionId);
       router.refresh();
     });
   }
 
-  function handleReturn(sessionId: number) {
+  function handleReturn(sessionId: string) {
     const reason = prompt("Reason for returning?");
     if (!reason) return;
     startTransition(async () => {
@@ -171,7 +171,7 @@ export default function WorkforceCalendar({
     });
   }
 
-  function handleSubmit(sessionId: number) {
+  function handleSubmit(sessionId: string) {
     startTransition(async () => {
       await submitSession(sessionId);
       router.refresh();

@@ -25,11 +25,18 @@ export default async function WorkforcePage({ searchParams }: Props) {
 
   const supabase = createServiceClient();
 
-  // 1. Engineers
-  const { data: engineers } = await supabase
+  // 1. Engineers — schema uses 'full_name' (not 'name')
+  const { data: engineersRaw } = await supabase
     .from("engineers")
-    .select("code, name, role")
+    .select("code, full_name, role, is_active")
     .order("code");
+
+  // Map full_name → name for the calendar component
+  const engineers = (engineersRaw || []).map((e: any) => ({
+    code: e.code,
+    name: e.full_name,
+    role: e.role,
+  }));
 
   // 2. Sessions within period
   const { data: sessions } = await supabase
@@ -42,20 +49,32 @@ export default async function WorkforcePage({ searchParams }: Props) {
     .order("session_date");
 
   // 3. Cases referenced (to show SO + machine + customer in drill-down)
-  const soNumbers = Array.from(new Set((sessions || []).map((s) => s.so_number)));
-  const { data: cases } =
+  // Schema uses: service_type_name (not service_type), customer_name (not customer_code)
+  const soNumbers = Array.from(new Set((sessions || []).map((s: any) => s.so_number)));
+  const { data: casesRaw, error: caseErr } =
     soNumbers.length > 0
       ? await supabase
           .from("cases")
-          .select("so_number, title, service_type, customer_code, machine_no")
+          .select("so_number, title, service_type_name, customer_name, machine_no")
           .in("so_number", soNumbers)
-      : { data: [] };
+      : { data: [], error: null };
+  if (caseErr) {
+    console.error("[workforce] cases query error:", caseErr.message);
+  }
+  // Map to the shape calendar.tsx expects
+  const cases = (casesRaw || []).map((c: any) => ({
+    so_number: c.so_number,
+    title: c.title,
+    service_type: c.service_type_name,
+    customer_code: c.customer_name,
+    machine_no: c.machine_no,
+  }));
 
   return (
     <WorkforceCalendar
-      engineers={engineers || []}
+      engineers={engineers}
       sessions={sessions || []}
-      cases={cases || []}
+      cases={cases}
       period={period}
       preset={preset}
       year={year}

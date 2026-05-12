@@ -8,7 +8,7 @@ async function currentUserCode(): Promise<string> {
   return "SYSTEM";
 }
 
-export async function submitSession(sessionId: number) {
+export async function submitSession(sessionId: string) {
   const supabase = createServiceClient();
   const by = await currentUserCode();
 
@@ -26,7 +26,7 @@ export async function submitSession(sessionId: number) {
   revalidatePath("/workforce");
 }
 
-export async function approveSession(sessionId: number) {
+export async function approveSession(sessionId: string) {
   const supabase = createServiceClient();
   const by = await currentUserCode();
 
@@ -48,7 +48,7 @@ export async function approveSession(sessionId: number) {
   revalidatePath("/workforce");
 }
 
-export async function returnSession(sessionId: number, reason: string) {
+export async function returnSession(sessionId: string, reason: string) {
   const supabase = createServiceClient();
   const by = await currentUserCode();
 
