@@ -1,504 +1,802 @@
 "use client";
 
-import { useState, useMemo, useTransition } from "react";
-import Link from "next/link";
-import { createCase, previewParse } from "./actions";
-import { fmtTime } from "@/lib/format";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import {
+  createCase,
+  suggestProjectCode,
+  createCustomerInline,
+  createMachineInline,
+} from "./actions";
 
-interface Customer { code: string; name: string; city: string | null; country: string | null; contact_name: string | null; contact_mobile: string | null; }
-interface Engineer { code: string; full_name: string; role: string; }
-interface Machine  { machine_no: string; name: string | null; product_code: string | null; customer_code: string | null; version: string | null; }
+interface Customer {
+  code: string;
+  name: string;
+  city?: string | null;
+  country?: string | null;
+  contact_name?: string | null;
+}
 
-interface Props {
+interface Engineer {
+  code: string;
+  full_name: string;
+  role: string;
+}
+
+interface Machine {
+  machine_no: string;
+  name?: string | null;
+  product_code?: string | null;
+  customer_code?: string | null;
+  version?: string | null;
+}
+
+interface Suggestion {
+  project_code: string;
+  confidence: number;
+  reason: string;
+}
+
+export default function NewCaseForm({
+  customers: initialCustomers,
+  engineers,
+  machines: initialMachines,
+}: {
   customers: Customer[];
   engineers: Engineer[];
   machines: Machine[];
-}
+}) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
 
-const SERVICE_TYPES = [
-  { code: "7507", name: "Preventive Maintenance" },
-  { code: "7505", name: "Curative maintenance" },
-  { code: "7515", name: "Curative under warranty" },
-  { code: "7504", name: "Installation" },
-  { code: "7508", name: "Service Agreement" },
-  { code: "7506", name: "Upgrade installation" },
-];
-
-export default function NewCaseForm({ customers, engineers, machines }: Props) {
-  const [pasteContent, setPasteContent] = useState("");
-  const [parsedPreview, setParsedPreview] = useState<{
-    sessions: number;
-    references: number;
-    sessionList: Array<{ date: string; engineer_code: string; travel_minutes: number; work_minutes: number; activity_type: string; switched_to_so?: string }>;
-  } | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const [isParsing, setIsParsing] = useState(false);
-
-  const [title, setTitle] = useState("");
-  const [serviceTypeCode, setServiceTypeCode] = useState("7507");
-  const [serviceMode, setServiceMode] = useState("PM");
+  // Form state
+  const [soNumber, setSoNumber] = useState("");
+  const [srNumber, setSrNumber] = useState("");
   const [customerCode, setCustomerCode] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
-  const [contactName, setContactName] = useState("");
-  const [machineNo, setMachineNo] = useState("");
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [machineNos, setMachineNos] = useState<string[]>([]);
+  const [primaryMachine, setPrimaryMachine] = useState<string>("");
   const [machineSearch, setMachineSearch] = useState("");
+  const [showMachineDropdown, setShowMachineDropdown] = useState(false);
+  const [projectCode, setProjectCode] = useState("");
+  const [serviceType, setServiceType] = useState("7505");
+  const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [customerPo, setCustomerPo] = useState("");
-  const [engineerCodes, setEngineerCodes] = useState<string[]>([]);
   const [leadEngineer, setLeadEngineer] = useState("");
-  const [initialNotes, setInitialNotes] = useState("");
+  const [otherEngineers, setOtherEngineers] = useState<string[]>([]);
+  const [plannerNote, setPlannerNote] = useState("");
+  const [autoParseSessions, setAutoParseSessions] = useState(true);
 
-  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
-  const [machineDropdownOpen, setMachineDropdownOpen] = useState(false);
+  // Suggestions
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
-  const filteredCustomers = useMemo(() => {
-    if (!customerSearch) return customers.slice(0, 50);
-    const q = customerSearch.toLowerCase();
-    return customers.filter((c) =>
-      c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)
-    ).slice(0, 50);
-  }, [customers, customerSearch]);
+  // Inline create state
+  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const [machines, setMachines] = useState<Machine[]>(initialMachines);
+  const [showNewCustomer, setShowNewCustomer] = useState(false);
+  const [showNewMachine, setShowNewMachine] = useState(false);
+  const [newCustomer, setNewCustomer] = useState({ code: "", name: "", city: "", country: "" });
+  const [newMachine, setNewMachine] = useState({
+    machine_no: "",
+    name: "",
+    product_code: "",
+    serial_no: "",
+    version: "",
+  });
 
-  const filteredMachines = useMemo(() => {
-    let pool = machines;
-    if (customerCode) pool = pool.filter((m) => m.customer_code === customerCode);
-    if (!machineSearch) return pool.slice(0, 50);
-    const q = machineSearch.toLowerCase();
-    return pool.filter((m) =>
-      m.machine_no.toLowerCase().includes(q) ||
-      (m.product_code && m.product_code.toLowerCase().includes(q))
-    ).slice(0, 50);
-  }, [machines, customerCode, machineSearch]);
+  const [error, setError] = useState("");
 
-  const availableEngineers = engineers.filter((e) => !engineerCodes.includes(e.code));
+  // Filtered options
+  const filteredCustomers = customerSearch
+    ? customers.filter(
+        (c) =>
+          c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+          c.code.toLowerCase().includes(customerSearch.toLowerCase())
+      )
+    : customers;
 
-  async function handleParse() {
-    if (!pasteContent.trim()) return;
-    setIsParsing(true);
+  const filteredMachines = machineSearch
+    ? machines.filter(
+        (m) =>
+          m.machine_no.toLowerCase().includes(machineSearch.toLowerCase()) ||
+          (m.name || "").toLowerCase().includes(machineSearch.toLowerCase())
+      )
+    : machines.filter((m) => !customerCode || m.customer_code === customerCode);
 
-    // Split: first line = title, rest = planner_note
-    const lines = pasteContent.split("\n");
-    const firstLine = lines[0]?.trim() || "";
-    const rest = lines.slice(1).join("\n").trim();
+  const selectedCustomer = customers.find((c) => c.code === customerCode);
 
-    // If first line looks like a title (not date+engineer), use it as title
-    if (firstLine && !firstLine.match(/^\d{1,2}\/\d{1,2}\/\d{2,4}/) && !title) {
-      setTitle(firstLine);
-    }
-
-    const plannerText = rest || pasteContent;
-
-    try {
-      const result = await previewParse(plannerText);
-
-      setParsedPreview({
-        sessions: result.sessions.length,
-        references: result.references.length,
-        sessionList: result.sessions.slice(0, 10).map((s) => ({
-          date: s.date,
-          engineer_code: s.engineer_code,
-          travel_minutes: s.travel_minutes,
-          work_minutes: s.work_minutes,
-          activity_type: s.activity_type,
-          switched_to_so: s.switched_to_so,
-        })),
-      });
-
-      // Try to guess service type from title
-      if (firstLine && !title) {
-        const upper = firstLine.toUpperCase();
-        if (upper.includes("PM") || upper.includes("PREVENTIVE")) {
-          setServiceTypeCode("7507");
-          setServiceMode("PM");
-        } else if (upper.includes("CURATIVE") || upper.includes("REPAIR")) {
-          setServiceTypeCode("7505");
-          setServiceMode("General");
-        } else if (upper.includes("INSTALL")) {
-          setServiceTypeCode("7504");
-          setServiceMode("Install");
-        }
-      }
-
-      // Try to match customer from title
-      if (firstLine && !customerCode) {
-        // Look for project codes like ESTH99, ZEGU99 in the text
-        const projMatch = firstLine.match(/\b([A-Z]{4,6}\d{2,3})\b/);
-        if (projMatch) {
-          // Try to find a customer whose name contains the prefix
-          // For now, just hint the user — actual lookup happens via customer dropdown
-        }
-      }
-
-      // Auto-extract assigned engineers from planner
-      const engineerSet = new Set<string>();
-      result.sessions.forEach((s) => engineerSet.add(s.engineer_code));
-      const newEngineers = Array.from(engineerSet);
-      if (newEngineers.length > 0 && engineerCodes.length === 0) {
-        setEngineerCodes(newEngineers);
-        if (newEngineers.length > 0) setLeadEngineer(newEngineers[0]);
-      }
-    } catch (e) {
-      console.error("Parse error:", e);
-      alert("Failed to parse: " + (e as Error).message);
-    } finally {
-      setIsParsing(false);
-    }
-  }
-
-  function toggleEngineer(code: string) {
-    if (engineerCodes.includes(code)) {
-      const next = engineerCodes.filter((c) => c !== code);
-      setEngineerCodes(next);
-      if (leadEngineer === code) setLeadEngineer(next[0] || "");
-    } else {
-      const next = [...engineerCodes, code];
-      setEngineerCodes(next);
-      if (!leadEngineer) setLeadEngineer(code);
-    }
-  }
-
-  async function handleSubmit() {
-    if (!title || !serviceTypeCode || !customerCode || engineerCodes.length === 0) {
-      alert("Please fill required fields: Title, Service type, Customer, at least 1 engineer");
+  async function handleSuggest() {
+    if (machineNos.length === 0 && !customerCode) {
+      setError("Select customer or machines first");
       return;
     }
+    const result = await suggestProjectCode(machineNos, customerCode);
+    setSuggestions(result);
+    setShowSuggestions(true);
+  }
 
-    const customer = customers.find((c) => c.code === customerCode);
-    if (!customer) return;
+  function applyMachine(m: Machine) {
+    if (!machineNos.includes(m.machine_no)) {
+      const next = [...machineNos, m.machine_no];
+      setMachineNos(next);
+      if (!primaryMachine) setPrimaryMachine(m.machine_no);
+    }
+    setMachineSearch("");
+    setShowMachineDropdown(false);
+  }
 
-    // Extract planner note from paste
-    const lines = pasteContent.split("\n");
-    const firstLine = lines[0]?.trim() || "";
-    const isFirstLineTitle = firstLine && !firstLine.match(/^\d{1,2}\/\d{1,2}\/\d{2,4}/);
-    const plannerNote = isFirstLineTitle ? lines.slice(1).join("\n").trim() : pasteContent.trim();
+  function removeMachine(no: string) {
+    const next = machineNos.filter((m) => m !== no);
+    setMachineNos(next);
+    if (primaryMachine === no) setPrimaryMachine(next[0] || "");
+  }
 
+  function applyCustomer(c: Customer) {
+    setCustomerCode(c.code);
+    setCustomerSearch("");
+    setShowCustomerDropdown(false);
+  }
+
+  function applyEngineer(code: string) {
+    if (!otherEngineers.includes(code) && code !== leadEngineer) {
+      setOtherEngineers([...otherEngineers, code]);
+    }
+  }
+
+  async function handleCreateCustomer() {
+    if (!newCustomer.name.trim()) return;
+    const result = await createCustomerInline(newCustomer);
+    if (result.success && result.code) {
+      const created: Customer = {
+        code: result.code,
+        name: newCustomer.name,
+        city: newCustomer.city,
+        country: newCustomer.country,
+      };
+      setCustomers([...customers, created]);
+      setCustomerCode(result.code);
+      setShowNewCustomer(false);
+      setNewCustomer({ code: "", name: "", city: "", country: "" });
+    } else {
+      setError(result.error || "Failed to create customer");
+    }
+  }
+
+  async function handleCreateMachine() {
+    if (!newMachine.machine_no.trim() || !customerCode) {
+      setError("Machine number and customer required");
+      return;
+    }
+    const result = await createMachineInline({ ...newMachine, customer_code: customerCode });
+    if (result.success && result.machine_no) {
+      const created: Machine = {
+        machine_no: result.machine_no,
+        name: newMachine.name,
+        product_code: newMachine.product_code,
+        customer_code: customerCode,
+        version: newMachine.version,
+      };
+      setMachines([...machines, created]);
+      setMachineNos([...machineNos, result.machine_no]);
+      if (!primaryMachine) setPrimaryMachine(result.machine_no);
+      setShowNewMachine(false);
+      setNewMachine({ machine_no: "", name: "", product_code: "", serial_no: "", version: "" });
+    } else {
+      setError(result.error || "Failed to create machine");
+    }
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
     startTransition(async () => {
-      try {
-        await createCase({
-          title,
-          service_type_code: serviceTypeCode,
-          service_mode: serviceMode,
-          customer_code: customerCode,
-          customer_name: customer.name,
-          contact_name: contactName || undefined,
-          machine_no: machineNo || undefined,
-          due_date: dueDate || undefined,
-          customer_po: customerPo || undefined,
-          engineer_codes: engineerCodes,
-          lead_engineer: leadEngineer,
-          initial_notes: initialNotes || undefined,
-          planner_note: plannerNote || undefined,
-          auto_parse_sessions: !!plannerNote && (parsedPreview?.sessions ?? 0) > 0,
-        });
-      } catch (e) {
-        alert("Failed to create case: " + (e as Error).message);
+      const result = await createCase({
+        so_number: soNumber,
+        sr_number: srNumber,
+        customer_code: customerCode,
+        machine_nos: machineNos,
+        primary_machine_no: primaryMachine,
+        project_code: projectCode,
+        service_type_code: serviceType,
+        description,
+        due_date: dueDate || undefined,
+        lead_engineer: leadEngineer,
+        other_engineers: otherEngineers,
+        planner_note: plannerNote || undefined,
+        auto_parse_sessions: autoParseSessions,
+      });
+      if (result.success && result.so_number) {
+        router.push(`/cases/${result.so_number}`);
+      } else {
+        setError(result.error || "Failed to create case");
       }
     });
   }
 
-  const selectedCustomer = customers.find((c) => c.code === customerCode);
-  const selectedMachine = machines.find((m) => m.machine_no === machineNo);
-
   return (
-    <div className="max-w-3xl mx-auto px-4 py-5">
-      <div className="mb-3">
-        <Link href="/cases" className="text-xs hover:underline" style={{ color: "#C8102E" }}>
-          ← Cases
-        </Link>
+    <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="mb-7">
+        <h1 className="text-[28px] font-bold leading-tight">Create new case</h1>
+        <p className="text-[14px] text-slate-500 mt-1">
+          Fill SO + customer + machines · Project code auto-suggests from pattern
+        </p>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-lg p-5">
-        <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-lg font-semibold">New case</h1>
-          <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded font-medium">AROET</span>
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-5 text-[14px] text-red-700">
+          ⚠ {error}
         </div>
-        <p className="text-xs text-slate-500 mb-4">Paste planner content to auto-fill, or fill form manually.</p>
+      )}
 
-        {/* Paste & parse */}
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
-          <div className="text-xs font-medium text-blue-900 mb-2">
-            🪄 Paste & parse <span className="text-blue-600 font-normal">— optional, speeds up entry</span>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* IDENTIFIERS */}
+        <section className="bg-white border border-slate-200 rounded-2xl p-6">
+          <h2 className="text-[12px] font-semibold uppercase tracking-wider text-slate-500 mb-4">
+            Identifiers
+          </h2>
+          <div className="grid grid-cols-2 gap-4">
+            <Field label="SO Number" required>
+              <input
+                value={soNumber}
+                onChange={(e) => setSoNumber(e.target.value)}
+                placeholder="SO2605-21"
+                className="form-input"
+              />
+              <p className="text-[12px] text-slate-400 mt-1">Format: SO + YYMM + sequence</p>
+            </Field>
+            <Field label="SR Number (D365)" required>
+              <input
+                value={srNumber}
+                onChange={(e) => setSrNumber(e.target.value)}
+                placeholder="SR26-AROET03450"
+                className="form-input"
+              />
+              <p className="text-[12px] text-slate-400 mt-1">Case ID in D365</p>
+            </Field>
           </div>
-          <textarea
-            value={pasteContent}
-            onChange={(e) => setPasteContent(e.target.value)}
-            placeholder="Paste from Planner here.&#10;&#10;Line 1: Title (e.g. MCVP4-128 - ESTH99 - PM)&#10;Line 2+: Planner note — DD/MM/YYYY: ENG: time blocks..."
-            className="w-full min-h-[100px] text-xs font-mono bg-white border border-blue-200 rounded p-2"
-          />
-          <div className="flex items-center gap-2 mt-2">
-            <button
-              type="button"
-              onClick={handleParse}
-              disabled={!pasteContent.trim() || isParsing}
-              className="text-xs px-3 py-1.5 rounded font-medium"
-              style={{
-                background: pasteContent.trim() ? "#C8102E" : "#94A3B8",
-                color: "white",
-              }}
-            >
-              {isParsing ? "Parsing..." : "🪄 Parse & fill"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setPasteContent("");
-                setParsedPreview(null);
-              }}
-              className="text-xs px-3 py-1.5 rounded border border-slate-300"
-            >
-              Clear
-            </button>
-            {parsedPreview && (
-              <span className="ml-auto text-xs text-blue-700">
-                {parsedPreview.sessions} sessions · {parsedPreview.references} references found
-              </span>
-            )}
-          </div>
-        </div>
+        </section>
 
-        {/* Form fields */}
-        <div className="text-[10px] font-medium text-slate-500 tracking-wider mb-2">CASE DETAILS</div>
+        {/* CUSTOMER & MACHINES */}
+        <section className="bg-white border border-slate-200 rounded-2xl p-6">
+          <h2 className="text-[12px] font-semibold uppercase tracking-wider text-slate-500 mb-4">
+            Customer & Machines
+          </h2>
 
-        <div className="mb-3">
-          <label className="text-xs text-slate-600 block mb-1">Case title <span className="text-red-600">*</span></label>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. MCVP4-128 — ESTH99 — Preventive Maintenance"
-            className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <div>
-            <label className="text-xs text-slate-600 block mb-1">Service type <span className="text-red-600">*</span></label>
-            <select
-              value={serviceTypeCode}
-              onChange={(e) => setServiceTypeCode(e.target.value)}
-              className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
-            >
-              {SERVICE_TYPES.map((t) => (
-                <option key={t.code} value={t.code}>
-                  {t.code} — {t.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-xs text-slate-600 block mb-1">Service mode</label>
-            <select
-              value={serviceMode}
-              onChange={(e) => setServiceMode(e.target.value)}
-              className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
-            >
-              <option>PM</option>
-              <option>General</option>
-              <option>Install</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <div className="relative">
-            <label className="text-xs text-slate-600 block mb-1">Customer <span className="text-red-600">*</span></label>
-            <input
-              value={selectedCustomer ? `${selectedCustomer.name} (${selectedCustomer.code})` : customerSearch}
-              onChange={(e) => {
-                setCustomerSearch(e.target.value);
-                setCustomerCode("");
-                setCustomerDropdownOpen(true);
-              }}
-              onFocus={() => setCustomerDropdownOpen(true)}
-              onBlur={() => setTimeout(() => setCustomerDropdownOpen(false), 200)}
-              placeholder="Search customer..."
-              className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
-            />
-            {customerDropdownOpen && filteredCustomers.length > 0 && (
-              <div className="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                {filteredCustomers.map((c) => (
-                  <button
-                    key={c.code}
-                    type="button"
-                    onClick={() => {
-                      setCustomerCode(c.code);
-                      setCustomerSearch("");
-                      setContactName(c.contact_name || "");
-                      setCustomerDropdownOpen(false);
-                    }}
-                    className="block w-full text-left px-2 py-1.5 hover:bg-slate-50 text-xs"
-                  >
-                    <div className="font-medium">{c.name}</div>
-                    <div className="text-[10px] text-slate-500">{c.code} · {c.city || c.country || "—"}</div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div>
-            <label className="text-xs text-slate-600 block mb-1">Contact person</label>
-            <input
-              value={contactName}
-              onChange={(e) => setContactName(e.target.value)}
-              placeholder="Contact name"
-              className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <div className="relative">
-            <label className="text-xs text-slate-600 block mb-1">Machine (optional)</label>
-            <input
-              value={selectedMachine ? selectedMachine.machine_no : machineSearch}
-              onChange={(e) => {
-                setMachineSearch(e.target.value);
-                setMachineNo("");
-                setMachineDropdownOpen(true);
-              }}
-              onFocus={() => setMachineDropdownOpen(true)}
-              onBlur={() => setTimeout(() => setMachineDropdownOpen(false), 200)}
-              placeholder="Search machine..."
-              className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
-            />
-            {machineDropdownOpen && filteredMachines.length > 0 && (
-              <div className="absolute z-10 mt-1 w-full bg-white border border-slate-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                {filteredMachines.map((m) => (
-                  <button
-                    key={m.machine_no}
-                    type="button"
-                    onClick={() => {
-                      setMachineNo(m.machine_no);
-                      setMachineSearch("");
-                      setMachineDropdownOpen(false);
-                    }}
-                    className="block w-full text-left px-2 py-1.5 hover:bg-slate-50 text-xs"
-                  >
-                    <div className="font-mono">{m.machine_no}</div>
-                    <div className="text-[10px] text-slate-500">
-                      {m.product_code} {m.version && `(${m.version})`}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div>
-            <label className="text-xs text-slate-600 block mb-1">Due date</label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
-            />
-          </div>
-        </div>
-
-        <div className="mb-3">
-          <label className="text-xs text-slate-600 block mb-1">Customer PO (optional)</label>
-          <input
-            value={customerPo}
-            onChange={(e) => setCustomerPo(e.target.value)}
-            placeholder="PO number"
-            className="w-full text-sm border border-slate-300 rounded px-2 py-1.5"
-          />
-        </div>
-
-        <div className="mb-3">
-          <label className="text-xs text-slate-600 block mb-1">Assigned engineers <span className="text-red-600">*</span></label>
-          <div className="flex flex-wrap gap-1.5 p-2 border border-slate-300 rounded-md min-h-[36px] items-center">
-            {engineerCodes.map((code) => {
-              const eng = engineers.find((e) => e.code === code);
-              const isLead = leadEngineer === code;
-              return (
-                <span
-                  key={code}
-                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
-                  style={isLead ? { background: "#FEE2E5", color: "#C8102E" } : { background: "#F1F5F9", color: "#475569" }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setLeadEngineer(code)}
-                    title="Set as lead"
-                  >
-                    {isLead ? "★" : "☆"}
-                  </button>
-                  <span className="font-mono">{code}</span>
-                  {eng && <span className="text-[10px] opacity-60">{eng.full_name.split(" ")[0]}</span>}
-                  <button type="button" onClick={() => toggleEngineer(code)}>✕</button>
-                </span>
-              );
-            })}
-            <select
-              value=""
-              onChange={(e) => {
-                if (e.target.value) toggleEngineer(e.target.value);
-              }}
-              className="text-xs border-none bg-transparent outline-none"
-            >
-              <option value="">+ add engineer</option>
-              {availableEngineers.map((e) => (
-                <option key={e.code} value={e.code}>
-                  {e.code} — {e.full_name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="text-[10px] text-slate-400 mt-1">First engineer = lead by default. Click ☆ to change.</div>
-        </div>
-
-        <div className="mb-3">
-          <label className="text-xs text-slate-600 block mb-1">Initial notes (optional)</label>
-          <textarea
-            value={initialNotes}
-            onChange={(e) => setInitialNotes(e.target.value)}
-            placeholder="What's the reason for this case? Any context..."
-            className="w-full text-xs border border-slate-300 rounded p-2 min-h-[60px]"
-          />
-        </div>
-
-        {/* Sessions preview */}
-        {parsedPreview && parsedPreview.sessions > 0 && (
-          <div className="mt-4">
-            <div className="text-[10px] font-medium text-slate-500 tracking-wider mb-2">
-              SESSIONS PREVIEW <span className="text-blue-600 font-normal tracking-normal">— will be created with this case</span>
-            </div>
-            <div className="bg-slate-50 border border-slate-200 rounded-md p-2 space-y-1">
-              {parsedPreview.sessionList.map((s, i) => (
-                <div key={i} className="bg-white border border-slate-200 rounded p-2 text-xs">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-medium">{s.date} · {s.engineer_code}</span>
-                    <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{s.activity_type}</span>
-                    {s.travel_minutes > 0 && <span className="text-[10px] bg-pink-50 text-pink-700 px-1.5 py-0.5 rounded">T {fmtTime(s.travel_minutes)}</span>}
-                    {s.work_minutes > 0 && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">W {fmtTime(s.work_minutes)}</span>}
-                    {s.switched_to_so && <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded">→ {s.switched_to_so}</span>}
-                    <span className="text-[10px] bg-green-50 text-green-700 px-1.5 py-0.5 rounded">parsed</span>
+          {/* Customer */}
+          <Field label="Customer" required>
+            {selectedCustomer ? (
+              <div className="flex items-center justify-between p-3 border border-slate-200 rounded-lg bg-slate-50">
+                <div>
+                  <div className="text-[14px] font-medium">{selectedCustomer.name}</div>
+                  <div className="text-[12px] text-slate-500">
+                    {selectedCustomer.code}
+                    {selectedCustomer.city && ` · ${selectedCustomer.city}`}
                   </div>
                 </div>
-              ))}
-              {parsedPreview.sessions > parsedPreview.sessionList.length && (
-                <div className="text-xs text-slate-500 text-center pt-1">
-                  + {parsedPreview.sessions - parsedPreview.sessionList.length} more
+                <button
+                  type="button"
+                  onClick={() => setCustomerCode("")}
+                  className="text-[12px] text-slate-500 hover:text-slate-700"
+                >
+                  Change
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <input
+                  value={customerSearch}
+                  onChange={(e) => {
+                    setCustomerSearch(e.target.value);
+                    setShowCustomerDropdown(true);
+                  }}
+                  onFocus={() => setShowCustomerDropdown(true)}
+                  placeholder="Search customer..."
+                  className="form-input"
+                />
+                {showCustomerDropdown && (
+                  <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-md max-h-64 overflow-auto">
+                    {filteredCustomers.slice(0, 8).map((c) => (
+                      <div
+                        key={c.code}
+                        onClick={() => applyCustomer(c)}
+                        className="px-3 py-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0"
+                      >
+                        <div className="text-[14px] font-medium">{c.name}</div>
+                        <div className="text-[11px] text-slate-500">
+                          {c.code}
+                          {c.city && ` · ${c.city}`}
+                        </div>
+                      </div>
+                    ))}
+                    <div
+                      onClick={() => {
+                        setNewCustomer({ ...newCustomer, name: customerSearch });
+                        setShowNewCustomer(true);
+                        setShowCustomerDropdown(false);
+                      }}
+                      className="px-3 py-2.5 hover:bg-red-50 cursor-pointer text-[13px] font-medium"
+                      style={{ color: "#C8102E" }}
+                    >
+                      + Add new customer{customerSearch && ` "${customerSearch}"`}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </Field>
+
+          {/* Machines */}
+          <Field label="Machines" required>
+            {machineNos.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {machineNos.map((no) => (
+                  <span
+                    key={no}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium"
+                    style={{
+                      background: no === primaryMachine ? "#FCE8EB" : "#DDEBF7",
+                      color: no === primaryMachine ? "#C8102E" : "#185FA5",
+                    }}
+                  >
+                    {no === primaryMachine && (
+                      <span title="Primary machine" className="text-[11px]">
+                        ⭐
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setPrimaryMachine(no)}
+                      className="hover:underline"
+                      disabled={no === primaryMachine}
+                    >
+                      {no}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeMachine(no)}
+                      className="ml-1 hover:opacity-70"
+                    >
+                      ✕
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="relative">
+              <input
+                value={machineSearch}
+                onChange={(e) => {
+                  setMachineSearch(e.target.value);
+                  setShowMachineDropdown(true);
+                }}
+                onFocus={() => setShowMachineDropdown(true)}
+                placeholder="Search machine or type to add..."
+                className="form-input"
+              />
+              {showMachineDropdown && (
+                <div className="absolute z-10 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-md max-h-64 overflow-auto">
+                  {filteredMachines.slice(0, 8).map((m) => (
+                    <div
+                      key={m.machine_no}
+                      onClick={() => applyMachine(m)}
+                      className="px-3 py-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-0"
+                    >
+                      <div className="text-[13px] font-mono font-medium">{m.machine_no}</div>
+                      <div className="text-[11px] text-slate-500">
+                        {m.product_code || "—"}
+                        {m.version && ` · ${m.version}`}
+                      </div>
+                    </div>
+                  ))}
+                  <div
+                    onClick={() => {
+                      setNewMachine({ ...newMachine, machine_no: machineSearch });
+                      setShowNewMachine(true);
+                      setShowMachineDropdown(false);
+                    }}
+                    className="px-3 py-2.5 hover:bg-red-50 cursor-pointer text-[13px] font-medium"
+                    style={{ color: "#C8102E" }}
+                  >
+                    + Add new machine{machineSearch && ` "${machineSearch}"`}
+                  </div>
                 </div>
               )}
             </div>
-          </div>
-        )}
+            <p className="text-[12px] text-slate-400 mt-1.5">
+              Click avatar to set primary machine · Click ✕ to remove
+            </p>
+          </Field>
+        </section>
 
-        {/* Actions */}
-        <div className="flex gap-2 items-center pt-4 mt-4 border-t border-slate-200">
+        {/* PROJECT & SERVICE TYPE */}
+        <section className="bg-white border border-slate-200 rounded-2xl p-6">
+          <h2 className="text-[12px] font-semibold uppercase tracking-wider text-slate-500 mb-4">
+            Project & Service type
+          </h2>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <Field label="Project code">
+              <div className="flex gap-2">
+                <input
+                  value={projectCode}
+                  onChange={(e) => setProjectCode(e.target.value.toUpperCase())}
+                  placeholder="e.g. ZEGU99"
+                  className="form-input flex-1"
+                />
+                <button
+                  type="button"
+                  onClick={handleSuggest}
+                  className="px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-[13px] font-medium"
+                >
+                  🪄 Suggest
+                </button>
+              </div>
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="mt-2 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="text-[12px] font-semibold text-blue-900 mb-2">
+                    Top suggestions
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestions.map((s) => (
+                      <button
+                        key={s.project_code}
+                        type="button"
+                        onClick={() => {
+                          setProjectCode(s.project_code);
+                          setShowSuggestions(false);
+                        }}
+                        className="text-[12px] px-2.5 py-1.5 rounded-md font-mono font-semibold bg-white border border-blue-300 hover:bg-blue-100"
+                      >
+                        {s.project_code}
+                        <span className="ml-1.5 text-[10px] text-slate-500 font-sans">
+                          {s.confidence}%
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {showSuggestions && suggestions.length === 0 && (
+                <p className="text-[12px] text-amber-600 mt-2">
+                  No matches — type your own
+                </p>
+              )}
+            </Field>
+            <Field label="Service type" required>
+              <select
+                value={serviceType}
+                onChange={(e) => setServiceType(e.target.value)}
+                className="form-input"
+              >
+                <option value="7505">Curative — 7505</option>
+                <option value="7507">Preventive Maintenance — 7507</option>
+                <option value="7510">Installation — 7510</option>
+                <option value="7512">Service Agreement — 7512</option>
+                <option value="7515">Curative under warranty — 7515</option>
+                <option value="7520">Upgrade — 7520</option>
+                <option value="7525">Training — 7525</option>
+                <option value="7235">Voucher — 7235</option>
+              </select>
+            </Field>
+          </div>
+
+          <Field label="Description" required>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What's the issue or planned work? e.g. PM annual for MCVP4-128. Check gripper alignment..."
+              rows={3}
+              className="form-input"
+            />
+          </Field>
+        </section>
+
+        {/* ENGINEERS & SCHEDULE */}
+        <section className="bg-white border border-slate-200 rounded-2xl p-6">
+          <h2 className="text-[12px] font-semibold uppercase tracking-wider text-slate-500 mb-4">
+            Engineers & schedule
+          </h2>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <Field label="Lead engineer" required>
+              <select
+                value={leadEngineer}
+                onChange={(e) => setLeadEngineer(e.target.value)}
+                className="form-input"
+              >
+                <option value="">Select lead...</option>
+                {engineers.map((e) => (
+                  <option key={e.code} value={e.code}>
+                    {e.code} — {e.full_name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Due date">
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="form-input"
+              />
+            </Field>
+          </div>
+
+          <Field label="Other engineers">
+            {otherEngineers.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-2">
+                {otherEngineers.map((code) => {
+                  const e = engineers.find((x) => x.code === code);
+                  return (
+                    <span
+                      key={code}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] bg-slate-100"
+                    >
+                      <strong className="font-mono">{code}</strong>
+                      <span className="text-slate-600">{e?.full_name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setOtherEngineers(otherEngineers.filter((c) => c !== code))}
+                        className="ml-1 text-slate-400 hover:text-slate-600"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            <select
+              value=""
+              onChange={(e) => {
+                if (e.target.value) applyEngineer(e.target.value);
+                e.target.value = "";
+              }}
+              className="form-input"
+            >
+              <option value="">+ Add engineer...</option>
+              {engineers
+                .filter((e) => e.code !== leadEngineer && !otherEngineers.includes(e.code))
+                .map((e) => (
+                  <option key={e.code} value={e.code}>
+                    {e.code} — {e.full_name}
+                  </option>
+                ))}
+            </select>
+          </Field>
+        </section>
+
+        {/* PLANNER NOTE (optional) */}
+        <section className="bg-white border border-slate-200 rounded-2xl p-6">
+          <details>
+            <summary className="text-[12px] font-semibold uppercase tracking-wider text-slate-500 cursor-pointer">
+              Planner note (optional)
+            </summary>
+            <div className="mt-4">
+              <textarea
+                value={plannerNote}
+                onChange={(e) => setPlannerNote(e.target.value)}
+                placeholder="Paste planner note here. Sessions will be auto-parsed if checked below."
+                rows={6}
+                className="form-input font-mono text-[13px]"
+              />
+              <label className="flex items-center gap-2 mt-2 text-[13px]">
+                <input
+                  type="checkbox"
+                  checked={autoParseSessions}
+                  onChange={(e) => setAutoParseSessions(e.target.checked)}
+                />
+                Auto-parse sessions from planner note
+              </label>
+            </div>
+          </details>
+        </section>
+
+        {/* SUBMIT */}
+        <div className="flex gap-2 justify-end">
           <button
             type="button"
-            onClick={handleSubmit}
-            disabled={isPending}
-            className="text-sm px-4 py-2 rounded font-medium"
-            style={{ background: "#C8102E", color: "white" }}
+            onClick={() => router.push("/cases")}
+            className="px-5 py-2.5 rounded-lg font-medium text-[14px] border border-slate-300 bg-white hover:bg-slate-50"
           >
-            {isPending ? "Creating..." : `Create case${parsedPreview && parsedPreview.sessions > 0 ? ` + ${parsedPreview.sessions} sessions` : ""}`}
-          </button>
-          <Link href="/cases" className="text-sm px-4 py-2 rounded border border-slate-300">
             Cancel
-          </Link>
+          </button>
+          <button
+            type="submit"
+            disabled={pending}
+            className="px-5 py-2.5 rounded-lg font-medium text-[14px] text-white disabled:opacity-50"
+            style={{ background: "#C8102E" }}
+          >
+            {pending ? "Creating..." : "✓ Create case"}
+          </button>
         </div>
+      </form>
+
+      {/* INLINE: NEW CUSTOMER MODAL */}
+      {showNewCustomer && (
+        <Modal title="New customer" onClose={() => setShowNewCustomer(false)}>
+          <Field label="Legal name" required>
+            <input
+              value={newCustomer.name}
+              onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
+              className="form-input"
+              placeholder="e.g. Essilor Manufacturing (Thailand) Ltd"
+            />
+          </Field>
+          <Field label="Customer code">
+            <input
+              value={newCustomer.code}
+              onChange={(e) => setNewCustomer({ ...newCustomer, code: e.target.value.toUpperCase() })}
+              className="form-input"
+              placeholder="Auto-generate or e.g. EMTC"
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="City">
+              <input
+                value={newCustomer.city}
+                onChange={(e) => setNewCustomer({ ...newCustomer, city: e.target.value })}
+                className="form-input"
+              />
+            </Field>
+            <Field label="Country">
+              <input
+                value={newCustomer.country}
+                onChange={(e) => setNewCustomer({ ...newCustomer, country: e.target.value })}
+                className="form-input"
+                placeholder="e.g. Thailand"
+              />
+            </Field>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              type="button"
+              onClick={() => setShowNewCustomer(false)}
+              className="px-4 py-2 rounded-lg text-[13px] border border-slate-300 bg-white"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleCreateCustomer}
+              className="px-4 py-2 rounded-lg text-[13px] text-white"
+              style={{ background: "#C8102E" }}
+            >
+              Create customer
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {/* INLINE: NEW MACHINE MODAL */}
+      {showNewMachine && (
+        <Modal title="New machine" onClose={() => setShowNewMachine(false)}>
+          <Field label="Machine number" required>
+            <input
+              value={newMachine.machine_no}
+              onChange={(e) => setNewMachine({ ...newMachine, machine_no: e.target.value })}
+              className="form-input font-mono"
+              placeholder="e.g. MCVP4-130 or 26F3041"
+            />
+          </Field>
+          <Field label="Name / model">
+            <input
+              value={newMachine.name}
+              onChange={(e) => setNewMachine({ ...newMachine, name: e.target.value })}
+              className="form-input"
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Product code">
+              <input
+                value={newMachine.product_code}
+                onChange={(e) => setNewMachine({ ...newMachine, product_code: e.target.value })}
+                className="form-input font-mono"
+              />
+            </Field>
+            <Field label="Version">
+              <input
+                value={newMachine.version}
+                onChange={(e) => setNewMachine({ ...newMachine, version: e.target.value })}
+                className="form-input"
+              />
+            </Field>
+          </div>
+          <Field label="Serial number">
+            <input
+              value={newMachine.serial_no}
+              onChange={(e) => setNewMachine({ ...newMachine, serial_no: e.target.value })}
+              className="form-input font-mono"
+            />
+          </Field>
+          {!customerCode && (
+            <p className="text-[12px] text-amber-700 mt-1">⚠ Select customer first</p>
+          )}
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              type="button"
+              onClick={() => setShowNewMachine(false)}
+              className="px-4 py-2 rounded-lg text-[13px] border border-slate-300 bg-white"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleCreateMachine}
+              disabled={!customerCode}
+              className="px-4 py-2 rounded-lg text-[13px] text-white disabled:opacity-50"
+              style={{ background: "#C8102E" }}
+            >
+              Create machine
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      <style jsx>{`
+        .form-input {
+          width: 100%;
+          padding: 10px 12px;
+          font-size: 14px;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          background: white;
+        }
+        .form-input:focus {
+          outline: none;
+          border-color: #C8102E;
+          box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.1);
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mb-4 last:mb-0">
+      <label className="block text-[13px] font-medium text-slate-700 mb-1.5">
+        {label}
+        {required && <span style={{ color: "#C8102E" }}> *</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function Modal({
+  title,
+  onClose,
+  children,
+}: {
+  title: string;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(15,23,42,0.5)" }}
+    >
+      <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-[18px] font-semibold">{title}</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+            ✕
+          </button>
+        </div>
+        {children}
       </div>
     </div>
   );
