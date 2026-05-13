@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, Fragment } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createCustomer, type CustomerContactInput } from "./actions";
 
 interface Contact {
@@ -86,17 +87,31 @@ export default function CustomersClient({ customers }: { customers: Customer[] }
               const primary = c.contacts.find((ct) => ct.is_primary) || c.contacts[0];
               const isExpanded = expandedCode === c.code;
               return (
-                <>
+                <Fragment key={c.code}>
                   <tr
-                    key={c.code}
                     className="border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer"
                     onClick={() => setExpandedCode(isExpanded ? null : c.code)}
                   >
-                    <td className="px-5 py-3 font-mono text-[12px] text-slate-500">
-                      <span className="text-slate-400 mr-1">{isExpanded ? "▾" : "▸"}</span>
-                      {c.code}
+                    <td className="px-5 py-3">
+                      <Link
+                        href={`/customers/${c.code}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="font-mono text-[12px] font-semibold hover:underline"
+                        style={{ color: "#C8102E" }}
+                      >
+                        <span className="text-slate-400 mr-1">{isExpanded ? "▾" : "▸"}</span>
+                        {c.code}
+                      </Link>
                     </td>
-                    <td className="px-5 py-3 font-medium text-slate-800">{c.name}</td>
+                    <td className="px-5 py-3 font-medium text-slate-800">
+                      <Link
+                        href={`/customers/${c.code}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="hover:underline"
+                      >
+                        {c.name}
+                      </Link>
+                    </td>
                     <td className="px-5 py-3 text-slate-600">{c.city ?? "—"}</td>
                     <td className="px-5 py-3 text-slate-600">{c.country ?? "—"}</td>
                     <td className="px-5 py-3 text-slate-600 truncate">
@@ -115,7 +130,7 @@ export default function CustomersClient({ customers }: { customers: Customer[] }
                     <td className="px-5 py-3 text-right tabular-nums font-medium">{c.cases_count}</td>
                   </tr>
                   {isExpanded && (
-                    <tr key={`${c.code}-expand`} className="bg-slate-50/50">
+                    <tr className="bg-slate-50/50">
                       <td colSpan={7} className="px-5 py-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
@@ -133,6 +148,15 @@ export default function CustomersClient({ customers }: { customers: Customer[] }
                                   <span className="text-slate-800">{c.notes}</span>
                                 </div>
                               )}
+                              <div className="mt-2">
+                                <Link
+                                  href={`/customers/${c.code}`}
+                                  className="text-[12px] font-medium hover:underline"
+                                  style={{ color: "#C8102E" }}
+                                >
+                                  Open full detail →
+                                </Link>
+                              </div>
                             </div>
                           </div>
                           <div>
@@ -169,7 +193,7 @@ export default function CustomersClient({ customers }: { customers: Customer[] }
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               );
             })}
             {filtered.length === 0 && (

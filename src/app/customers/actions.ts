@@ -2,6 +2,7 @@
 
 import { createServiceClient } from "@/lib/supabase/service";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 export interface CustomerContactInput {
   name: string;
@@ -85,6 +86,58 @@ export async function createCustomer(
   return { success: true, code };
 }
 
+export async function updateCustomer(
+  code: string,
+  input: Partial<CustomerInput>
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceClient();
+
+  const updates: any = {};
+  if (input.name !== undefined) updates.name = input.name?.trim() || null;
+  if (input.city !== undefined) updates.city = input.city?.trim() || null;
+  if (input.country !== undefined) updates.country = input.country?.trim() || null;
+  if (input.address !== undefined) updates.address = input.address?.trim() || null;
+  if (input.notes !== undefined) updates.notes = input.notes?.trim() || null;
+
+  const { error } = await supabase.from("customers").update(updates).eq("code", code);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/customers");
+  revalidatePath(`/customers/${code}`);
+  return { success: true };
+}
+
+export async function deleteCustomer(
+  code: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceClient();
+
+  // Check if customer has cases
+  const { count } = await supabase
+    .from("cases")
+    .select("*", { count: "exact", head: true })
+    .eq("customer_code", code);
+
+  if (count && count > 0) {
+    return { success: false, error: `Cannot delete — ${count} cases reference this customer. Delete the cases first.` };
+  }
+
+  // Delete contacts first (FK)
+  await supabase.from("customer_contacts").delete().eq("customer_code", code);
+  // Delete machines (will cascade if any case_machines exist)
+  const { data: machines } = await supabase.from("machines").select("machine_no").eq("customer_code", code);
+  if (machines && machines.length > 0) {
+    await supabase.from("machines").delete().eq("customer_code", code);
+  }
+
+  // Delete customer
+  const { error } = await supabase.from("customers").delete().eq("code", code);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/customers");
+  return { success: true };
+}
+
 export async function addContactToCustomer(
   customerCode: string,
   contact: CustomerContactInput
@@ -110,13 +163,62 @@ export async function addContactToCustomer(
 
   if (error) return { success: false, error: error.message };
   revalidatePath("/customers");
+  revalidatePath(`/customers/${customerCode}`);
+  return { success: true };
+}
+
+export async function updateContact(
+  contactId: number,
+  input: CustomerContactInput
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceClient();
+
+  // Get the customer_code first for revalidation
+  const { data: existing } = await supabase
+    .from("customer_contacts")
+    .select("customer_code")
+    .eq("id", contactId)
+    .single();
+
+  if (input.is_primary) {
+    // Unset other primaries
+    await supabase
+      .from("customer_contacts")
+      .update({ is_primary: false })
+      .eq("customer_code", existing?.customer_code);
+  }
+
+  const { error } = await supabase
+    .from("customer_contacts")
+    .update({
+      name: input.name?.trim(),
+      role: input.role?.trim() || null,
+      phone: input.phone?.trim() || null,
+      email: input.email?.trim() || null,
+      is_primary: input.is_primary || false,
+    })
+    .eq("id", contactId);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/customers");
+  if (existing?.customer_code) revalidatePath(`/customers/${existing.customer_code}`);
   return { success: true };
 }
 
 export async function deleteContact(contactId: number): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceClient();
+
+  const { data: existing } = await supabase
+    .from("customer_contacts")
+    .select("customer_code")
+    .eq("id", contactId)
+    .single();
+
   const { error } = await supabase.from("customer_contacts").delete().eq("id", contactId);
   if (error) return { success: false, error: error.message };
+
   revalidatePath("/customers");
+  if (existing?.customer_code) revalidatePath(`/customers/${existing.customer_code}`);
   return { success: true };
 }

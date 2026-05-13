@@ -88,3 +88,40 @@ export async function updateMachine(
   revalidatePath(`/machines/${machineNo}`);
   return { success: true };
 }
+
+export async function deleteMachine(
+  machineNo: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceClient();
+
+  // Check if machine is referenced
+  const { count } = await supabase
+    .from("case_machines")
+    .select("*", { count: "exact", head: true })
+    .eq("machine_no", machineNo);
+
+  if (count && count > 0) {
+    return {
+      success: false,
+      error: `Cannot delete — ${count} cases reference this machine. Detach from cases first.`,
+    };
+  }
+
+  const { count: caseCount } = await supabase
+    .from("cases")
+    .select("*", { count: "exact", head: true })
+    .eq("machine_no", machineNo);
+
+  if (caseCount && caseCount > 0) {
+    return {
+      success: false,
+      error: `Cannot delete — ${caseCount} cases reference this machine.`,
+    };
+  }
+
+  const { error } = await supabase.from("machines").delete().eq("machine_no", machineNo);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/machines");
+  return { success: true };
+}
