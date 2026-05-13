@@ -1,0 +1,90 @@
+"use server";
+
+import { createServiceClient } from "@/lib/supabase/service";
+import { revalidatePath } from "next/cache";
+
+export interface MachineInput {
+  machine_no: string;
+  customer_code: string;
+  name?: string;
+  product_code?: string;
+  serial_no?: string;
+  version?: string;
+  warranty_expiry?: string;
+  installation_date?: string;
+  notes?: string;
+}
+
+export async function createMachine(
+  input: MachineInput
+): Promise<{ success: boolean; machine_no?: string; error?: string }> {
+  const supabase = createServiceClient();
+
+  if (!input.machine_no?.trim()) return { success: false, error: "Machine number required" };
+  if (!input.customer_code?.trim()) return { success: false, error: "Customer required" };
+
+  const { data: dup } = await supabase
+    .from("machines")
+    .select("machine_no")
+    .eq("machine_no", input.machine_no.trim())
+    .maybeSingle();
+  if (dup) return { success: false, error: `Machine "${input.machine_no}" already exists` };
+
+  const { data: cust } = await supabase
+    .from("customers")
+    .select("name")
+    .eq("code", input.customer_code)
+    .single();
+
+  const { error } = await supabase.from("machines").insert({
+    machine_no: input.machine_no.trim(),
+    customer_code: input.customer_code,
+    customer_name: cust?.name || null,
+    name: input.name?.trim() || null,
+    product_code: input.product_code?.trim() || null,
+    serial_no: input.serial_no?.trim() || null,
+    version: input.version?.trim() || null,
+    warranty_expiry: input.warranty_expiry || null,
+    installation_date: input.installation_date || null,
+    notes: input.notes?.trim() || null,
+  });
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/machines");
+  revalidatePath("/cases/new");
+  return { success: true, machine_no: input.machine_no };
+}
+
+export async function updateMachine(
+  machineNo: string,
+  input: Partial<MachineInput>
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceClient();
+  const updates: any = {};
+
+  if (input.name !== undefined) updates.name = input.name?.trim() || null;
+  if (input.product_code !== undefined) updates.product_code = input.product_code?.trim() || null;
+  if (input.serial_no !== undefined) updates.serial_no = input.serial_no?.trim() || null;
+  if (input.version !== undefined) updates.version = input.version?.trim() || null;
+  if (input.warranty_expiry !== undefined) updates.warranty_expiry = input.warranty_expiry || null;
+  if (input.installation_date !== undefined) updates.installation_date = input.installation_date || null;
+  if (input.notes !== undefined) updates.notes = input.notes?.trim() || null;
+
+  if (input.customer_code) {
+    updates.customer_code = input.customer_code;
+    const { data: cust } = await supabase
+      .from("customers")
+      .select("name")
+      .eq("code", input.customer_code)
+      .single();
+    updates.customer_name = cust?.name || null;
+  }
+
+  const { error } = await supabase.from("machines").update(updates).eq("machine_no", machineNo);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/machines");
+  revalidatePath(`/machines/${machineNo}`);
+  return { success: true };
+}
