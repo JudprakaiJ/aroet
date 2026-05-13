@@ -146,7 +146,6 @@ export async function createMachineInline(input: {
     product_code: input.product_code?.trim() || null,
     serial_no: input.serial_no?.trim() || null,
     version: input.version?.trim() || null,
-    is_active: true,
   });
 
   if (error) return { success: false, error: error.message };

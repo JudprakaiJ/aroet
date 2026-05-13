@@ -15,7 +15,6 @@ export default async function MachinesPage({
   let query = supabase
     .from("machines")
     .select("machine_no, name, product_code, serial_no, customer_name, warranty_expiry, version")
-    .eq("is_active", true)
     .order("machine_no", { ascending: false });
 
   if (filter === "unknown") query = query.is("version", null);
