@@ -57,7 +57,7 @@ export default async function CasesPage({
 
   let query = supabase
     .from("cases")
-    .select("so_number, source, status, service_type_code, service_type_name, customer_name, machine_no, due_date, title, project_code");
+    .select("so_number, source, status, service_type_code, service_type_name, customer_name, machine_no, due_date, title");
 
   if (filter === "active") {
     query = query.in("status", ["planned", "in_progress"]);
@@ -169,7 +169,7 @@ export default async function CasesPage({
         {(cases || []).map((c) => {
           const isOverdue = c.status !== "completed" && c.status !== "verified" && c.due_date && c.due_date < today;
           const engs = engMap.get(c.so_number) || { others: [] };
-          const projectCode = c.project_code || extractProjectCode(c.title);
+          const projectCode = extractProjectCode(c.title);
           const serviceTypeShort = c.service_type_name?.split(" ")[0] || "";
           const serviceColor = SERVICE_TYPE_COLORS[serviceTypeShort] || { bg: "#F1F5F9", fg: "#475569" };
           const statusColor = STATUS_COLORS[c.status] || { bg: "#F1F5F9", fg: "#475569" };
