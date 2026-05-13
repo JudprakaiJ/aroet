@@ -13,6 +13,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CaseTabs from "./tabs";
 import ReparseButton from "./reparse-button";
+import AddSessionButton from "./add-session";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,7 @@ export default async function CaseDetail({
 
   if (error || !c) notFound();
 
-  const [machineRes, engineersRes, sessionsRes, referencesRes, adminLogRes, allMachinesRes] = await Promise.all([
+  const [machineRes, engineersRes, sessionsRes, referencesRes, adminLogRes, allMachinesRes, activeEngineersRes, caseMachinesRes] = await Promise.all([
     c.machine_no
       ? supabase.from("machines").select("*").eq("machine_no", c.machine_no).single()
       : Promise.resolve({ data: null }),
@@ -62,8 +63,16 @@ export default async function CaseDetail({
     supabase
       .from("machines")
       .select("machine_no, name, product_code, version")
-      .eq("is_active", true)
       .order("machine_no"),
+    supabase
+      .from("engineers")
+      .select("code, full_name, role")
+      .eq("is_active", true)
+      .order("code"),
+    supabase
+      .from("case_machines")
+      .select("machine_no, is_primary")
+      .eq("so_number", so_number),
   ]);
 
   const machine = machineRes.data;
@@ -72,6 +81,16 @@ export default async function CaseDetail({
   const references = (referencesRes.data ?? []) as any[];
   const adminLog = (adminLogRes.data ?? []) as any[];
   const allMachines = allMachinesRes.data ?? [];
+  const activeEngineers = (activeEngineersRes.data ?? []) as any[];
+  const caseMachines = (caseMachinesRes.data ?? []) as any[];
+
+  // Build machines for this case (junction + legacy single)
+  const caseMachineList: { machine_no: string; is_primary?: boolean }[] = [];
+  if (caseMachines.length > 0) {
+    caseMachines.forEach((m) => caseMachineList.push({ machine_no: m.machine_no, is_primary: m.is_primary }));
+  } else if (c.machine_no) {
+    caseMachineList.push({ machine_no: c.machine_no, is_primary: true });
+  }
 
   // Totals
   const totals = sessions.reduce(
@@ -194,6 +213,9 @@ export default async function CaseDetail({
             sortedDates={sortedDates}
             sessionsByDate={sessionsByDate}
             so_number={so_number}
+            activeEngineers={activeEngineers}
+            caseMachineList={caseMachineList}
+            defaultEngineer={engineers.find((e: any) => e.is_lead)?.engineer_code}
           />
         )}
         {tab === "references" && <ReferencesTab references={references} />}
@@ -206,7 +228,63 @@ export default async function CaseDetail({
   );
 }
 
-function SessionsTab({ sessions, sortedDates, sessionsByDate, so_number }: any) {
+function SessionsTab({ sessions, sortedDates, sessionsByDate, so_number, activeEngineers, caseMachineList, defaultEngineer }: any) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-[17px] font-semibold">Sessions</h2>
+          <p className="text-[13px] text-slate-500 mt-0.5">
+            {sessions.length} session{sessions.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+        <AddSessionButton
+          so_number={so_number}
+          engineers={activeEngineers}
+          machines={caseMachineList}
+          defaultEngineer={defaultEngineer}
+        />
+      </div>
+
+      {sessions.length === 0 && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center text-[14px] text-slate-400">
+          No sessions yet. Click "+ Add session" to add your first one.
+        </div>
+      )}
+
+      <div className="space-y-4">
+        {sortedDates.map((date: string) => {
+          const daySessions = sessionsByDate.get(date) ?? [];
+          const dayTravel = daySessions.reduce((a: number, s: any) => a + (s.travel_minutes ?? 0), 0);
+          const dayWork = daySessions.reduce((a: number, s: any) => a + (s.work_minutes ?? 0), 0);
+          const dayOffice = daySessions.reduce((a: number, s: any) => a + (s.office_minutes ?? 0), 0);
+          const dayTotal = dayTravel + dayWork + dayOffice;
+
+          return (
+            <div key={date}>
+              <div className="text-[13px] font-semibold text-slate-700 mb-2 flex items-center gap-3 flex-wrap">
+                <span>{fmtDay(date)}</span>
+                <span className="text-[12px] text-slate-400 font-normal">
+                  · {fmtTime(dayTotal)} total
+                  {dayTravel > 0 && <span style={{ color: "#993556", marginLeft: 8 }}>T {fmtTime(dayTravel)}</span>}
+                  {dayWork > 0 && <span style={{ color: "#185FA5", marginLeft: 8 }}>W {fmtTime(dayWork)}</span>}
+                  {dayOffice > 0 && <span style={{ color: "#5F5E5A", marginLeft: 8 }}>O {fmtTime(dayOffice)}</span>}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {daySessions.map((s: any) => (
+                  <SessionCard key={s.id} session={s} so_number={so_number} />
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SessionsTabOld({ sessions, sortedDates, sessionsByDate, so_number }: any) {
   if (sessions.length === 0) {
     return (
       <div className="bg-white border border-slate-200 rounded-lg p-8 text-center text-sm text-slate-400">
