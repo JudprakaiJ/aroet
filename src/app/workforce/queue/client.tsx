@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { approveSession, returnSession, bulkApproveSessions, detectOverlaps, type SessionForOverlap } from "./actions";
+import { approveSession, returnSession, bulkApproveSessions } from "./actions";
+import { detectOverlaps, type SessionForOverlap } from "./lib";
 
 interface Session {
   id: number;
