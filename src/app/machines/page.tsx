@@ -30,66 +30,66 @@ export default async function MachinesPage({
   if (error) return <div className="p-6 text-red-600">Error: {error.message}</div>;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-5">
-      <h1 className="text-lg font-semibold text-slate-900 mb-1">Machines</h1>
-      <p className="text-xs text-slate-500 mb-3">
-        {filter === "unknown" ? "Machines with unknown version" : "All active machines"}
+    <div className="max-w-7xl mx-auto px-6 py-8">
+      <h1 className="text-[28px] font-bold text-slate-900 leading-tight">Machines</h1>
+      <p className="text-[14px] text-slate-500 mb-6 mt-1">
+        {filter === "unknown" ? "Machines with unknown version" : `${counts[0].count ?? 0} active machines · ${counts[1].count ?? 0} with unknown version`}
       </p>
 
-      <div className="flex gap-2 mb-3 text-xs">
+      <div className="flex gap-2 mb-5">
         <Link
           href="/machines"
-          className="px-3 py-1.5 rounded-lg border"
+          className="px-3.5 py-2 rounded-lg font-medium text-[13px]"
           style={
             !filter
-              ? { background: "#FEE2E5", color: "#C8102E", borderColor: "#FCA5AE", fontWeight: 600 }
-              : { background: "white", color: "#475569", borderColor: "#E2E8F0" }
+              ? { background: "#FCE8EB", color: "#C8102E", border: "1.5px solid #C8102E" }
+              : { background: "white", color: "#1a1a1a", border: "1px solid #e2e8f0" }
           }
         >
-          All ({counts[0].count ?? 0})
+          All <span style={{ opacity: 0.7, marginLeft: 4 }}>{counts[0].count ?? 0}</span>
         </Link>
         <Link
           href="/machines?filter=unknown"
-          className="px-3 py-1.5 rounded-lg border"
+          className="px-3.5 py-2 rounded-lg font-medium text-[13px]"
           style={
             filter === "unknown"
-              ? { background: "#FEE2E5", color: "#C8102E", borderColor: "#FCA5AE", fontWeight: 600 }
-              : { background: "white", color: "#475569", borderColor: "#E2E8F0" }
+              ? { background: "#FCE8EB", color: "#C8102E", border: "1.5px solid #C8102E" }
+              : { background: "white", color: "#1a1a1a", border: "1px solid #e2e8f0" }
           }
         >
-          Unknown version ({counts[1].count ?? 0})
+          Unknown version <span style={{ opacity: 0.7, marginLeft: 4 }}>{counts[1].count ?? 0}</span>
         </Link>
       </div>
 
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-        <table className="w-full text-xs">
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <table className="w-full text-[13px]">
           <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
             <tr className="text-left">
-              <th className="px-3 py-2 font-medium w-32">Machine #</th>
-              <th className="px-3 py-2 font-medium w-32">Product</th>
-              <th className="px-3 py-2 font-medium w-16">Ver</th>
-              <th className="px-3 py-2 font-medium w-28">Serial</th>
-              <th className="px-3 py-2 font-medium">Customer</th>
-              <th className="px-3 py-2 font-medium w-24">Warranty</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-40">Machine #</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-36">Product</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-20">Version</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-32">Serial</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider">Customer</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-28">Warranty</th>
             </tr>
           </thead>
           <tbody>
             {(machines ?? []).map((m) => (
-              <tr key={m.machine_no} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-3 py-1.5">
+              <tr key={m.machine_no} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                <td className="px-5 py-3">
                   <Link
                     href={`/machines/${encodeURIComponent(m.machine_no)}`}
-                    className="font-mono text-[11px] hover:underline"
+                    className="font-mono text-[13px] font-semibold hover:underline"
                     style={{ color: "#C8102E" }}
                   >
                     {m.machine_no}
                   </Link>
                 </td>
-                <td className="px-3 py-1.5 font-mono text-[10px] text-slate-600">{m.product_code ?? "—"}</td>
-                <td className="px-3 py-1.5">
+                <td className="px-5 py-3 font-mono text-[12px] text-slate-600">{m.product_code ?? "—"}</td>
+                <td className="px-5 py-3">
                   {m.version ? (
                     <span
-                      className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                      className="text-[11px] px-2 py-1 rounded-md font-medium"
                       style={
                         m.version === "N/A"
                           ? { background: "#F1F5F9", color: "#64748B" }
@@ -99,14 +99,17 @@ export default async function MachinesPage({
                       {m.version}
                     </span>
                   ) : (
-                    <span className="text-[10px] text-amber-600 font-medium">unknown</span>
+                    <span className="text-[11px] px-2 py-1 rounded-md font-medium" style={{ background: "#FAEEDA", color: "#BA7517" }}>unknown</span>
                   )}
                 </td>
-                <td className="px-3 py-1.5 font-mono text-[10px]">{m.serial_no ?? "—"}</td>
-                <td className="px-3 py-1.5 truncate max-w-xs">{m.customer_name ?? "—"}</td>
-                <td className="px-3 py-1.5 text-slate-500">{fmtDate(m.warranty_expiry)}</td>
+                <td className="px-5 py-3 font-mono text-[12px]">{m.serial_no ?? "—"}</td>
+                <td className="px-5 py-3 truncate max-w-xs">{m.customer_name ?? "—"}</td>
+                <td className="px-5 py-3 text-slate-500">{fmtDate(m.warranty_expiry)}</td>
               </tr>
             ))}
+            {(machines ?? []).length === 0 && (
+              <tr><td colSpan={6} className="px-5 py-12 text-center text-slate-400 text-[13px]">No machines</td></tr>
+            )}
           </tbody>
         </table>
       </div>

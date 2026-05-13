@@ -201,23 +201,39 @@ export default function WorkforceCalendar({
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold text-slate-800">Workforce calendar</h1>
-        <p className="text-xs text-slate-500 mt-1">
-          Track engineer hours, OT, and case assignments — {period.label}
-        </p>
+    <div className="max-w-7xl mx-auto px-6 py-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-[28px] font-bold text-slate-900 leading-tight">Workforce</h1>
+        <button className="text-[14px] px-4 py-2.5 rounded-lg font-medium border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">
+          ⬇ Export CSV
+        </button>
       </div>
+      <p className="text-[14px] text-slate-500 mb-6">
+        Track engineer hours, OT, and case assignments · {period.label}
+      </p>
 
       {/* Filter bar */}
-      <div className="bg-white border border-slate-200 rounded-lg px-3 py-2 mb-3 flex flex-wrap gap-3 items-center text-xs">
-        <div className="flex items-center gap-1">
-          <button onClick={() => navigateMonth(-1)} className="px-2 py-1 hover:bg-slate-100 rounded">←</button>
-          <strong>{["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][month-1]} {year}</strong>
-          <button onClick={() => navigateMonth(1)} className="px-2 py-1 hover:bg-slate-100 rounded">→</button>
+      <div className="bg-white border border-slate-200 rounded-2xl px-5 py-4 mb-5 flex flex-wrap gap-4 items-center">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigateMonth(-1)}
+            className="w-9 h-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-base"
+          >
+            ‹
+          </button>
+          <strong className="text-[15px] font-semibold min-w-[100px] text-center">
+            {["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][month-1]} {year}
+          </strong>
+          <button
+            onClick={() => navigateMonth(1)}
+            className="w-9 h-9 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-base"
+          >
+            ›
+          </button>
         </div>
-        <div className="border-l h-4 border-slate-200" />
-        <div className="flex gap-1">
+        <div className="h-7 border-l border-slate-200" />
+        <div className="flex gap-1.5 flex-wrap">
           {[
             { key: "month" as const, label: "This month" },
             { key: "h1_1_15" as const, label: "1—15" },
@@ -228,59 +244,73 @@ export default function WorkforceCalendar({
             <button
               key={p.key}
               onClick={() => setPeriod(p.key)}
-              className="px-2 py-1 rounded text-[11px]"
+              className="text-[13px] px-3.5 py-2 rounded-lg font-medium"
               style={
                 preset === p.key
-                  ? { background: "#FCE8EB", color: "#C8102E", border: "1px solid #C8102E" }
-                  : { background: "white", color: "#475569", border: "1px solid #e2e8f0" }
+                  ? { background: "#FCE8EB", color: "#C8102E", border: "1.5px solid #C8102E" }
+                  : { background: "white", color: "#1a1a1a", border: "1px solid #e2e8f0" }
               }
             >
               {p.label}
             </button>
           ))}
         </div>
-        <div className="border-l h-4 border-slate-200" />
-        <span className="text-slate-500">Period: <strong className="text-slate-800">{period.start} → {period.end}</strong></span>
-        <div className="ml-auto">
-          <button className="text-[11px] px-3 py-1 border border-slate-300 rounded hover:bg-slate-50">
-            Export CSV
-          </button>
-        </div>
+        <span className="text-[13px] text-slate-500 ml-auto">
+          {period.start} → {period.end}
+        </span>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
-        <Stat label="Engineers active" value={totalStats.engineers.toString()} />
-        <Stat label="Total hours" value={`${totalStats.totalHours}h`} />
-        <Stat label="OT hours" value={`${totalStats.otHours}h`} accent="#993556" />
-        <Stat label="Cases worked" value={totalStats.cases.toString()} />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+        <Stat label="Engineers active" value={totalStats.engineers.toString()} subtitle="with sessions" />
+        <Stat label="Total hours" value={`${totalStats.totalHours}h`} subtitle={`across ${totalStats.cases} cases`} />
+        <Stat label="OT hours" value={`${totalStats.otHours}h`} accent="#993556" subtitle={totalStats.totalHours > 0 ? `${Math.round((totalStats.otHours / totalStats.totalHours) * 100)}% of total` : ""} />
+        <Stat label="Cases worked" value={totalStats.cases.toString()} subtitle="unique SOs" />
       </div>
 
       {/* Calendar table */}
-      <div className="bg-white border border-slate-200 rounded-lg p-3">
+      <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h2 className="text-[17px] font-semibold text-slate-900">Engineer activity</h2>
+            <p className="text-[13px] text-slate-500 mt-0.5">Click an engineer to expand case breakdown</p>
+          </div>
+          <div className="flex gap-2.5 items-center text-[12px] flex-wrap">
+            <Legend color={ACTIVITY_COLORS.field} label="Field" />
+            <Legend color={ACTIVITY_COLORS.travel} label="Travel" />
+            <Legend color={ACTIVITY_COLORS.remote} label="Remote" />
+            <Legend color={ACTIVITY_COLORS.training} label="Training" />
+            <Legend color={ACTIVITY_COLORS.office} label="Office" />
+            <span className="inline-flex items-center gap-1 text-slate-500">
+              <span className="inline-block w-3 h-3 rounded-sm border-2 border-dashed" style={{ borderColor: "#993556" }} />
+              OT &gt;8h
+            </span>
+          </div>
+        </div>
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-[10px]">
+          <table className="w-full border-collapse text-[13px]">
             <thead>
-              <tr>
-                <th className="text-left p-2 font-medium text-slate-500 sticky left-0 bg-white min-w-[180px]">Engineer / Case</th>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                <th className="text-left px-5 py-3 font-semibold text-slate-600 sticky left-0 bg-slate-50 min-w-[200px] text-[12px] uppercase tracking-wider">Engineer / Case</th>
                 {days.map((d) => {
                   const lbl = dayLabel(d);
                   return (
                     <th
                       key={d}
-                      className="p-1 font-normal min-w-[34px]"
+                      className="px-1 py-3 font-medium min-w-[42px] text-[11px]"
                       style={{ color: lbl.isWeekend ? "#94a3b8" : "#64748b" }}
                     >
-                      {lbl.dow}<br />{lbl.day.toString().padStart(2, "0")}
+                      <div>{lbl.dow}</div>
+                      <div className="text-[12px] font-bold" style={{ color: lbl.isWeekend ? "#94a3b8" : "#1a1a1a" }}>{lbl.day.toString().padStart(2, "0")}</div>
                     </th>
                   );
                 })}
-                <th className="text-right p-2 font-medium text-slate-500" title="Travel (T=)">ΣT</th>
-                <th className="text-right p-2 font-medium text-slate-500" title="Work (C=)">ΣC</th>
-                <th className="text-right p-2 font-medium text-slate-500" title="Office (AR=)">ΣAR</th>
-                <th className="text-right p-2 font-medium text-slate-500">Σ</th>
-                <th className="text-right p-2 font-medium text-slate-500">OT</th>
-                <th className="text-center p-2 font-medium text-slate-500">Status</th>
+                <th className="text-right px-3 py-3 font-semibold text-[12px]" style={{ color: ACTIVITY_COLORS.travel }} title="Travel (T=)">ΣT</th>
+                <th className="text-right px-2 py-3 font-semibold text-[12px]" style={{ color: ACTIVITY_COLORS.field }} title="Work (C=)">ΣC</th>
+                <th className="text-right px-2 py-3 font-semibold text-[12px]" style={{ color: ACTIVITY_COLORS.office }} title="Office (AR=)">ΣAR</th>
+                <th className="text-right px-3 py-3 font-semibold text-slate-700 text-[12px]">Total</th>
+                <th className="text-right px-3 py-3 font-semibold text-slate-600 text-[12px]">OT</th>
+                <th className="text-center px-4 py-3 font-semibold text-slate-600 text-[12px]">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -321,36 +351,38 @@ export default function WorkforceCalendar({
 
                 return (
                   <>
-                    <tr key={eng.code} className="border-t border-slate-100 bg-slate-50 hover:bg-slate-100 cursor-pointer" onClick={() => toggleExpand(eng.code)}>
-                      <td className="p-2 sticky left-0 bg-inherit">
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-400 text-xs">{isExpanded ? "▾" : "▸"}</span>
+                    <tr key={eng.code} className="border-t border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors" onClick={() => toggleExpand(eng.code)}>
+                      <td className="px-5 py-3 sticky left-0 bg-white">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-slate-400 text-sm">{isExpanded ? "▾" : "▸"}</span>
                           <div
-                            className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-medium"
+                            className="w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-bold"
                             style={{ background: "#FCE8EB", color: "#C8102E" }}
                           >
                             {eng.code}
                           </div>
-                          <span className="font-semibold">{eng.name || eng.code}</span>
-                          <span className="text-[9px] px-1.5 py-0.5 rounded bg-white text-slate-500">{bySO.size} {bySO.size === 1 ? "case" : "cases"}</span>
+                          <div>
+                            <div className="font-semibold text-[14px]">{eng.name || eng.code}</div>
+                            <div className="text-[11px] text-slate-400">{bySO.size} {bySO.size === 1 ? "case" : "cases"}</div>
+                          </div>
                         </div>
                       </td>
                       {days.map((d) => {
                         const dayS = byDate.get(d) || [];
                         return (
-                          <td key={d} className="p-px">
+                          <td key={d} className="px-0.5 py-1.5">
                             <DayCellBar sessions={dayS} date={d} />
                           </td>
                         );
                       })}
-                      <td className="p-2 text-right text-[10px]" style={{ color: ACTIVITY_COLORS.travel }}>{fmtH(engT)}</td>
-                      <td className="p-2 text-right text-[10px]" style={{ color: ACTIVITY_COLORS.field }}>{fmtH(engC)}</td>
-                      <td className="p-2 text-right text-[10px]" style={{ color: ACTIVITY_COLORS.office }}>{fmtH(engAR)}</td>
-                      <td className="p-2 text-right font-bold">{fmtH(engTotal)}</td>
-                      <td className="p-2 text-right font-bold" style={{ color: engOT > 0 ? "#993556" : "#94a3b8" }}>
+                      <td className="px-3 py-3 text-right text-[13px] font-semibold" style={{ color: ACTIVITY_COLORS.travel }}>{fmtH(engT)}</td>
+                      <td className="px-2 py-3 text-right text-[13px] font-semibold" style={{ color: ACTIVITY_COLORS.field }}>{fmtH(engC)}</td>
+                      <td className="px-2 py-3 text-right text-[13px] font-semibold" style={{ color: ACTIVITY_COLORS.office }}>{fmtH(engAR)}</td>
+                      <td className="px-3 py-3 text-right font-bold text-[15px]">{fmtH(engTotal)}</td>
+                      <td className="px-3 py-3 text-right font-bold text-[13px]" style={{ color: engOT > 0 ? "#993556" : "#94a3b8" }}>
                         {fmtH(engOT)}
                       </td>
-                      <td className="p-2 text-center">
+                      <td className="px-4 py-3 text-center">
                         <StatusBadge status={overallStatus} />
                       </td>
                     </tr>
@@ -372,29 +404,31 @@ export default function WorkforceCalendar({
                         return (
                           <Fragment key={`${eng.code}-${soKey}`}>
                             {/* Case header row */}
-                            <tr className="bg-white border-t border-slate-100">
-                              <td className="p-2 pl-8 sticky left-0 bg-white">
-                                <div className="flex items-center gap-2">
+                            <tr className="bg-slate-50/30 border-t border-slate-100">
+                              <td className="px-5 py-3 pl-12 sticky left-0 bg-slate-50/30">
+                                <div className="flex items-center gap-2 flex-wrap">
                                   <span
-                                    className="inline-block w-0.5 h-5 rounded"
+                                    className="inline-block w-[3px] h-5 rounded"
                                     style={{ background: ACTIVITY_COLORS[dominantActivity] || "#94a3b8" }}
                                   />
                                   {!isOffice ? (
                                     <>
-                                      <Link href={`/cases/${soKey}`} className="font-mono text-[10px] font-medium hover:underline" style={{ color: "#C8102E" }}>
+                                      <Link href={`/cases/${soKey}`} className="font-mono text-[13px] font-semibold hover:underline" style={{ color: "#C8102E" }}>
                                         {soKey}
                                       </Link>
                                       {c?.service_type && (
-                                        <span className="text-[9px] px-1 py-0.5 rounded bg-slate-100 text-slate-600">{c.service_type.split(" ")[0]}</span>
+                                        <span className="text-[11px] px-2 py-0.5 rounded-md font-medium" style={{ background: "#DDEBF7", color: "#185FA5" }}>
+                                          {c.service_type.split(" ")[0]}
+                                        </span>
                                       )}
                                     </>
                                   ) : (
-                                    <span className="text-[10px] text-slate-500 italic">Office (no SO)</span>
+                                    <span className="text-[12px] text-slate-500 italic">Office (no SO)</span>
                                   )}
                                 </div>
                                 {!isOffice && c && (
-                                  <div className="text-[9px] text-slate-500 ml-3 mt-0.5">
-                                    {c.machine_no || ""} · {c.customer_code || ""}
+                                  <div className="text-[11px] text-slate-500 ml-3 mt-1">
+                                    {c.machine_no || ""}{c.machine_no && c.customer_code ? " · " : ""}{c.customer_code || ""}
                                   </div>
                                 )}
                               </td>
@@ -404,21 +438,21 @@ export default function WorkforceCalendar({
                                   ? Math.round(((s.travel_minutes || 0) + (s.work_minutes || 0) + (s.office_minutes || 0)) / 60)
                                   : 0;
                                 return (
-                                  <td key={d} className="p-px text-center">
+                                  <td key={d} className="px-0.5 py-2 text-center">
                                     {total > 0 ? (
-                                      <span className="text-[10px] font-medium text-slate-700">{total}</span>
+                                      <span className="text-[13px] font-semibold text-slate-700">{total}</span>
                                     ) : (
-                                      <span className="text-[10px] text-slate-300">—</span>
+                                      <span className="text-[12px] text-slate-300">—</span>
                                     )}
                                   </td>
                                 );
                               })}
-                              <td className="p-2 text-right text-[10px]" style={{ color: ACTIVITY_COLORS.travel }}>{fmtH(caseT)}</td>
-                              <td className="p-2 text-right text-[10px]" style={{ color: ACTIVITY_COLORS.field }}>{fmtH(caseC)}</td>
-                              <td className="p-2 text-right text-[10px]" style={{ color: ACTIVITY_COLORS.office }}>{fmtH(caseAR)}</td>
-                              <td className="p-2 text-right text-[10px] font-medium">{fmtH(caseTotal)}</td>
-                              <td className="p-2 text-right text-[10px]" style={{ color: caseOT > 0 ? "#993556" : "#94a3b8" }}>{fmtH(caseOT)}</td>
-                              <td className="p-2 text-center">
+                              <td className="px-3 py-3 text-right text-[12px] font-medium" style={{ color: ACTIVITY_COLORS.travel }}>{fmtH(caseT)}</td>
+                              <td className="px-2 py-3 text-right text-[12px] font-medium" style={{ color: ACTIVITY_COLORS.field }}>{fmtH(caseC)}</td>
+                              <td className="px-2 py-3 text-right text-[12px] font-medium" style={{ color: ACTIVITY_COLORS.office }}>{fmtH(caseAR)}</td>
+                              <td className="px-3 py-3 text-right text-[13px] font-semibold">{fmtH(caseTotal)}</td>
+                              <td className="px-3 py-3 text-right text-[12px] font-medium" style={{ color: caseOT > 0 ? "#993556" : "#94a3b8" }}>{fmtH(caseOT)}</td>
+                              <td className="px-4 py-3 text-center">
                                 <div className="flex gap-1 justify-center flex-wrap">
                                   {soSessions.map((s) => (
                                     <SessionApprovalControl
@@ -435,64 +469,64 @@ export default function WorkforceCalendar({
                             </tr>
                             {/* Travel sub-row */}
                             {caseT > 0 && (
-                              <tr className="bg-slate-50/40 border-t border-slate-50">
-                                <td className="py-1 pl-12 sticky left-0 bg-slate-50/40">
-                                  <span className="text-[10px]" style={{ color: ACTIVITY_COLORS.travel }}>T= Travel</span>
+                              <tr className="bg-white border-t border-slate-50">
+                                <td className="py-1.5 pl-16 sticky left-0 bg-white">
+                                  <span className="text-[11px] font-medium" style={{ color: ACTIVITY_COLORS.travel }}>T= Travel</span>
                                 </td>
                                 {days.map((d) => {
                                   const ts = soSessions.find((x) => x.session_date === d && (x.travel_minutes || 0) > 0);
                                   return (
-                                    <td key={d} className="py-1 text-center">
+                                    <td key={d} className="py-1.5 text-center">
                                       {ts ? (
-                                        <span className="text-[9px]" style={{ color: ACTIVITY_COLORS.travel }}>{fmtMinShort(ts.travel_minutes || 0)}</span>
+                                        <span className="text-[11px] font-medium" style={{ color: ACTIVITY_COLORS.travel }}>{fmtMinShort(ts.travel_minutes || 0)}</span>
                                       ) : null}
                                     </td>
                                   );
                                 })}
-                                <td className="py-1 text-right text-[10px] font-semibold" style={{ color: ACTIVITY_COLORS.travel }}>{fmtH(caseT)}</td>
+                                <td className="py-1.5 px-3 text-right text-[12px] font-semibold" style={{ color: ACTIVITY_COLORS.travel }}>{fmtH(caseT)}</td>
                                 <td colSpan={5}></td>
                               </tr>
                             )}
                             {/* Work sub-row */}
                             {caseC > 0 && (
-                              <tr className="bg-slate-50/40 border-t border-slate-50">
-                                <td className="py-1 pl-12 sticky left-0 bg-slate-50/40">
-                                  <span className="text-[10px]" style={{ color: ACTIVITY_COLORS.field }}>C= Work</span>
+                              <tr className="bg-white border-t border-slate-50">
+                                <td className="py-1.5 pl-16 sticky left-0 bg-white">
+                                  <span className="text-[11px] font-medium" style={{ color: ACTIVITY_COLORS.field }}>C= Work</span>
                                 </td>
                                 {days.map((d) => {
                                   const ws = soSessions.find((x) => x.session_date === d && (x.work_minutes || 0) > 0);
                                   return (
-                                    <td key={d} className="py-1 text-center">
+                                    <td key={d} className="py-1.5 text-center">
                                       {ws ? (
-                                        <span className="text-[9px]" style={{ color: ACTIVITY_COLORS.field }}>{fmtMinShort(ws.work_minutes || 0)}</span>
+                                        <span className="text-[11px] font-medium" style={{ color: ACTIVITY_COLORS.field }}>{fmtMinShort(ws.work_minutes || 0)}</span>
                                       ) : null}
                                     </td>
                                   );
                                 })}
                                 <td></td>
-                                <td className="py-1 text-right text-[10px] font-semibold" style={{ color: ACTIVITY_COLORS.field }}>{fmtH(caseC)}</td>
+                                <td className="py-1.5 px-2 text-right text-[12px] font-semibold" style={{ color: ACTIVITY_COLORS.field }}>{fmtH(caseC)}</td>
                                 <td colSpan={4}></td>
                               </tr>
                             )}
                             {/* Office sub-row */}
                             {caseAR > 0 && (
-                              <tr className="bg-slate-50/40 border-t border-slate-50">
-                                <td className="py-1 pl-12 sticky left-0 bg-slate-50/40">
-                                  <span className="text-[10px]" style={{ color: ACTIVITY_COLORS.office }}>AR= Office</span>
+                              <tr className="bg-white border-t border-slate-50">
+                                <td className="py-1.5 pl-16 sticky left-0 bg-white">
+                                  <span className="text-[11px] font-medium" style={{ color: ACTIVITY_COLORS.office }}>AR= Office</span>
                                 </td>
                                 {days.map((d) => {
                                   const os = soSessions.find((x) => x.session_date === d && (x.office_minutes || 0) > 0);
                                   return (
-                                    <td key={d} className="py-1 text-center">
+                                    <td key={d} className="py-1.5 text-center">
                                       {os ? (
-                                        <span className="text-[9px]" style={{ color: ACTIVITY_COLORS.office }}>{fmtMinShort(os.office_minutes || 0)}</span>
+                                        <span className="text-[11px] font-medium" style={{ color: ACTIVITY_COLORS.office }}>{fmtMinShort(os.office_minutes || 0)}</span>
                                       ) : null}
                                     </td>
                                   );
                                 })}
                                 <td></td>
                                 <td></td>
-                                <td className="py-1 text-right text-[10px] font-semibold" style={{ color: ACTIVITY_COLORS.office }}>{fmtH(caseAR)}</td>
+                                <td className="py-1.5 px-2 text-right text-[12px] font-semibold" style={{ color: ACTIVITY_COLORS.office }}>{fmtH(caseAR)}</td>
                                 <td colSpan={3}></td>
                               </tr>
                             )}
@@ -504,7 +538,7 @@ export default function WorkforceCalendar({
               })}
               {visibleEngineers.length === 0 && (
                 <tr>
-                  <td colSpan={days.length + 7} className="p-8 text-center text-slate-400 text-xs">
+                  <td colSpan={days.length + 7} className="p-12 text-center text-slate-400 text-[13px]">
                     No sessions in this period
                   </td>
                 </tr>
@@ -512,25 +546,17 @@ export default function WorkforceCalendar({
             </tbody>
           </table>
         </div>
-
-        <div className="mt-3 flex gap-3 flex-wrap text-[10px]">
-          {Object.entries(ACTIVITY_COLORS).map(([key, color]) => (
-            <div key={key} className="flex items-center gap-1">
-              <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: color }} />
-              <span className="capitalize text-slate-600">{key}</span>
-            </div>
-          ))}
-          <div className="flex items-center gap-1">
-            <span className="inline-block w-2.5 h-2.5 rounded-sm border border-dashed" style={{ borderColor: "#993556" }} />
-            <span className="text-slate-600">OT day (&gt;8h)</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: "#FAEEDA" }} />
-            <span className="text-slate-600">Holiday/Weekend</span>
-          </div>
-        </div>
       </div>
     </div>
+  );
+}
+
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-slate-600">
+      <span className="inline-block w-3 h-3 rounded-sm" style={{ background: color }} />
+      {label}
+    </span>
   );
 }
 
@@ -552,11 +578,12 @@ function fmtMinShort(minutes: number): string {
   return `${h}h${m}`;
 }
 
-function Stat({ label, value, accent }: { label: string; value: string; accent?: string }) {
+function Stat({ label, value, accent, subtitle }: { label: string; value: string; accent?: string; subtitle?: string }) {
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-3">
-      <div className="text-[10px] text-slate-500">{label}</div>
-      <div className="text-xl font-bold mt-1" style={{ color: accent || "#0f172a" }}>{value}</div>
+    <div className="bg-white border border-slate-200 rounded-2xl p-5">
+      <div className="text-[13px] text-slate-500 font-medium mb-2">{label}</div>
+      <div className="text-[28px] font-bold leading-none" style={{ color: accent || "#0f172a" }}>{value}</div>
+      {subtitle && <div className="text-[12px] text-slate-400 mt-1.5">{subtitle}</div>}
     </div>
   );
 }
@@ -564,7 +591,7 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 function StatusBadge({ status }: { status: string }) {
   const cfg = STATUS_COLORS[status] || STATUS_COLORS.draft;
   return (
-    <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ background: cfg.bg, color: cfg.fg }}>
+    <span className="text-[11px] px-2 py-1 rounded-md font-medium" style={{ background: cfg.bg, color: cfg.fg }}>
       {cfg.label}
     </span>
   );
@@ -576,9 +603,9 @@ function DayCellBar({ sessions, date }: { sessions: Session[]; date: string }) {
     const d = new Date(date);
     const isWeekendDay = d.getDay() === 0 || d.getDay() === 6;
     if (isWeekendDay) {
-      return <div className="h-[18px]" style={{ background: "#FAEEDA" }} />;
+      return <div className="h-[28px] rounded" style={{ background: "#FAEEDA" }} />;
     }
-    return <div className="h-[18px]" />;
+    return <div className="h-[28px]" />;
   }
 
   let totalMin = 0;
@@ -599,12 +626,13 @@ function DayCellBar({ sessions, date }: { sessions: Session[]; date: string }) {
 
   return (
     <div
-      className="h-[18px] flex gap-px rounded"
+      className="h-[28px] flex gap-0.5 rounded-md"
       style={{
-        border: isOT ? "0.5px dashed #993556" : "none",
-        padding: isOT ? 1 : 0,
+        border: isOT ? "1.5px dashed #993556" : "none",
+        padding: isOT ? 2 : 0,
         background: anyHoliday ? "#FAEEDA" : undefined,
       }}
+      title={`${date}: ${totalH}h${isOT ? " (OT)" : ""}`}
     >
       {segs.map((seg, i) => (
         <div
@@ -616,9 +644,9 @@ function DayCellBar({ sessions, date }: { sessions: Session[]; date: string }) {
             alignItems: "center",
             justifyContent: "center",
             color: "white",
-            fontWeight: 600,
-            fontSize: 9,
-            borderRadius: 2,
+            fontWeight: 700,
+            fontSize: 12,
+            borderRadius: 4,
           }}
         >
           {i === segs.length - 1 ? totalH : ""}
@@ -644,18 +672,18 @@ function SessionApprovalControl({
   const status = session.approval_status || "draft";
   if (status === "approved") {
     return (
-      <span className="text-[8px] px-1 py-px rounded" style={{ background: "#D1FAE5", color: "#065F46" }}>
-        ✓
+      <span className="text-[11px] px-2 py-1 rounded-md font-medium" style={{ background: "#D1FAE5", color: "#065F46" }}>
+        ✓ Approved
       </span>
     );
   }
   if (status === "submitted") {
     return (
-      <span className="flex gap-px">
+      <span className="flex gap-1">
         <button
           disabled={pending}
-          onClick={onApprove}
-          className="text-[8px] px-1 py-px rounded text-white"
+          onClick={(e) => { e.stopPropagation(); onApprove(); }}
+          className="text-[11px] px-2 py-1 rounded-md text-white font-medium hover:opacity-90"
           style={{ background: "#065F46" }}
           title="Approve"
         >
@@ -663,8 +691,8 @@ function SessionApprovalControl({
         </button>
         <button
           disabled={pending}
-          onClick={onReturn}
-          className="text-[8px] px-1 py-px rounded text-white"
+          onClick={(e) => { e.stopPropagation(); onReturn(); }}
+          className="text-[11px] px-2 py-1 rounded-md text-white font-medium hover:opacity-90"
           style={{ background: "#993556" }}
           title="Return"
         >
@@ -677,9 +705,9 @@ function SessionApprovalControl({
   return (
     <button
       disabled={pending}
-      onClick={onSubmit}
-      className="text-[8px] px-1 py-px rounded"
-      style={{ background: "#FAEEDA", color: "#6B3D04" }}
+      onClick={(e) => { e.stopPropagation(); onSubmit(); }}
+      className="text-[11px] px-3 py-1.5 rounded-md font-medium text-white hover:opacity-90"
+      style={{ background: "#C8102E" }}
       title="Submit for approval"
     >
       Submit

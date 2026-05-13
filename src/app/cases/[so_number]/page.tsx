@@ -98,96 +98,81 @@ export default async function CaseDetail({
   const s = statusBadge[c.status] ?? { bg: "#F1F5F9", text: "#64748B", label: c.status };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-5">
-      <div className="mb-3">
-        <Link href="/cases" className="text-xs hover:underline" style={{ color: "#C8102E" }}>
-          ← Cases
+    <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="mb-4">
+        <Link href="/cases" className="text-[13px] font-medium hover:underline" style={{ color: "#C8102E" }}>
+          ← Back to cases
         </Link>
       </div>
 
       {/* Header */}
-      <div className="bg-white border border-slate-200 rounded-lg p-4 mb-4">
-        <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="font-mono text-lg font-semibold">{c.so_number}</h1>
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 mb-5">
+        <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="font-mono text-[24px] font-bold leading-none">{c.so_number}</h1>
             <span
-              className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+              className="text-[11px] px-2.5 py-1 rounded-md font-semibold"
               style={{ background: s.bg, color: s.text }}
             >
               {s.label}
             </span>
             {c.source === "aroet" && (
-              <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">
+              <span className="text-[11px] bg-purple-100 text-purple-700 px-2.5 py-1 rounded-md font-semibold">
                 AROET
               </span>
             )}
-            {c.is_locked && (
-              <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded">🔒 Locked</span>
-            )}
-            <span className="text-xs text-slate-500">
+            <span className="text-[13px] text-slate-500">
               {c.service_type_code} · {c.service_type_name}
             </span>
-          </div>
-        </div>
-
-        {c.title && (
-          <div className="bg-slate-50 rounded p-2.5 text-sm text-slate-700 mb-3">{c.title}</div>
-        )}
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 text-xs">
-          <div>
-            <div className="text-slate-500 text-[10px] mb-0.5">Customer</div>
-            <div className="font-medium truncate">{c.customer_name ?? "—"}</div>
-          </div>
-          <div>
-            <div className="text-slate-500 text-[10px] mb-0.5">Contact</div>
-            <div className="font-medium truncate">{c.contact_name ?? "—"}</div>
-          </div>
-          <div>
-            <div className="text-slate-500 text-[10px] mb-0.5">Due</div>
-            <div className="font-medium">{fmtDateLong(c.due_date)}</div>
-          </div>
-          <div>
-            <div className="text-slate-500 text-[10px] mb-0.5">PO</div>
-            <div className="font-medium truncate">{c.customer_po ?? "—"}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-3 mb-4">
-        <div className="bg-white border border-slate-200 rounded-lg p-3">
-          <div className="text-[10px] text-slate-500">Sessions</div>
-          <div className="text-xl font-semibold mt-0.5">{sessions.length}</div>
-        </div>
-        <div className="bg-white border border-slate-200 rounded-lg p-3">
-          <div className="text-[10px] text-slate-500">Travel</div>
-          <div className="text-xl font-semibold mt-0.5">{fmtTime(totals.travel)}</div>
-        </div>
-        <div className="bg-white border border-slate-200 rounded-lg p-3">
-          <div className="text-[10px] text-slate-500">Work</div>
-          <div className="text-xl font-semibold mt-0.5">{fmtTime(totals.work)}</div>
-        </div>
-        <div className="bg-white border border-slate-200 rounded-lg p-3">
-          <div className="text-[10px] text-slate-500">Engineers</div>
-          <div className="text-xl font-semibold mt-0.5">{engineers.length}</div>
-        </div>
-      </div>
-
-      {/* Re-parse banner */}
-      {(parsedCount > 0 || c.planner_note) && (
-        <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-3 flex items-center justify-between">
-          <div className="text-xs text-green-900">
-            <strong>🪄 {parsedCount} sessions parsed</strong>
-            {manualCount > 0 && ` · ${manualCount} manual`}
-            {references.length > 0 && ` · ${references.length} references`}
-            {adminLog.length > 0 && ` · ${adminLog.length} admin events`}
           </div>
           {c.planner_note && (
             <ReparseButton so_number={so_number} hasParsed={parsedCount > 0} />
           )}
         </div>
-      )}
+
+        {c.title && (
+          <div className="text-[16px] font-semibold text-slate-800 mb-4">{c.title}</div>
+        )}
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-3 text-[13px] pt-4 border-t border-slate-100">
+          <div>
+            <div className="text-slate-500 text-[11px] uppercase tracking-wider mb-1 font-semibold">Customer</div>
+            <div className="font-medium text-slate-800 truncate">{c.customer_name ?? "—"}</div>
+          </div>
+          <div>
+            <div className="text-slate-500 text-[11px] uppercase tracking-wider mb-1 font-semibold">Contact</div>
+            <div className="font-medium text-slate-800 truncate">{c.contact_name ?? "—"}</div>
+          </div>
+          <div>
+            <div className="text-slate-500 text-[11px] uppercase tracking-wider mb-1 font-semibold">Due</div>
+            <div className="font-medium text-slate-800">{fmtDateLong(c.due_date)}</div>
+          </div>
+          <div>
+            <div className="text-slate-500 text-[11px] uppercase tracking-wider mb-1 font-semibold">PO</div>
+            <div className="font-medium text-slate-800 truncate">{c.customer_po ?? "—"}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-4 gap-4 mb-5">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <div className="text-[12px] text-slate-500 font-medium mb-1.5">Sessions</div>
+          <div className="text-[28px] font-bold leading-none">{sessions.length}</div>
+        </div>
+        <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <div className="text-[12px] text-slate-500 font-medium mb-1.5">Travel</div>
+          <div className="text-[28px] font-bold leading-none" style={{ color: "#993556" }}>{fmtTime(totals.travel)}</div>
+        </div>
+        <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <div className="text-[12px] text-slate-500 font-medium mb-1.5">Work</div>
+          <div className="text-[28px] font-bold leading-none" style={{ color: "#185FA5" }}>{fmtTime(totals.work)}</div>
+        </div>
+        <div className="bg-white border border-slate-200 rounded-2xl p-5">
+          <div className="text-[12px] text-slate-500 font-medium mb-1.5">Engineers</div>
+          <div className="text-[28px] font-bold leading-none">{engineers.length}</div>
+        </div>
+      </div>
 
       {/* Tabs */}
       <CaseTabs
@@ -202,7 +187,7 @@ export default async function CaseDetail({
       />
 
       {/* Tab content */}
-      <div className="mt-4">
+      <div className="mt-5">
         {tab === "sessions" && (
           <SessionsTab
             sessions={sessions}
@@ -469,22 +454,32 @@ function MachinesTab({ machine }: any) {
 function EngineersTab({ engineers }: any) {
   if (engineers.length === 0) {
     return (
-      <div className="bg-white border border-slate-200 rounded-lg p-8 text-center text-sm text-slate-400">
+      <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center text-[14px] text-slate-400">
         No engineers assigned.
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-4">
+    <div className="bg-white border border-slate-200 rounded-2xl p-6">
       <div className="flex flex-wrap gap-2">
         {engineers.map((e: any) => (
-          <span key={e.engineer_code} className="bg-slate-100 px-3 py-1 rounded text-xs">
-            <strong className="font-mono">{e.engineer_code}</strong>
+          <span
+            key={e.engineer_code}
+            className="bg-slate-50 border border-slate-200 px-3.5 py-2 rounded-lg text-[13px] flex items-center gap-2"
+          >
+            <strong className="font-mono text-[12px] font-semibold">{e.engineer_code}</strong>
             {e.engineers?.full_name && (
-              <span className="text-slate-500 ml-1">— {e.engineers.full_name}</span>
+              <span className="text-slate-600">{e.engineers.full_name}</span>
             )}
-            {e.is_lead && <span className="ml-2 text-[10px]" style={{ color: "#C8102E" }}>★ lead</span>}
+            {e.is_lead && (
+              <span
+                className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
+                style={{ background: "#FAEEDA", color: "#BA7517" }}
+              >
+                ★ LEAD
+              </span>
+            )}
           </span>
         ))}
       </div>

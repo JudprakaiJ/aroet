@@ -4,10 +4,53 @@
   --color-ar-red: #C8102E;
   --color-ar-red-dark: #A00D24;
   --color-ar-red-light: #FEE2E5;
+  --color-ar-red-50: #FFF1F2;
+  --color-ar-red-100: #FCE8EB;
+
+  /* Activity type colors */
+  --color-activity-field: #185FA5;
+  --color-activity-travel: #993556;
+  --color-activity-remote: #5B21B6;
+  --color-activity-training: #BA7517;
+  --color-activity-upgrade: #3B6D11;
+  --color-activity-office: #5F5E5A;
+
+  /* Status colors */
+  --color-status-planned: #DDEBF7;
+  --color-status-planned-fg: #185FA5;
+  --color-status-active: #DDEBF7;
+  --color-status-completed: #D1FAE5;
+  --color-status-completed-fg: #065F46;
+  --color-status-overdue-fg: #C8102E;
+  --color-status-overdue-bg: #FCE8EB;
+}
+
+html {
+  font-size: 15px;
 }
 
 body {
-  background: #ffffff;
+  background: #FAFAF9;
   color: #1a1a1a;
-  font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  font-family: -apple-system, system-ui, "Segoe UI", Arial, sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
+
+/* Tighter line heights for headings */
+h1, h2, h3, h4 { line-height: 1.2; letter-spacing: -0.01em; }
+
+/* Card hover lift */
+.card-hover { transition: all 0.15s ease; }
+.card-hover:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+/* Mono font for SO numbers and codes */
+.font-mono {
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  font-feature-settings: "ss01";
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }

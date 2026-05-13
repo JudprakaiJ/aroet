@@ -43,53 +43,48 @@ export default async function EngineersPage() {
   const monthLabel = new Date().toLocaleDateString("en-GB", { month: "long", year: "numeric" });
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-5">
-      <h1 className="text-lg font-semibold text-slate-900 mb-1">Team</h1>
-      <p className="text-xs text-slate-500 mb-3">Timesheet · {monthLabel}</p>
+    <div className="max-w-6xl mx-auto px-6 py-8">
+      <h1 className="text-[28px] font-bold text-slate-900 leading-tight">Team</h1>
+      <p className="text-[14px] text-slate-500 mb-6 mt-1">Timesheet summary · {monthLabel}</p>
 
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-        <table className="w-full text-xs">
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <table className="w-full text-[13px]">
           <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
             <tr className="text-left">
-              <th className="px-3 py-2 font-medium w-16">Code</th>
-              <th className="px-3 py-2 font-medium">Name</th>
-              <th className="px-3 py-2 font-medium w-20">Role</th>
-              <th className="px-3 py-2 font-medium w-14 text-right">SOs</th>
-              <th className="px-3 py-2 font-medium w-20 text-right">Travel</th>
-              <th className="px-3 py-2 font-medium w-20 text-right">Work</th>
-              <th className="px-3 py-2 font-medium w-20 text-right">Office</th>
-              <th className="px-3 py-2 font-medium w-20 text-right">Weekend</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-20">Code</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider">Name</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-24">Role</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-16 text-right">SOs</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-24 text-right" style={{ color: "#993556" }}>Travel</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-24 text-right" style={{ color: "#185FA5" }}>Work</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-24 text-right" style={{ color: "#5F5E5A" }}>Office</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-24 text-right">Weekend</th>
             </tr>
           </thead>
           <tbody>
             {(engineers ?? []).map((e) => {
               const t = totals.get(e.code);
               return (
-                <tr key={e.code} className="border-b border-slate-100 hover:bg-slate-50">
-                  <td className="px-3 py-1.5">
+                <tr key={e.code} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                  <td className="px-5 py-3">
                     <span
-                      className="font-mono text-[10px] px-1.5 py-0.5 rounded font-medium"
+                      className="font-mono text-[12px] px-2 py-1 rounded-md font-semibold"
                       style={
                         e.role === "admin"
-                          ? { background: "#FEE2E5", color: "#C8102E" }
+                          ? { background: "#FCE8EB", color: "#C8102E" }
                           : { background: "#F1F5F9", color: "#475569" }
                       }
                     >
                       {e.code}
                     </span>
                   </td>
-                  <td className="px-3 py-1.5">{e.full_name}</td>
-                  <td className="px-3 py-1.5 text-slate-500 capitalize">{e.role}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums">{t?.sos.size ?? 0}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums">{fmtTime(t?.travel ?? 0)}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums">{fmtTime(t?.work ?? 0)}</td>
-                  <td className="px-3 py-1.5 text-right tabular-nums text-slate-500">{fmtTime(t?.office ?? 0)}</td>
-                  <td
-                    className="px-3 py-1.5 text-right tabular-nums"
-                    style={{ color: t?.weekend ? "#92400E" : undefined }}
-                  >
-                    {fmtTime(t?.weekend ?? 0)}
-                  </td>
+                  <td className="px-5 py-3 font-medium text-slate-800">{e.full_name}{!e.is_active && <span className="ml-2 text-[11px] text-slate-400">(inactive)</span>}</td>
+                  <td className="px-5 py-3 text-slate-500 capitalize">{e.role}</td>
+                  <td className="px-5 py-3 text-right tabular-nums">{t?.sos.size ?? 0}</td>
+                  <td className="px-5 py-3 text-right tabular-nums font-medium" style={{ color: t?.travel ? "#993556" : "#94a3b8" }}>{fmtTime(t?.travel ?? 0)}</td>
+                  <td className="px-5 py-3 text-right tabular-nums font-medium" style={{ color: t?.work ? "#185FA5" : "#94a3b8" }}>{fmtTime(t?.work ?? 0)}</td>
+                  <td className="px-5 py-3 text-right tabular-nums text-slate-500">{fmtTime(t?.office ?? 0)}</td>
+                  <td className="px-5 py-3 text-right tabular-nums" style={{ color: t?.weekend ? "#92400E" : "#94a3b8" }}>{fmtTime(t?.weekend ?? 0)}</td>
                 </tr>
               );
             })}
@@ -97,7 +92,7 @@ export default async function EngineersPage() {
         </table>
       </div>
 
-      <p className="text-[10px] text-slate-400 mt-3">
+      <p className="text-[12px] text-slate-400 mt-4">
         Hours calculated from sessions in {monthLabel}. Weekend = Sat/Sun work + travel (potentially holiday rate).
       </p>
     </div>

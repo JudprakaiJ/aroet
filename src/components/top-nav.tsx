@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const NAV_ITEMS = [
+  { label: "Dashboard", href: "/", exact: true },
   { label: "Cases", href: "/cases" },
   { label: "Workforce", href: "/workforce" },
   { label: "Customers", href: "/customers" },
@@ -17,21 +18,22 @@ export default function TopNav() {
   const pathname = usePathname() || "";
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  function isActive(href: string) {
+  function isActive(href: string, exact?: boolean) {
+    if (exact) return pathname === href;
     return pathname === href || pathname.startsWith(href + "/");
   }
 
   return (
-    <nav className="bg-white border-b border-slate-200 sticky top-0 z-30">
-      <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center gap-3">
-        <Link href="/" className="flex items-center gap-2 mr-3">
+    <nav className="bg-white border-b border-slate-200 sticky top-0 z-30 backdrop-blur-sm bg-white/95">
+      <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-4">
+        <Link href="/" className="flex items-center gap-2.5 mr-2">
           <span
-            className="text-white px-2 py-0.5 rounded text-[10px] font-bold tracking-widest"
+            className="text-white px-2.5 py-1 rounded-md text-[11px] font-bold tracking-widest"
             style={{ background: "#C8102E" }}
           >
             AROET
           </span>
-          <span className="font-semibold text-slate-700 text-sm hidden sm:inline">
+          <span className="font-semibold text-slate-800 text-[15px] hidden sm:inline">
             Service
           </span>
         </Link>
@@ -41,11 +43,11 @@ export default function TopNav() {
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm px-3 py-1.5 rounded-lg transition-colors"
+              className="text-[14px] px-3.5 py-2 rounded-lg transition-colors"
               style={
-                isActive(item.href)
+                isActive(item.href, item.exact)
                   ? { background: "#FEE2E5", color: "#C8102E", fontWeight: 600 }
-                  : { color: "#475569" }
+                  : { color: "#475569", fontWeight: 500 }
               }
             >
               {item.label}
@@ -55,7 +57,7 @@ export default function TopNav() {
 
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="md:hidden ml-auto p-1.5 text-slate-500"
+          className="md:hidden ml-auto p-2 text-slate-500 text-xl"
         >
           {mobileOpen ? "✕" : "☰"}
         </button>
@@ -68,11 +70,11 @@ export default function TopNav() {
               key={item.href}
               href={item.href}
               onClick={() => setMobileOpen(false)}
-              className="block px-4 py-3 text-sm border-b border-slate-50"
+              className="block px-6 py-3.5 text-[14px] border-b border-slate-50"
               style={
-                isActive(item.href)
+                isActive(item.href, item.exact)
                   ? { background: "#FEE2E5", color: "#C8102E", fontWeight: 600 }
-                  : { color: "#334155" }
+                  : { color: "#334155", fontWeight: 500 }
               }
             >
               {item.label}

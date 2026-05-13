@@ -25,35 +25,40 @@ export default async function CustomersPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-5">
-      <h1 className="text-lg font-semibold text-slate-900 mb-1">Customers</h1>
-      <p className="text-xs text-slate-500 mb-3">{customers?.length ?? 0} customers</p>
+    <div className="max-w-7xl mx-auto px-6 py-8">
+      <h1 className="text-[28px] font-bold text-slate-900 leading-tight">Customers</h1>
+      <p className="text-[14px] text-slate-500 mb-6 mt-1">{customers?.length ?? 0} customers in directory</p>
 
-      <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-        <table className="w-full text-xs">
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <table className="w-full text-[13px]">
           <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
             <tr className="text-left">
-              <th className="px-3 py-2 font-medium w-16">Code</th>
-              <th className="px-3 py-2 font-medium">Customer</th>
-              <th className="px-3 py-2 font-medium w-32">City</th>
-              <th className="px-3 py-2 font-medium w-24">Country</th>
-              <th className="px-3 py-2 font-medium w-32">Contact</th>
-              <th className="px-3 py-2 font-medium w-20 text-right">Machines</th>
-              <th className="px-3 py-2 font-medium w-20 text-right">Cases</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-20">Code</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider">Customer</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-36">City</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-28">Country</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-36">Contact</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-24 text-right">Machines</th>
+              <th className="px-5 py-3 font-semibold text-[12px] uppercase tracking-wider w-20 text-right">Cases</th>
             </tr>
           </thead>
           <tbody>
             {(customers ?? []).map((c) => (
-              <tr key={c.code} className="border-b border-slate-100 hover:bg-slate-50">
-                <td className="px-3 py-1.5 font-mono text-[10px]">{c.code}</td>
-                <td className="px-3 py-1.5 truncate max-w-md">{c.name}</td>
-                <td className="px-3 py-1.5 text-slate-600">{c.city ?? "—"}</td>
-                <td className="px-3 py-1.5 text-slate-600">{c.country ?? "—"}</td>
-                <td className="px-3 py-1.5 text-slate-600 truncate">{c.contact_name ?? "—"}</td>
-                <td className="px-3 py-1.5 text-right tabular-nums">{machineMap.get(c.code) ?? 0}</td>
-                <td className="px-3 py-1.5 text-right tabular-nums">{caseMap.get(c.code) ?? 0}</td>
+              <tr key={c.code} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                <td className="px-5 py-3 font-mono text-[12px] text-slate-500">{c.code}</td>
+                <td className="px-5 py-3 font-medium text-slate-800">{c.name}</td>
+                <td className="px-5 py-3 text-slate-600">{c.city ?? "—"}</td>
+                <td className="px-5 py-3 text-slate-600">{c.country ?? "—"}</td>
+                <td className="px-5 py-3 text-slate-600 truncate">{c.contact_name ?? "—"}</td>
+                <td className="px-5 py-3 text-right tabular-nums font-medium">{machineMap.get(c.code) ?? 0}</td>
+                <td className="px-5 py-3 text-right tabular-nums font-medium">{caseMap.get(c.code) ?? 0}</td>
               </tr>
             ))}
+            {(customers ?? []).length === 0 && (
+              <tr>
+                <td colSpan={7} className="px-5 py-12 text-center text-slate-400 text-[13px]">No customers</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
