@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   createCase,
@@ -8,6 +8,7 @@ import {
   createCustomerInline,
   createMachineInline,
 } from "./actions";
+import { parseTitle } from "@/lib/title-parser";
 
 interface Customer {
   code: string;
@@ -66,6 +67,35 @@ export default function NewCaseForm({
   const [dueDate, setDueDate] = useState("");
   const [leadEngineer, setLeadEngineer] = useState("");
   const [otherEngineers, setOtherEngineers] = useState<string[]>([]);
+
+  // Title-paste auto-parse
+  const [titlePaste, setTitlePaste] = useState("");
+  const [parsed, setParsed] = useState<{
+    so_number?: string;
+    project_code?: string;
+    machine_code?: string;
+    subject?: string;
+  }>({});
+
+  // Debounced auto-parse (500ms)
+  useEffect(() => {
+    if (!titlePaste.trim()) {
+      setParsed({});
+      return;
+    }
+    const timer = setTimeout(() => {
+      const result = parseTitle(titlePaste);
+      setParsed(result);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [titlePaste]);
+
+  function applyParsed() {
+    if (parsed.so_number && !soNumber) setSoNumber(parsed.so_number);
+    if (parsed.project_code && !projectCode) setProjectCode(parsed.project_code);
+    if (parsed.subject && !title) setTitle(parsed.subject);
+    // Machine: we don't auto-add since it may not exist in DB yet — show as hint
+  }
 
   // Suggestions
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -264,6 +294,48 @@ export default function NewCaseForm({
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* TITLE PASTE — auto-parse */}
+        <section className="bg-white border border-slate-200 rounded-2xl p-6">
+          <h2 className="text-[12px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
+            <span style={{ color: "#C8102E" }}>✨</span> Paste D365 title <span className="text-slate-400 font-normal normal-case">— auto-fills below</span>
+          </h2>
+          <textarea
+            value={titlePaste}
+            onChange={(e) => setTitlePaste(e.target.value)}
+            placeholder="e.g. SO2604-05 - ESRY13 - Line#15 - Installation and Training Automapper + SPV-3"
+            rows={2}
+            className="form-input font-mono text-[13px]"
+          />
+          {titlePaste.trim() && Object.keys(parsed).length > 0 && (
+            <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg text-[13px]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
+                  Detected
+                </span>
+                <button
+                  type="button"
+                  onClick={applyParsed}
+                  className="text-[11px] px-3 py-1 rounded-md font-semibold text-white"
+                  style={{ background: "#C8102E" }}
+                >
+                  ↓ Auto-fill empty fields
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                <ParsedField label="SO Number" value={parsed.so_number} />
+                <ParsedField label="Project" value={parsed.project_code} />
+                <ParsedField label="Machine (hint)" value={parsed.machine_code} />
+                <ParsedField label="Title (Subject)" value={parsed.subject} />
+              </div>
+              {parsed.machine_code && (
+                <p className="text-[11px] text-slate-500 mt-2">
+                  💡 Machine "{parsed.machine_code}" — check if it exists in your machine list (search below to add)
+                </p>
+              )}
+            </div>
+          )}
+        </section>
+
         {/* IDENTIFIERS */}
         <section className="bg-white border border-slate-200 rounded-2xl p-6">
           <h2 className="text-[12px] font-semibold uppercase tracking-wider text-slate-500 mb-4">
@@ -504,15 +576,15 @@ export default function NewCaseForm({
                 onChange={(e) => setServiceType(e.target.value)}
                 className="form-input"
               >
-                <option value="7505">Curative — 7505</option>
-                <option value="7507">Preventive Maintenance — 7507</option>
+                <option value="7505">Curative maintenance — 7505</option>
                 <option value="7504">Installation — 7504</option>
-                <option value="7508">Upgrade — 7508</option>
+                <option value="7515">Curative under Warranty — 7515</option>
+                <option value="7508">Upgrade installation — 7508</option>
+                <option value="7507">Preventive Maintenance — 7507</option>
                 <option value="7512">Service Agreement — 7512</option>
-                <option value="7515">Curative under warranty — 7515</option>
-                <option value="7510">Customer Training — 7510</option>
-                <option value="7511">Internal Training — 7511</option>
-                <option value="7530">Promotion — 7530</option>
+                <option value="7235">Service Promotion — 7235</option>
+                <option value="7506">Customer Training — 7506</option>
+                <option value="7506-1">Internal Training — 7506-1</option>
               </select>
             </Field>
           </div>
@@ -790,6 +862,23 @@ function Field({
         {required && <span style={{ color: "#C8102E" }}> *</span>}
       </label>
       {children}
+    </div>
+  );
+}
+
+function ParsedField({ label, value }: { label: string; value?: string }) {
+  return (
+    <div className="flex items-baseline gap-2">
+      <span className="text-[11px] text-slate-500 font-medium" style={{ minWidth: 90 }}>
+        {label}:
+      </span>
+      {value ? (
+        <span className="text-[12px] font-mono font-semibold" style={{ color: "#C8102E" }}>
+          {value}
+        </span>
+      ) : (
+        <span className="text-[11px] text-slate-300 italic">not detected</span>
+      )}
     </div>
   );
 }
