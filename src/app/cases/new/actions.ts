@@ -1,7 +1,6 @@
 "use server";
 
 import { createServiceClient } from "@/lib/supabase/service";
-import { parsePlannerNote } from "@/lib/planner/parser";
 import { revalidatePath } from "next/cache";
 
 export interface NewCaseInput {
@@ -12,12 +11,11 @@ export interface NewCaseInput {
   primary_machine_no?: string;
   project_code: string;
   service_type_code: string;
+  title: string;
   description: string;
   due_date?: string;
   lead_engineer: string;
   other_engineers: string[];
-  planner_note?: string;
-  auto_parse_sessions?: boolean;
 }
 
 const SERVICE_TYPE_NAMES: Record<string, string> = {
@@ -183,16 +181,11 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
 
     const primaryMachine = input.primary_machine_no || input.machine_nos[0];
 
-    const machinesStr =
-      input.machine_nos.slice(0, 3).join(", ") + (input.machine_nos.length > 3 ? "..." : "");
-    const titleParts = [input.project_code, machinesStr, input.description.split("\n")[0].substring(0, 100)].filter(Boolean);
-    const title = titleParts.join(" - ");
-
     const { error: caseError } = await supabase.from("cases").insert({
       so_number: input.so_number.trim(),
       sr_number: input.sr_number.trim(),
-      title,
-      description: input.description.trim(),
+      title: input.title.trim(),
+      description: input.description.trim() || null,
       service_type_code: input.service_type_code,
       service_type_name: SERVICE_TYPE_NAMES[input.service_type_code] || input.service_type_code,
       customer_code: customer.code,
@@ -203,7 +196,6 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
       due_date: input.due_date || null,
       status: "planned",
       source: "aroet",
-      planner_note: input.planner_note?.trim() || null,
     });
     if (caseError) return { success: false, error: `Case insert failed: ${caseError.message}` };
 
@@ -227,25 +219,6 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
     if (engineerRows.length > 0) {
       const { error: ceError } = await supabase.from("case_engineers").insert(engineerRows);
       if (ceError) console.error("[createCase] case_engineers:", ceError.message);
-    }
-
-    // Optional parse planner_note
-    if (input.auto_parse_sessions && input.planner_note) {
-      try {
-        const parsed = parsePlannerNote(input.planner_note);
-        if (parsed.sessions.length > 0) {
-          const sessionRows = parsed.sessions.map((s) => ({
-            ...s,
-            so_number: input.so_number,
-            machine_no: primaryMachine,
-            source: "planner",
-            approval_status: "draft",
-          }));
-          await supabase.from("sessions").insert(sessionRows);
-        }
-      } catch (e: any) {
-        console.error("[createCase] parser error:", e.message);
-      }
     }
 
     revalidatePath("/cases");

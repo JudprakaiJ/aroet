@@ -61,12 +61,11 @@ export default function NewCaseForm({
   const [showMachineDropdown, setShowMachineDropdown] = useState(false);
   const [projectCode, setProjectCode] = useState("");
   const [serviceType, setServiceType] = useState("7505");
+  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [leadEngineer, setLeadEngineer] = useState("");
   const [otherEngineers, setOtherEngineers] = useState<string[]>([]);
-  const [plannerNote, setPlannerNote] = useState("");
-  const [autoParseSessions, setAutoParseSessions] = useState(true);
 
   // Suggestions
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -191,21 +190,55 @@ export default function NewCaseForm({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    // Validation
+    if (!soNumber.trim()) {
+      setError("SO Number required");
+      return;
+    }
+    if (!/^SO\d{4}-\d{1,3}$/i.test(soNumber.trim())) {
+      setError("SO Number format should be like SO2605-21");
+      return;
+    }
+    if (!srNumber.trim()) {
+      setError("SR Number required");
+      return;
+    }
+    if (!/^SR\d{2}-AROET\d+$/i.test(srNumber.trim())) {
+      setError("SR Number format should be like SR26-AROET03450");
+      return;
+    }
+    if (!title.trim()) {
+      setError("Title required (copy from D365 case)");
+      return;
+    }
+    if (!customerCode) {
+      setError("Customer required");
+      return;
+    }
+    if (machineNos.length === 0) {
+      setError("Select at least 1 machine");
+      return;
+    }
+    if (!leadEngineer) {
+      setError("Lead engineer required");
+      return;
+    }
+
     startTransition(async () => {
       const result = await createCase({
-        so_number: soNumber,
-        sr_number: srNumber,
+        so_number: soNumber.trim(),
+        sr_number: srNumber.trim(),
         customer_code: customerCode,
         machine_nos: machineNos,
         primary_machine_no: primaryMachine,
         project_code: projectCode,
         service_type_code: serviceType,
+        title: title.trim(),
         description,
         due_date: dueDate || undefined,
         lead_engineer: leadEngineer,
         other_engineers: otherEngineers,
-        planner_note: plannerNote || undefined,
-        auto_parse_sessions: autoParseSessions,
       });
       if (result.success && result.so_number) {
         router.push(`/cases/${result.so_number}`);
@@ -483,12 +516,23 @@ export default function NewCaseForm({
             </Field>
           </div>
 
-          <Field label="Description" required>
+          <Field label="Title" required>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Copy from D365 case title. e.g. PE91 PM annual at Essilor Lao"
+              className="form-input"
+              maxLength={200}
+            />
+          </Field>
+
+          <Field label="Description (optional)">
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What's the issue or planned work? e.g. PM annual for MCVP4-128. Check gripper alignment..."
-              rows={3}
+              placeholder="Additional context if needed. Otherwise leave blank — Title is the main summary."
+              rows={2}
               className="form-input"
             />
           </Field>
@@ -567,32 +611,6 @@ export default function NewCaseForm({
                 ))}
             </select>
           </Field>
-        </section>
-
-        {/* PLANNER NOTE (optional) */}
-        <section className="bg-white border border-slate-200 rounded-2xl p-6">
-          <details>
-            <summary className="text-[12px] font-semibold uppercase tracking-wider text-slate-500 cursor-pointer">
-              Planner note (optional)
-            </summary>
-            <div className="mt-4">
-              <textarea
-                value={plannerNote}
-                onChange={(e) => setPlannerNote(e.target.value)}
-                placeholder="Paste planner note here. Sessions will be auto-parsed if checked below."
-                rows={6}
-                className="form-input font-mono text-[13px]"
-              />
-              <label className="flex items-center gap-2 mt-2 text-[13px]">
-                <input
-                  type="checkbox"
-                  checked={autoParseSessions}
-                  onChange={(e) => setAutoParseSessions(e.target.checked)}
-                />
-                Auto-parse sessions from planner note
-              </label>
-            </div>
-          </details>
         </section>
 
         {/* SUBMIT */}
