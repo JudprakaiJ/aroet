@@ -35,7 +35,7 @@ export default async function Dashboard() {
   const today = isoToday();
   const oneMonthAgo = isoMonthsAgo(1);
 
-  const [activeCases, overdueCases, recentCases, sessionStats, totalCases] = await Promise.all([
+  const [activeCases, overdueCases, recentCases, sessionStats, totalCases, pendingApproval] = await Promise.all([
     supabase
       .from("cases")
       .select("*", { count: "exact", head: true })
@@ -56,6 +56,7 @@ export default async function Dashboard() {
       .select("work_minutes, travel_minutes, office_minutes")
       .gte("session_date", oneMonthAgo),
     supabase.from("cases").select("*", { count: "exact", head: true }),
+    supabase.from("sessions").select("*", { count: "exact", head: true }).eq("approval_status", "submitted"),
   ]);
 
   // Aggregate session stats
@@ -102,8 +103,8 @@ export default async function Dashboard() {
         />
         <StatCard
           label="Pending approval"
-          value={0}
-          href="/workforce"
+          value={pendingApproval.count ?? 0}
+          href="/workforce?tab=queue"
           accent="#BA7517"
           subtitle="sessions to review"
         />
