@@ -117,12 +117,6 @@ export default async function CasesPage({
         <h1 className="text-[28px] font-bold text-slate-900 leading-tight">Cases</h1>
         <div className="flex gap-2">
           <Link
-            href="/admin/bulk-reparse"
-            className="text-[14px] px-4 py-2.5 rounded-lg font-medium border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-          >
-            ⚡ Bulk parse
-          </Link>
-          <Link
             href="/cases/new"
             className="text-[14px] px-5 py-2.5 rounded-lg font-medium text-white inline-flex items-center gap-1.5"
             style={{ background: "#C8102E" }}

@@ -506,12 +506,13 @@ export default function NewCaseForm({
               >
                 <option value="7505">Curative — 7505</option>
                 <option value="7507">Preventive Maintenance — 7507</option>
-                <option value="7510">Installation — 7510</option>
+                <option value="7504">Installation — 7504</option>
+                <option value="7508">Upgrade — 7508</option>
                 <option value="7512">Service Agreement — 7512</option>
                 <option value="7515">Curative under warranty — 7515</option>
-                <option value="7520">Upgrade — 7520</option>
-                <option value="7525">Training — 7525</option>
-                <option value="7235">Voucher — 7235</option>
+                <option value="7510">Customer Training — 7510</option>
+                <option value="7511">Internal Training — 7511</option>
+                <option value="7530">Promotion — 7530</option>
               </select>
             </Field>
           </div>

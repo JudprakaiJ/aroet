@@ -35,7 +35,7 @@ export default async function Dashboard() {
   const today = isoToday();
   const oneMonthAgo = isoMonthsAgo(1);
 
-  const [activeCases, overdueCases, recentCases, sessionStats] = await Promise.all([
+  const [activeCases, overdueCases, recentCases, sessionStats, totalCases] = await Promise.all([
     supabase
       .from("cases")
       .select("*", { count: "exact", head: true })
@@ -55,6 +55,7 @@ export default async function Dashboard() {
       .from("sessions")
       .select("work_minutes, travel_minutes, office_minutes")
       .gte("session_date", oneMonthAgo),
+    supabase.from("cases").select("*", { count: "exact", head: true }),
   ]);
 
   // Aggregate session stats
@@ -192,7 +193,7 @@ export default async function Dashboard() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[14px] font-medium text-slate-900">Create case</div>
-                <div className="text-[12px] text-slate-500">From planner note</div>
+                <div className="text-[12px] text-slate-500">SO + customer + machines</div>
               </div>
             </Link>
 
@@ -226,7 +227,7 @@ export default async function Dashboard() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[14px] font-medium text-slate-900">Browse cases</div>
-                <div className="text-[12px] text-slate-500">All 883 cases</div>
+                <div className="text-[12px] text-slate-500">All {totalCases.count ?? 0} cases</div>
               </div>
             </Link>
           </div>

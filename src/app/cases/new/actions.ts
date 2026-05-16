@@ -21,15 +21,14 @@ export interface NewCaseInput {
 const SERVICE_TYPE_NAMES: Record<string, string> = {
   "7505": "Curative maintenance",
   "7507": "Preventive Maintenance",
-  "7515": "Curative under warranty",
   "7504": "Installation",
-  "7508": "Service Agreement",
-  "7510": "Installation",
+  "7508": "Upgrade installation",
   "7512": "Service Agreement",
-  "7235": "Voucher",
+  "7515": "Curative maintenance under Warranty",
+  "7510": "Customer Training",
+  "7511": "Internal Training",
+  "7530": "Promotion",
   "7506": "Upgrade installation",
-  "7520": "Upgrade",
-  "7525": "Training",
 };
 
 /**
