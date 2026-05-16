@@ -7,8 +7,8 @@ import {
   suggestProjectCode,
   createCustomerInline,
   createMachineInline,
+  parseTitleSmart,
 } from "./actions";
-import { parseTitle } from "@/lib/title-parser";
 
 interface Customer {
   code: string;
@@ -75,17 +75,26 @@ export default function NewCaseForm({
     project_code?: string;
     machine_code?: string;
     subject?: string;
+    unmatched_codes?: string[];
   }>({});
+  const [parsing, setParsing] = useState(false);
 
-  // Debounced auto-parse (500ms)
+  // Debounced auto-parse with DB lookup (500ms)
   useEffect(() => {
     if (!titlePaste.trim()) {
       setParsed({});
       return;
     }
-    const timer = setTimeout(() => {
-      const result = parseTitle(titlePaste);
-      setParsed(result);
+    const timer = setTimeout(async () => {
+      setParsing(true);
+      try {
+        const result = await parseTitleSmart(titlePaste);
+        setParsed(result);
+      } catch (e) {
+        console.error("[parser]", e);
+      } finally {
+        setParsing(false);
+      }
     }, 500);
     return () => clearTimeout(timer);
   }, [titlePaste]);
@@ -94,7 +103,12 @@ export default function NewCaseForm({
     if (parsed.so_number && !soNumber) setSoNumber(parsed.so_number);
     if (parsed.project_code && !projectCode) setProjectCode(parsed.project_code);
     if (parsed.subject && !title) setTitle(parsed.subject);
-    // Machine: we don't auto-add since it may not exist in DB yet — show as hint
+    // Auto-add machine to selected machines if matched in DB
+    if (parsed.machine_code && !machineNos.includes(parsed.machine_code)) {
+      const next = [...machineNos, parsed.machine_code];
+      setMachineNos(next);
+      if (!primaryMachine) setPrimaryMachine(parsed.machine_code);
+    }
   }
 
   // Suggestions
@@ -221,7 +235,7 @@ export default function NewCaseForm({
     e.preventDefault();
     setError("");
 
-    // Validation
+    // Validation — only SO + Customer required
     if (!soNumber.trim()) {
       setError("SO Number required");
       return;
@@ -230,28 +244,13 @@ export default function NewCaseForm({
       setError("SO Number format should be like SO2605-21");
       return;
     }
-    if (!srNumber.trim()) {
-      setError("SR Number required");
-      return;
-    }
-    if (!/^SR\d{2}-AROET\d+$/i.test(srNumber.trim())) {
-      setError("SR Number format should be like SR26-AROET03450");
-      return;
-    }
-    if (!title.trim()) {
-      setError("Title required (copy from D365 case)");
-      return;
-    }
     if (!customerCode) {
       setError("Customer required");
       return;
     }
-    if (machineNos.length === 0) {
-      setError("Select at least 1 machine");
-      return;
-    }
-    if (!leadEngineer) {
-      setError("Lead engineer required");
+    // SR optional, but if provided, must match format
+    if (srNumber.trim() && !/^SR\d{2}-AROET\d+$/i.test(srNumber.trim())) {
+      setError("SR Number format should be like SR26-AROET03450 (or leave empty)");
       return;
     }
 
@@ -264,7 +263,7 @@ export default function NewCaseForm({
         primary_machine_no: primaryMachine,
         project_code: projectCode,
         service_type_code: serviceType,
-        title: title.trim(),
+        title: title.trim() || `${projectCode || "Case"} ${soNumber}`.trim(),
         description,
         due_date: dueDate || undefined,
         lead_engineer: leadEngineer,
@@ -294,43 +293,64 @@ export default function NewCaseForm({
       )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        {/* TITLE PASTE — auto-parse */}
+        {/* TITLE PASTE — smart auto-parse with DB lookup */}
         <section className="bg-white border border-slate-200 rounded-2xl p-6">
           <h2 className="text-[12px] font-semibold uppercase tracking-wider text-slate-500 mb-2">
-            <span style={{ color: "#C8102E" }}>✨</span> Paste D365 title <span className="text-slate-400 font-normal normal-case">— auto-fills below</span>
+            <span style={{ color: "#C8102E" }}>✨</span> Paste D365 title <span className="text-slate-400 font-normal normal-case">— auto-fills below from DB</span>
           </h2>
           <textarea
             value={titlePaste}
             onChange={(e) => setTitlePaste(e.target.value)}
-            placeholder="e.g. SO2604-05 - ESRY13 - Line#15 - Installation and Training Automapper + SPV-3"
+            placeholder="e.g. SO2603-27 - MITSF27 - ESTH48 - Installation of the New PC - LN26-0979-0 (SQ2602-44)"
             rows={2}
             className="form-input font-mono text-[13px]"
           />
-          {titlePaste.trim() && Object.keys(parsed).length > 0 && (
+          {titlePaste.trim() && (parsing || Object.keys(parsed).length > 0) && (
             <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg text-[13px]">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider">
-                  Detected
+                  {parsing ? "Parsing..." : "Detected"}
                 </span>
-                <button
-                  type="button"
-                  onClick={applyParsed}
-                  className="text-[11px] px-3 py-1 rounded-md font-semibold text-white"
-                  style={{ background: "#C8102E" }}
-                >
-                  ↓ Auto-fill empty fields
-                </button>
+                {!parsing && (
+                  <button
+                    type="button"
+                    onClick={applyParsed}
+                    className="text-[11px] px-3 py-1 rounded-md font-semibold text-white"
+                    style={{ background: "#C8102E" }}
+                  >
+                    ↓ Auto-fill empty fields
+                  </button>
+                )}
               </div>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-                <ParsedField label="SO Number" value={parsed.so_number} />
-                <ParsedField label="Project" value={parsed.project_code} />
-                <ParsedField label="Machine (hint)" value={parsed.machine_code} />
-                <ParsedField label="Title (Subject)" value={parsed.subject} />
-              </div>
-              {parsed.machine_code && (
-                <p className="text-[11px] text-slate-500 mt-2">
-                  💡 Machine "{parsed.machine_code}" — check if it exists in your machine list (search below to add)
-                </p>
+              {!parsing && (
+                <>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+                    <ParsedField label="SO Number" value={parsed.so_number} />
+                    <ParsedField
+                      label="Project"
+                      value={parsed.project_code}
+                      verified={!!parsed.project_code}
+                    />
+                    <ParsedField
+                      label="Machine"
+                      value={parsed.machine_code}
+                      verified={!!parsed.machine_code}
+                    />
+                    <ParsedField label="Title (Subject)" value={parsed.subject} />
+                  </div>
+                  {parsed.unmatched_codes && parsed.unmatched_codes.length > 0 && (
+                    <p className="text-[11px] text-slate-500 mt-2">
+                      💡 Found in title but not in DB:{" "}
+                      {parsed.unmatched_codes.map((c, i) => (
+                        <span key={c}>
+                          <span className="font-mono font-semibold">{c}</span>
+                          {i < parsed.unmatched_codes!.length - 1 ? ", " : ""}
+                        </span>
+                      ))}{" "}
+                      — add manually below if needed
+                    </p>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -351,14 +371,14 @@ export default function NewCaseForm({
               />
               <p className="text-[12px] text-slate-400 mt-1">Format: SO + YYMM + sequence</p>
             </Field>
-            <Field label="SR Number (D365)" required>
+            <Field label="SR Number (D365)">
               <input
                 value={srNumber}
                 onChange={(e) => setSrNumber(e.target.value)}
                 placeholder="SR26-AROET03450"
                 className="form-input"
               />
-              <p className="text-[12px] text-slate-400 mt-1">Case ID in D365</p>
+              <p className="text-[12px] text-slate-400 mt-1">Case ID in D365 (optional, can add later)</p>
             </Field>
           </div>
         </section>
@@ -433,7 +453,7 @@ export default function NewCaseForm({
           </Field>
 
           {/* Machines */}
-          <Field label="Machines" required>
+          <Field label="Machines">
             {machineNos.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-2">
                 {machineNos.map((no) => (
@@ -589,12 +609,12 @@ export default function NewCaseForm({
             </Field>
           </div>
 
-          <Field label="Title" required>
+          <Field label="Title">
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Copy from D365 case title. e.g. PE91 PM annual at Essilor Lao"
+              placeholder="Subject from D365 (optional). e.g. PE91 PM annual at Essilor Lao"
               className="form-input"
               maxLength={200}
             />
@@ -618,13 +638,13 @@ export default function NewCaseForm({
           </h2>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <Field label="Lead engineer" required>
+            <Field label="Lead engineer">
               <select
                 value={leadEngineer}
                 onChange={(e) => setLeadEngineer(e.target.value)}
                 className="form-input"
               >
-                <option value="">Select lead...</option>
+                <option value="">— Not assigned yet —</option>
                 {engineers.map((e) => (
                   <option key={e.code} value={e.code}>
                     {e.code} — {e.full_name}
@@ -866,15 +886,31 @@ function Field({
   );
 }
 
-function ParsedField({ label, value }: { label: string; value?: string }) {
+function ParsedField({
+  label,
+  value,
+  verified,
+}: {
+  label: string;
+  value?: string;
+  verified?: boolean;
+}) {
   return (
     <div className="flex items-baseline gap-2">
       <span className="text-[11px] text-slate-500 font-medium" style={{ minWidth: 90 }}>
         {label}:
       </span>
       {value ? (
-        <span className="text-[12px] font-mono font-semibold" style={{ color: "#C8102E" }}>
+        <span className="text-[12px] font-mono font-semibold inline-flex items-center gap-1" style={{ color: "#C8102E" }}>
           {value}
+          {verified && (
+            <span
+              title="Found in database"
+              style={{ background: "#EAF3DE", color: "#173404", fontSize: 9, padding: "1px 4px", borderRadius: 3, fontWeight: 700 }}
+            >
+              ✓ DB
+            </span>
+          )}
         </span>
       ) : (
         <span className="text-[11px] text-slate-300 italic">not detected</span>

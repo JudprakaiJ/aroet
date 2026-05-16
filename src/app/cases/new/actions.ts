@@ -5,17 +5,18 @@ import { revalidatePath } from "next/cache";
 
 export interface NewCaseInput {
   so_number: string;
-  sr_number: string;
   customer_code: string;
-  machine_nos: string[];
+  // Optional fields below
+  sr_number?: string;
+  machine_nos?: string[];
   primary_machine_no?: string;
-  project_code: string;
-  service_type_code: string;
-  title: string;
-  description: string;
+  project_code?: string;
+  service_type_code?: string;
+  title?: string;
+  description?: string;
   due_date?: string;
-  lead_engineer: string;
-  other_engineers: string[];
+  lead_engineer?: string;
+  other_engineers?: string[];
 }
 
 const SERVICE_TYPE_NAMES: Record<string, string> = {
@@ -177,44 +178,48 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
       .single();
     if (!customer) return { success: false, error: "Customer not found" };
 
-    const primaryMachine = input.primary_machine_no || input.machine_nos[0];
+    const machines = input.machine_nos ?? [];
+    const primaryMachine = input.primary_machine_no || machines[0] || null;
+    const serviceTypeCode = input.service_type_code || "7505";
 
     const { error: caseError } = await supabase.from("cases").insert({
       so_number: input.so_number.trim(),
-      sr_number: input.sr_number.trim(),
-      title: input.title.trim(),
-      description: input.description.trim() || null,
-      service_type_code: input.service_type_code,
-      service_type_name: SERVICE_TYPE_NAMES[input.service_type_code] || input.service_type_code,
+      sr_number: input.sr_number?.trim() || null,
+      title: input.title?.trim() || null,
+      description: input.description?.trim() || null,
+      service_type_code: serviceTypeCode,
+      service_type_name: SERVICE_TYPE_NAMES[serviceTypeCode] || serviceTypeCode,
       customer_code: customer.code,
       customer_name: customer.name,
       contact_name: customer.contact_name,
       machine_no: primaryMachine,
-      project_code: input.project_code.trim() || null,
+      project_code: input.project_code?.trim() || null,
       due_date: input.due_date || null,
       status: "planned",
       source: "aroet",
     });
     if (caseError) return { success: false, error: `Case insert failed: ${caseError.message}` };
 
-    // case_machines junction
-    const machineRows = input.machine_nos.map((m) => ({
-      so_number: input.so_number,
-      machine_no: m,
-      is_primary: m === primaryMachine,
-    }));
-    const { error: cmError } = await supabase.from("case_machines").insert(machineRows);
-    if (cmError) console.error("[createCase] case_machines:", cmError.message);
-
-    // case_engineers (lead + others)
-    const engineerRows: any[] = [
-      { so_number: input.so_number, engineer_code: input.lead_engineer, is_lead: true },
-    ];
-    for (const code of input.other_engineers || []) {
-      if (code === input.lead_engineer) continue;
-      engineerRows.push({ so_number: input.so_number, engineer_code: code, is_lead: false });
+    // case_machines junction (only if machines provided)
+    if (machines.length > 0) {
+      const machineRows = machines.map((m) => ({
+        so_number: input.so_number,
+        machine_no: m,
+        is_primary: m === primaryMachine,
+      }));
+      const { error: cmError } = await supabase.from("case_machines").insert(machineRows);
+      if (cmError) console.error("[createCase] case_machines:", cmError.message);
     }
-    if (engineerRows.length > 0) {
+
+    // case_engineers (only if lead provided)
+    if (input.lead_engineer) {
+      const engineerRows: any[] = [
+        { so_number: input.so_number, engineer_code: input.lead_engineer, is_lead: true },
+      ];
+      for (const code of input.other_engineers || []) {
+        if (code === input.lead_engineer) continue;
+        engineerRows.push({ so_number: input.so_number, engineer_code: code, is_lead: false });
+      }
       const { error: ceError } = await supabase.from("case_engineers").insert(engineerRows);
       if (ceError) console.error("[createCase] case_engineers:", ceError.message);
     }
@@ -225,4 +230,134 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
   } catch (e: any) {
     return { success: false, error: e.message || "Unknown error" };
   }
+}
+
+/**
+ * Smart title parser — uses regex + DB lookup
+ * Parses D365 case titles like:
+ *   "SO2604-05 - ESRY13 - Line#15 - Installation and Training Automapper..."
+ * Returns:
+ *   so_number, project_code, machine_code, subject, unmatched_codes (hints)
+ */
+export async function parseTitleSmart(title: string): Promise<{
+  so_number?: string;
+  project_code?: string;
+  machine_code?: string;
+  subject?: string;
+  unmatched_codes: string[];
+}> {
+  if (!title || !title.trim()) {
+    return { unmatched_codes: [] };
+  }
+
+  const supabase = createServiceClient();
+  const text = title.trim();
+
+  // 1. Extract SO number
+  const soMatch = text.match(/\bSO\d{4}-\d{1,3}\b/i);
+  const so_number = soMatch ? soMatch[0].toUpperCase() : undefined;
+
+  // 2. Extract all candidate codes
+  // Patterns: uppercase+digits, Line#N, Group N, MCE#N, AR-style serial
+  const codePatterns = [
+    /\bLine#\d+\b/gi,
+    /\bGroup\s+\d+\b/gi,
+    /\bMCE#\d+\b/gi,
+    /\bAR\d+SV\d+\b/g,
+    /\b[A-Z]{3,7}\d{2,3}\b/g, // ESRY13, ROTH99, MITSF27, ESTH48
+    /\b(?:RE|MCVP|SPF|SPV|PE|DLM|TLS|MTVP|MCV)\d+(?:-\d+)?\b/gi,
+  ];
+
+  const candidatesSet = new Set<string>();
+  for (const p of codePatterns) {
+    const matches = text.match(p) ?? [];
+    for (const m of matches) {
+      candidatesSet.add(m);
+    }
+  }
+
+  // 3. Filter out noise
+  const candidates: string[] = [];
+  for (const c of Array.from(candidatesSet)) {
+    // Skip if matches SO
+    if (so_number && c.toUpperCase() === so_number.toUpperCase()) continue;
+    // Skip 10+ digit POs
+    if (/^\d{10,}$/.test(c)) continue;
+    // Skip PO formats
+    if (/^E?LN\d{2}-\d{4}-\d+$/i.test(c)) continue;
+    // Skip CS prefix
+    if (/^CS\d{4,}$/i.test(c)) continue;
+    // Skip SQ
+    if (/^SQ\d/i.test(c)) continue;
+    candidates.push(c);
+  }
+
+  // 4. DB lookup — find which candidates match machines vs projects
+  let machine_code: string | undefined;
+  let project_code: string | undefined;
+  const matched_codes: string[] = [];
+
+  if (candidates.length > 0) {
+    // Query machines
+    const { data: machinesData } = await supabase
+      .from("machines")
+      .select("machine_no")
+      .in("machine_no", candidates);
+    const machineSet = new Set((machinesData ?? []).map((m: any) => m.machine_no));
+
+    // Query projects from cases table
+    const { data: projectsData } = await supabase
+      .from("cases")
+      .select("project_code")
+      .in("project_code", candidates)
+      .not("project_code", "is", null);
+    const projectSet = new Set(
+      (projectsData ?? []).map((p: any) => p.project_code).filter(Boolean)
+    );
+
+    // Match
+    for (const c of candidates) {
+      if (machineSet.has(c) && !machine_code) {
+        machine_code = c;
+        matched_codes.push(c);
+      } else if (projectSet.has(c) && !project_code) {
+        project_code = c;
+        matched_codes.push(c);
+      }
+    }
+  }
+
+  // 5. Build subject by stripping all known tokens + noise
+  let subject = text;
+  if (so_number) subject = subject.replace(new RegExp(escapeRegex(so_number), "i"), "");
+  for (const c of candidates) {
+    subject = subject.replace(new RegExp("\\b" + escapeRegex(c) + "\\b", "gi"), "");
+  }
+  // Strip noise patterns
+  subject = subject.replace(/\bCS\d{4,}\b/gi, "");
+  subject = subject.replace(/\bE?LN\d{2}-\d{4}-\d+\b/gi, "");
+  subject = subject.replace(/\(SQ\d{4}-\d{1,3}(?:\s+SQ\d{4}-\d{1,3})*\)/gi, "");
+  subject = subject.replace(/\b\d{10,}\b/g, "");
+  subject = subject.replace(/\s*-\s*-\s*/g, " - ");
+  subject = subject.replace(/^[\s\-,]+|[\s\-,]+$/g, "");
+  subject = subject.replace(/\s+/g, " ").trim();
+
+  // Final cleanup: standalone "- 0" leftovers
+  subject = subject.replace(/\s+-\s+\d+\s*$/g, "").trim();
+  subject = subject.replace(/^[\s\-,]+|[\s\-,]+$/g, "").trim();
+
+  // Unmatched candidates (hints for user)
+  const unmatched_codes = candidates.filter((c) => !matched_codes.includes(c));
+
+  return {
+    so_number,
+    project_code,
+    machine_code,
+    subject: subject.length > 0 ? subject : undefined,
+    unmatched_codes,
+  };
+}
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
