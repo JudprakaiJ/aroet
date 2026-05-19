@@ -147,3 +147,19 @@ export async function deleteSession(id: number, so_number: string) {
   await supabase.from("sessions").delete().eq("id", id);
   revalidatePath(`/cases/${so_number}`);
 }
+
+export type CaseStatus = "planned" | "in_progress" | "completed" | "verified" | "canceled";
+
+export async function updateCaseStatus(
+  so_number: string,
+  status: CaseStatus
+): Promise<{ success: boolean; error?: string }> {
+  checkEnv();
+  const supabase = createServiceClient();
+  const { error } = await supabase.from("cases").update({ status }).eq("so_number", so_number);
+  if (error) return { success: false, error: error.message };
+  revalidatePath(`/cases/${so_number}`);
+  revalidatePath("/cases");
+  revalidatePath("/");
+  return { success: true };
+}
