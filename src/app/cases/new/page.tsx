@@ -1,4 +1,5 @@
 import { AppBar } from "@/components/app-bar";
+import { DesktopTopBar } from "@/components/desktop-top";
 import { createClient } from "@/lib/supabase/server";
 import { NewCaseClient } from "./new-client";
 
@@ -19,6 +20,11 @@ export default async function NewCasePage() {
   return (
     <>
       <AppBar title="New case" sub="Paste D365 title or enter manually" leftIcon="back" showSync={false} showBell={false} />
+      <DesktopTopBar
+        title="New case"
+        crumbs={[{ label: "Workspace", href: "/" }, { label: "Cases", href: "/cases" }, { label: "New" }]}
+        showClockIn={false}
+      />
       <div className="scroll">
         <NewCaseClient
           customers={(customers ?? []) as Customer[]}

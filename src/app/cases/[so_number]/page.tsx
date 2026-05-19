@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { AppBar } from "@/components/app-bar";
+import { DesktopTopBar } from "@/components/desktop-top";
 import { CaseHero } from "./hero";
 import { TabsStrip } from "./tabs-strip";
 import { SessionsTab } from "./sessions-tab";
@@ -53,6 +54,14 @@ export default async function CaseDetailPage({
   return (
     <>
       <AppBar title="Case detail" sub={c.so_number} leftIcon="back" showSync={false} />
+      <DesktopTopBar
+        title={c.title ?? "Case detail"}
+        crumbs={[
+          { label: "Workspace", href: "/" },
+          { label: "Cases", href: "/cases" },
+          { label: c.so_number },
+        ]}
+      />
       <div className="scroll">
         <CaseHero c={c} aggregates={aggregates} />
         <TabsStrip

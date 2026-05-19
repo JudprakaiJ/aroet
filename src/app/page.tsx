@@ -1,29 +1,44 @@
 import { AppBar } from "@/components/app-bar";
+import { DesktopTopBar } from "@/components/desktop-top";
 import { SectionHeader } from "@/components/primitives/section-header";
 import { SmartStartCTA } from "@/components/dashboard/smart-start-cta";
 import { CaseCard } from "@/components/dashboard/case-card";
 import { SessionRow } from "@/components/dashboard/session-row";
 import { UpcomingMini } from "@/components/dashboard/upcoming-mini";
+import { DesktopDashboard } from "@/components/dashboard/desktop-dashboard";
 import {
   DASHBOARD_ENGINEER,
   getMyActiveCases,
   getTodaySessions,
   getUpcomingThisWeek,
+  getDashboardKpis,
+  getPendingApprovalsTeaser,
+  getRecentCases,
 } from "@/app/dashboard/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [myActive, today, upcoming] = await Promise.all([
+  const [myActive, today, upcoming, kpis, approvals, recent] = await Promise.all([
     getMyActiveCases(),
     getTodaySessions(),
     getUpcomingThisWeek(),
+    getDashboardKpis(),
+    getPendingApprovalsTeaser(),
+    getRecentCases(),
   ]);
 
   return (
     <>
       <AppBar title="Dashboard" sub={`Hello ${DASHBOARD_ENGINEER}`} />
-      <div className="scroll">
+      <DesktopTopBar
+        title="Dashboard"
+        crumbs={[{ label: "Workspace" }, { label: "Dashboard" }]}
+        unreadCount={kpis.pending_approvals}
+      />
+
+      {/* Mobile content */}
+      <div className="scroll md:hidden">
         <div style={{ padding: "10px 14px 4px" }}>
           <SmartStartCTA engineerCode={DASHBOARD_ENGINEER} />
         </div>
@@ -34,10 +49,7 @@ export default async function DashboardPage() {
         />
         {myActive.length === 0 ? (
           <div style={{ padding: "0 14px" }}>
-            <div
-              className="card"
-              style={{ padding: 18, textAlign: "center" }}
-            >
+            <div className="card" style={{ padding: 18, textAlign: "center" }}>
               <div
                 className="sub"
                 style={{
@@ -87,6 +99,11 @@ export default async function DashboardPage() {
         </div>
 
         <div style={{ height: 24 }} />
+      </div>
+
+      {/* Desktop content */}
+      <div className="dt-body hidden md:block">
+        <DesktopDashboard kpis={kpis} approvals={approvals} recent={recent} />
       </div>
     </>
   );
