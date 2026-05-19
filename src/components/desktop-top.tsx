@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 import { Icon } from "@/components/icons";
 import { SyncChip } from "@/components/primitives/sync-chip";
+import { ClockInWidget } from "@/components/clock/clock-in-widget";
+import { Bell } from "@/components/notifications/bell";
+import type { ActiveSession } from "@/lib/clock/types";
+import type { NotificationItem } from "@/components/notifications/queries";
 
 type Crumb = { label: string; href?: string };
 
@@ -11,7 +15,8 @@ type Props = {
   showClockIn?: boolean;
   showSync?: boolean;
   showBell?: boolean;
-  unreadCount?: number;
+  activeSession?: ActiveSession | null;
+  notifications?: NotificationItem[];
   right?: ReactNode;
 };
 
@@ -22,7 +27,8 @@ export function DesktopTopBar({
   showClockIn = true,
   showSync = true,
   showBell = true,
-  unreadCount = 0,
+  activeSession = null,
+  notifications,
   right,
 }: Props) {
   return (
@@ -55,34 +61,31 @@ export function DesktopTopBar({
           <input className="search" placeholder={searchPlaceholder} />
         </div>
 
-        {showClockIn && (
-          <button
-            type="button"
-            className="dt-pill"
-            style={{
-              background: "var(--red-50)",
-              color: "var(--red)",
-              borderColor: "var(--red-line)",
-              fontWeight: 700,
-              letterSpacing: ".02em",
-            }}
-          >
-            <Icon name="play" size={12} /> Clock in
-          </button>
+        {activeSession ? (
+          <ClockInWidget activeSession={activeSession} variant="desktop" />
+        ) : (
+          showClockIn && (
+            <span
+              className="dt-pill"
+              style={{
+                background: "var(--red-50)",
+                color: "var(--red)",
+                borderColor: "var(--red-line)",
+                fontWeight: 700,
+                letterSpacing: ".02em",
+                opacity: 0.7,
+                cursor: "default",
+              }}
+              title="Use Smart Start CTA on Dashboard"
+            >
+              <Icon name="play" size={12} /> Clock in
+            </span>
+          )
         )}
 
-        {showSync && <SyncChip status="online" />}
+        {showSync && !activeSession && <SyncChip status="online" />}
 
-        {showBell && (
-          <button type="button" className="dt-pill ghost" aria-label="notifications" style={{ position: "relative", padding: "0 8px" }}>
-            <Icon name="bell" size={14} />
-            {unreadCount > 0 && (
-              <span className="cbadge" style={{ position: "absolute", top: 2, right: 0 }}>
-                {unreadCount}
-              </span>
-            )}
-          </button>
-        )}
+        {showBell && notifications && <Bell items={notifications} variant="desktop" />}
 
         {right}
       </div>

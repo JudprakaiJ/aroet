@@ -1,0 +1,187 @@
+"use server";
+
+import { createServiceClient } from "@/lib/supabase/service";
+import { revalidatePath } from "next/cache";
+import { typeCodeFor, type ClockOutReview } from "@/lib/clock/types";
+
+const ME = "JKH";
+
+type ClockInArgs = {
+  so_number: string;
+  machine_no?: string | null;
+  activity_type: string;
+};
+
+export async function clockIn({
+  so_number,
+  machine_no,
+  activity_type,
+}: ClockInArgs): Promise<{ success: boolean; session_id?: number; error?: string }> {
+  const supabase = createServiceClient();
+
+  const { data: existing } = await supabase
+    .from("sessions")
+    .select("id")
+    .eq("engineer_code", ME)
+    .not("clock_in_at", "is", null)
+    .is("clock_out_at", null)
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) {
+    return { success: false, error: "Already clocked in — clock out first." };
+  }
+
+  const sessionDate = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+  const dow = new Date(sessionDate).getDay();
+
+  const { data, error } = await supabase
+    .from("sessions")
+    .insert({
+      so_number,
+      machine_no: machine_no ?? null,
+      engineer_code: ME,
+      session_date: sessionDate,
+      activity_type,
+      type_code: typeCodeFor(activity_type),
+      travel_minutes: 0,
+      break_minutes: 0,
+      work_minutes: 0,
+      office_minutes: 0,
+      is_weekend: dow === 0 || dow === 6,
+      is_holiday: false,
+      source: "manual",
+      approval_status: "draft",
+      clock_in_at: new Date().toISOString(),
+      paused_total_minutes: 0,
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) return { success: false, error: error?.message ?? "Insert failed" };
+
+  revalidatePath("/");
+  revalidatePath(`/cases/${so_number}`);
+  return { success: true, session_id: data.id };
+}
+
+export async function pauseSession(session_id: number): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceClient();
+  const { data: s } = await supabase
+    .from("sessions")
+    .select("paused_at, clock_out_at")
+    .eq("id", session_id)
+    .single();
+  if (!s || s.clock_out_at) return { success: false, error: "Not active" };
+  if (s.paused_at) return { success: false, error: "Already paused" };
+
+  const { error } = await supabase
+    .from("sessions")
+    .update({ paused_at: new Date().toISOString() })
+    .eq("id", session_id);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function resumeSession(session_id: number): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceClient();
+  const { data: s } = await supabase
+    .from("sessions")
+    .select("paused_at, paused_total_minutes, clock_out_at")
+    .eq("id", session_id)
+    .single();
+  if (!s || s.clock_out_at) return { success: false, error: "Not active" };
+  if (!s.paused_at) return { success: false, error: "Not paused" };
+
+  const pausedMs = Date.now() - new Date(s.paused_at).getTime();
+  const addedMin = Math.max(0, Math.round(pausedMs / 60_000));
+
+  const { error } = await supabase
+    .from("sessions")
+    .update({
+      paused_at: null,
+      paused_total_minutes: (s.paused_total_minutes ?? 0) + addedMin,
+    })
+    .eq("id", session_id);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function clockOut(
+  session_id: number,
+  review: ClockOutReview
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceClient();
+  const { data: s } = await supabase
+    .from("sessions")
+    .select(
+      "clock_in_at, paused_at, paused_total_minutes, activity_type, so_number, type_code"
+    )
+    .eq("id", session_id)
+    .single();
+
+  if (!s || !s.clock_in_at) return { success: false, error: "Session not active" };
+
+  const now = new Date();
+  let pausedTotal = s.paused_total_minutes ?? 0;
+  if (s.paused_at) {
+    pausedTotal += Math.max(
+      0,
+      Math.round((now.getTime() - new Date(s.paused_at).getTime()) / 60_000)
+    );
+  }
+
+  const elapsedMin = Math.max(
+    0,
+    Math.round((now.getTime() - new Date(s.clock_in_at).getTime()) / 60_000) - pausedTotal
+  );
+  const travel = Math.max(0, review.travel_minutes ?? 0);
+  const breakMin = Math.max(0, review.break_minutes ?? 0);
+  const remaining = Math.max(0, elapsedMin - travel - breakMin);
+
+  let workMin = 0;
+  let officeMin = 0;
+  let travelMin = travel;
+  if (s.activity_type === "office") {
+    officeMin = remaining;
+  } else if (s.activity_type === "travel") {
+    travelMin = travel + remaining;
+  } else {
+    workMin = remaining;
+  }
+
+  const { error } = await supabase
+    .from("sessions")
+    .update({
+      clock_out_at: now.toISOString(),
+      paused_at: null,
+      paused_total_minutes: pausedTotal,
+      travel_minutes: travelMin,
+      break_minutes: breakMin,
+      work_minutes: workMin,
+      office_minutes: officeMin,
+      work_done: review.notes?.trim() || null,
+      approval_status: review.submit_immediately ? "submitted" : "draft",
+    })
+    .eq("id", session_id);
+
+  if (error) return { success: false, error: error.message };
+
+  if (review.submit_immediately) {
+    await supabase.from("session_approval_log").insert({
+      session_id,
+      action: "submitted",
+      by_engineer: ME,
+    });
+  }
+
+  revalidatePath("/");
+  revalidatePath("/cases");
+  if (s.so_number) revalidatePath(`/cases/${s.so_number}`);
+  revalidatePath("/workforce/queue");
+  return { success: true };
+}

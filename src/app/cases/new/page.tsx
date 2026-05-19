@@ -1,7 +1,11 @@
 import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { createClient } from "@/lib/supabase/server";
+import { getActiveSession } from "@/lib/clock/queries";
+import { getNotifications } from "@/components/notifications/queries";
 import { NewCaseClient } from "./new-client";
+
+const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
@@ -11,19 +15,30 @@ type Engineer = { code: string; full_name: string | null; role: string | null };
 
 export default async function NewCasePage() {
   const supabase = await createClient();
-  const [{ data: customers }, { data: machines }, { data: engineers }] = await Promise.all([
+  const [{ data: customers }, { data: machines }, { data: engineers }, activeSession, notifications] = await Promise.all([
     supabase.from("customers").select("code, name").order("name", { ascending: true }),
     supabase.from("machines").select("machine_no, customer_code, name, product_code").order("machine_no"),
     supabase.from("engineers").select("code, full_name, role").eq("is_active", true).order("code"),
+    getActiveSession(ME),
+    getNotifications(ME),
   ]);
 
   return (
     <>
-      <AppBar title="New case" sub="Paste D365 title or enter manually" leftIcon="back" showSync={false} showBell={false} />
+      <AppBar
+        title="New case"
+        sub="Paste D365 title or enter manually"
+        leftIcon="back"
+        showSync={false}
+        activeSession={activeSession}
+        notifications={notifications}
+      />
       <DesktopTopBar
         title="New case"
         crumbs={[{ label: "Workspace", href: "/" }, { label: "Cases", href: "/cases" }, { label: "New" }]}
         showClockIn={false}
+        activeSession={activeSession}
+        notifications={notifications}
       />
       <div className="scroll">
         <NewCaseClient

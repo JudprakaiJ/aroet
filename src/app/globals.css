@@ -399,6 +399,11 @@ textarea.field { padding: 10px 12px; resize: none; font-family: var(--sans); }
 }
 .fab[data-pulse="true"] { animation: pulse-red 2.4s infinite; }
 
+@keyframes pulse-presence {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .55; transform: scale(.85); }
+}
+
 /* ── App shell layout ─────────────────────────────────────────────────── */
 .aroet-shell-root {
   display: flex; flex-direction: column;

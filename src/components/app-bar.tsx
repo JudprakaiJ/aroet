@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { SyncChip } from "@/components/primitives/sync-chip";
+import { ClockInWidget } from "@/components/clock/clock-in-widget";
+import { Bell } from "@/components/notifications/bell";
+import type { ActiveSession } from "@/lib/clock/types";
+import type { NotificationItem } from "@/components/notifications/queries";
 
 type Props = {
   title: string;
@@ -8,7 +12,8 @@ type Props = {
   leftIcon?: Extract<IconName, "menu" | "back">;
   showSync?: boolean;
   showBell?: boolean;
-  unreadCount?: number;
+  activeSession?: ActiveSession | null;
+  notifications?: NotificationItem[];
   right?: ReactNode;
 };
 
@@ -18,7 +23,8 @@ export function AppBar({
   leftIcon = "menu",
   showSync = true,
   showBell = true,
-  unreadCount = 0,
+  activeSession = null,
+  notifications,
   right,
 }: Props) {
   return (
@@ -30,22 +36,12 @@ export function AppBar({
         {sub && <div className="sub">{sub}</div>}
         <h1 className="truncate">{title}</h1>
       </div>
-      {showSync && <SyncChip status="online" />}
-      {showBell && (
-        <button
-          type="button"
-          className="iconbtn tap"
-          aria-label="notifications"
-          style={{ position: "relative" }}
-        >
-          <Icon name="bell" size={18} />
-          {unreadCount > 0 && (
-            <span className="cbadge" style={{ position: "absolute", top: 4, right: 4 }}>
-              {unreadCount}
-            </span>
-          )}
-        </button>
+      {activeSession ? (
+        <ClockInWidget activeSession={activeSession} variant="appbar" />
+      ) : (
+        showSync && <SyncChip status="online" />
       )}
+      {showBell && notifications && <Bell items={notifications} variant="appbar" />}
       {right}
     </div>
   );

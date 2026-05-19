@@ -8,6 +8,10 @@ import { FilterRail } from "./filter-rail";
 import { DesktopFilterBar } from "./desktop-filter-bar";
 import { DesktopCasesTable } from "./desktop-cases-table";
 import { listCases, listAvailableYears, type CaseListFilters } from "./queries";
+import { getActiveSession } from "@/lib/clock/queries";
+import { getNotifications } from "@/components/notifications/queries";
+
+const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +37,12 @@ export default async function CasesPage({
     type: sp.type,
   };
 
-  const [cases, years] = await Promise.all([listCases(filters), listAvailableYears()]);
+  const [cases, years, activeSession, notifications] = await Promise.all([
+    listCases(filters),
+    listAvailableYears(),
+    getActiveSession(ME),
+    getNotifications(ME),
+  ]);
   const hasFilters =
     Boolean(filters.q) ||
     filters.scope !== "mine" ||
@@ -51,10 +60,17 @@ export default async function CasesPage({
 
   return (
     <>
-      <AppBar title="Cases" sub={`${cases.length} result${cases.length === 1 ? "" : "s"}`} />
+      <AppBar
+        title="Cases"
+        sub={`${cases.length} result${cases.length === 1 ? "" : "s"}`}
+        activeSession={activeSession}
+        notifications={notifications}
+      />
       <DesktopTopBar
         title="Cases"
         crumbs={[{ label: "Workspace", href: "/" }, { label: "Cases" }]}
+        activeSession={activeSession}
+        notifications={notifications}
       />
 
       {/* Mobile content */}
