@@ -6,6 +6,9 @@ import { Icon, type IconName } from "@/components/icons";
 import { TypeBlock } from "@/components/primitives/type-block";
 import { computeElapsedMinutes, type ActiveSession } from "@/lib/clock/types";
 import { pauseSession, resumeSession } from "@/app/clock/actions";
+import { SwitchCaseSheet } from "./switch-case-sheet";
+import { ChangeActivitySheet } from "./change-activity-sheet";
+import { EditStartTimeSheet } from "./edit-start-time-sheet";
 
 type Props = {
   open: boolean;
@@ -34,6 +37,9 @@ function fmtElapsedSec(totalMin: number, extraSec: number): string {
 export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut }: Props) {
   const [, setTick] = useState(0);
   const [pending, startTransition] = useTransition();
+  const [switchOpen, setSwitchOpen] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(false);
+  const [editTimeOpen, setEditTimeOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -150,7 +156,84 @@ export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut }
             Clock out
           </button>
         </div>
+
+        <div className="hairline" />
+
+        <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+          <SecondaryRow icon="refresh" label="Switch case" onClick={() => setSwitchOpen(true)} />
+          <SecondaryRow icon="sparkles" label="Change activity" onClick={() => setActivityOpen(true)} />
+          <SecondaryRow icon="clock" label="Edit start time" onClick={() => setEditTimeOpen(true)} isLast />
+        </div>
       </div>
+
+      <SwitchCaseSheet
+        open={switchOpen}
+        onClose={() => setSwitchOpen(false)}
+        sessionId={session.id}
+        currentSoNumber={session.so_number}
+      />
+      <ChangeActivitySheet
+        open={activityOpen}
+        onClose={() => setActivityOpen(false)}
+        sessionId={session.id}
+        currentActivity={session.activity_type}
+      />
+      <EditStartTimeSheet
+        open={editTimeOpen}
+        onClose={() => setEditTimeOpen(false)}
+        sessionId={session.id}
+        currentClockInISO={session.clock_in_at}
+      />
     </Sheet>
+  );
+}
+
+function SecondaryRow({
+  icon,
+  label,
+  onClick,
+  isLast,
+}: {
+  icon: IconName;
+  label: string;
+  onClick: () => void;
+  isLast?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className="row-link"
+      onClick={onClick}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "12px 14px",
+        width: "100%",
+        textAlign: "left",
+        background: "transparent",
+        border: 0,
+        borderBottom: isLast ? "none" : "1px solid var(--line-2)",
+        cursor: "pointer",
+      }}
+    >
+      <div
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 8,
+          background: "var(--surface-2)",
+          color: "var(--ink-2)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flex: "none",
+        }}
+      >
+        <Icon name={icon} size={15} />
+      </div>
+      <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>{label}</span>
+      <Icon name="chevron" size={14} />
+    </button>
   );
 }

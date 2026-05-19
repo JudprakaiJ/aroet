@@ -185,3 +185,106 @@ export async function clockOut(
   revalidatePath("/workforce/queue");
   return { success: true };
 }
+
+export type SwitchableCase = {
+  so_number: string;
+  title: string | null;
+  customer_name: string | null;
+  machine_no: string | null;
+};
+
+export async function listMyActiveCasesForSwitch(currentSo: string | null): Promise<SwitchableCase[]> {
+  const supabase = createServiceClient();
+  const { data: sos } = await supabase
+    .from("case_engineers")
+    .select("so_number")
+    .eq("engineer_code", ME);
+  const soList = ((sos ?? []) as { so_number: string }[]).map((r) => r.so_number);
+  if (soList.length === 0) return [];
+  const { data } = await supabase
+    .from("cases")
+    .select("so_number, title, customer_name, machine_no")
+    .in("so_number", soList)
+    .in("status", ["planned", "in_progress"])
+    .order("due_date", { ascending: true, nullsFirst: false });
+  return ((data ?? []) as SwitchableCase[]).filter((c) => c.so_number !== currentSo);
+}
+
+export async function switchActiveCase(
+  session_id: number,
+  new_so_number: string,
+  new_machine_no: string | null
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceClient();
+  const { data: s } = await supabase
+    .from("sessions")
+    .select("so_number, clock_in_at, clock_out_at")
+    .eq("id", session_id)
+    .single();
+  if (!s || !s.clock_in_at || s.clock_out_at) return { success: false, error: "Not active" };
+  if (s.so_number === new_so_number) return { success: false, error: "Already on this case" };
+
+  const oldSo = s.so_number;
+  const { error } = await supabase
+    .from("sessions")
+    .update({ so_number: new_so_number, machine_no: new_machine_no })
+    .eq("id", session_id);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/");
+  if (oldSo) revalidatePath(`/cases/${oldSo}`);
+  revalidatePath(`/cases/${new_so_number}`);
+  return { success: true };
+}
+
+export async function changeActivity(
+  session_id: number,
+  new_activity_type: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceClient();
+  const { data: s } = await supabase
+    .from("sessions")
+    .select("clock_in_at, clock_out_at, activity_type")
+    .eq("id", session_id)
+    .single();
+  if (!s || !s.clock_in_at || s.clock_out_at) return { success: false, error: "Not active" };
+  if (s.activity_type === new_activity_type) return { success: false, error: "Already on this activity" };
+
+  const { error } = await supabase
+    .from("sessions")
+    .update({
+      activity_type: new_activity_type,
+      type_code: typeCodeFor(new_activity_type),
+    })
+    .eq("id", session_id);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function editStartTime(
+  session_id: number,
+  new_clock_in_iso: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceClient();
+  const { data: s } = await supabase
+    .from("sessions")
+    .select("clock_in_at, clock_out_at")
+    .eq("id", session_id)
+    .single();
+  if (!s || !s.clock_in_at || s.clock_out_at) return { success: false, error: "Not active" };
+
+  const newDate = new Date(new_clock_in_iso);
+  if (Number.isNaN(newDate.getTime())) return { success: false, error: "Invalid time" };
+  if (newDate.getTime() > Date.now()) return { success: false, error: "Start time can't be in the future" };
+
+  const { error } = await supabase
+    .from("sessions")
+    .update({ clock_in_at: newDate.toISOString() })
+    .eq("id", session_id);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/");
+  return { success: true };
+}
