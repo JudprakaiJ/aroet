@@ -10,12 +10,15 @@ type ClockInArgs = {
   so_number: string | null;
   machine_no?: string | null;
   activity_type: string;
+  /** Optional backdate of the clock-in moment. Must be in the past. */
+  started_at?: string;
 };
 
 export async function clockIn({
   so_number,
   machine_no,
   activity_type,
+  started_at,
 }: ClockInArgs): Promise<{ success: boolean; session_id?: number; error?: string }> {
   const supabase = createServiceClient();
 
@@ -32,7 +35,14 @@ export async function clockIn({
     return { success: false, error: "Already clocked in — clock out first." };
   }
 
-  const sessionDate = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+  const startMs = started_at ? Date.parse(started_at) : Date.now();
+  if (Number.isNaN(startMs) || startMs > Date.now() + 30_000) {
+    return { success: false, error: "Start time can't be in the future." };
+  }
+  const startIso = new Date(startMs).toISOString();
+  const sessionDate = new Date(startMs).toLocaleDateString("en-CA", {
+    timeZone: "Asia/Bangkok",
+  });
   const dow = new Date(sessionDate).getDay();
 
   const { data, error } = await supabase
@@ -52,7 +62,7 @@ export async function clockIn({
       is_holiday: false,
       source: "manual",
       approval_status: "draft",
-      clock_in_at: new Date().toISOString(),
+      clock_in_at: startIso,
       paused_total_minutes: 0,
     })
     .select("id")
@@ -75,17 +85,22 @@ export type ChainNextArgs = {
   kind: NextKind;
   so_number?: string | null;
   machine_no?: string | null;
+  /** "I actually started this N minutes ago" — backdates both close + start. Optional. */
+  backdate_minutes?: number;
 };
 
 /**
- * Close the current active session (if any) at "now" with its elapsed
- * time routed to the appropriate bucket, then start a new session.
- * One mid-day transition = one tap.
+ * Close the current active session (if any) at the transition moment
+ * (either now or `now - backdate_minutes`) and start a new one at the
+ * same moment. One mid-day transition = one tap, no gap in the timeline.
  */
 export async function chainNext(
   args: ChainNextArgs
 ): Promise<{ success: boolean; session_id?: number; error?: string }> {
   const supabase = createServiceClient();
+
+  const backMin = Math.max(0, Math.round(args.backdate_minutes ?? 0));
+  const transitionAt = new Date(Date.now() - backMin * 60_000);
 
   // close current if any
   const { data: current } = await supabase
@@ -101,18 +116,20 @@ export async function chainNext(
     .maybeSingle();
 
   if (current) {
-    const now = new Date();
+    // Don't allow backdating before the current session started
+    const currentStart = new Date(current.clock_in_at);
+    const closeAt = transitionAt < currentStart ? currentStart : transitionAt;
+
     let pausedTotal = current.paused_total_minutes ?? 0;
     if (current.paused_at) {
       pausedTotal += Math.max(
         0,
-        Math.round((now.getTime() - new Date(current.paused_at).getTime()) / 60_000)
+        Math.round((closeAt.getTime() - new Date(current.paused_at).getTime()) / 60_000)
       );
     }
     const elapsedMin = Math.max(
       0,
-      Math.round((now.getTime() - new Date(current.clock_in_at).getTime()) / 60_000) -
-        pausedTotal
+      Math.round((closeAt.getTime() - currentStart.getTime()) / 60_000) - pausedTotal
     );
     let workMin = 0;
     let officeMin = 0;
@@ -124,7 +141,7 @@ export async function chainNext(
     const { error: closeErr } = await supabase
       .from("sessions")
       .update({
-        clock_out_at: now.toISOString(),
+        clock_out_at: closeAt.toISOString(),
         paused_at: null,
         paused_total_minutes: pausedTotal,
         travel_minutes: travelMin,
@@ -152,6 +169,7 @@ export async function chainNext(
     so_number: so,
     machine_no: machine,
     activity_type: activityByKind[args.kind],
+    started_at: transitionAt.toISOString(),
   });
 }
 

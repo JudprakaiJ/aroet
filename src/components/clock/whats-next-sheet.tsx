@@ -21,6 +21,14 @@ type Props = {
 
 type Step = "home" | "pick-case";
 
+const BACKDATE_PRESETS = [
+  { min: 0,   label: "Now" },
+  { min: 15,  label: "15m ago" },
+  { min: 30,  label: "30m ago" },
+  { min: 60,  label: "1h ago" },
+  { min: 120, label: "2h ago" },
+];
+
 export function WhatsNextSheet({ open, onClose, hasActive, paused }: Props) {
   const [step, setStep] = useState<Step>("home");
   const [search, setSearch] = useState("");
@@ -28,6 +36,7 @@ export function WhatsNextSheet({ open, onClose, hasActive, paused }: Props) {
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [backdateMin, setBackdateMin] = useState(0);
 
   // Reset when sheet opens
   useEffect(() => {
@@ -36,6 +45,7 @@ export function WhatsNextSheet({ open, onClose, hasActive, paused }: Props) {
       setSearch("");
       setCases([]);
       setError(null);
+      setBackdateMin(0);
     }
   }, [open]);
 
@@ -65,7 +75,7 @@ export function WhatsNextSheet({ open, onClose, hasActive, paused }: Props) {
     }
     setError(null);
     startTransition(async () => {
-      const r = await chainNext({ kind });
+      const r = await chainNext({ kind, backdate_minutes: backdateMin });
       if (!r.success) setError(r.error ?? "Could not start.");
       else close();
     });
@@ -74,7 +84,12 @@ export function WhatsNextSheet({ open, onClose, hasActive, paused }: Props) {
   const onPickCase = (so: string, machine: string | null) => {
     setError(null);
     startTransition(async () => {
-      const r = await chainNext({ kind: "case", so_number: so, machine_no: machine });
+      const r = await chainNext({
+        kind: "case",
+        so_number: so,
+        machine_no: machine,
+        backdate_minutes: backdateMin,
+      });
       if (!r.success) setError(r.error ?? "Could not start.");
       else close();
     });
@@ -106,6 +121,34 @@ export function WhatsNextSheet({ open, onClose, hasActive, paused }: Props) {
       <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
         {step === "home" && (
           <>
+            {!paused && (
+              <div
+                style={{
+                  display: "flex",
+                  gap: 6,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  padding: "6px 10px",
+                  background: "var(--surface-2)",
+                  borderRadius: 10,
+                }}
+              >
+                <span className="kicker" style={{ flex: "none" }}>
+                  Started
+                </span>
+                {BACKDATE_PRESETS.map((p) => (
+                  <button
+                    key={p.min}
+                    type="button"
+                    className="fchip"
+                    data-on={backdateMin === p.min || undefined}
+                    onClick={() => setBackdateMin(p.min)}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            )}
             {paused && (
               <BigOption
                 icon="play"
