@@ -19,7 +19,6 @@ export function DesktopMachinesTable({ machines }: { machines: MachineListItem[]
             <th>Machine #</th>
             <th>Name</th>
             <th>Product</th>
-            <th>Version</th>
             <th>Serial</th>
             <th>Customer</th>
             <th>Warranty</th>
@@ -48,15 +47,6 @@ export function DesktopMachinesTable({ machines }: { machines: MachineListItem[]
                 </Link>
               </td>
               <td>{m.product_code ?? "—"}</td>
-              <td>
-                {m.version ? (
-                  <span className="chip" style={{ fontSize: 10 }}>v{m.version}</span>
-                ) : (
-                  <span className="chip chip-soft" style={{ fontSize: 10, color: "var(--warn)" }}>
-                    Unknown
-                  </span>
-                )}
-              </td>
               <td className="mono" style={{ fontSize: 11.5 }}>
                 {m.serial_no ?? "—"}
               </td>

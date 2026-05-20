@@ -21,7 +21,6 @@ export function NewMachineSheet({ open, onClose, customers, defaultCustomerCode 
   const [customerCode, setCustomerCode] = useState(defaultCustomerCode ?? "");
   const [productCode, setProductCode] = useState("");
   const [serialNo, setSerialNo] = useState("");
-  const [version, setVersion] = useState("");
   const [installationDate, setInstallationDate] = useState("");
   const [warrantyExpiry, setWarrantyExpiry] = useState("");
   const [notes, setNotes] = useState("");
@@ -34,7 +33,6 @@ export function NewMachineSheet({ open, onClose, customers, defaultCustomerCode 
     setCustomerCode(defaultCustomerCode ?? "");
     setProductCode("");
     setSerialNo("");
-    setVersion("");
     setInstallationDate("");
     setWarrantyExpiry("");
     setNotes("");
@@ -57,7 +55,6 @@ export function NewMachineSheet({ open, onClose, customers, defaultCustomerCode 
         customer_code: customerCode,
         product_code: productCode.trim() || undefined,
         serial_no: serialNo.trim() || undefined,
-        version: version.trim() || undefined,
         installation_date: installationDate || undefined,
         warranty_expiry: warrantyExpiry || undefined,
         notes: notes.trim() || undefined,
@@ -117,27 +114,15 @@ export function NewMachineSheet({ open, onClose, customers, defaultCustomerCode 
           </select>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <div>
-            <label className="fieldlbl">Product code</label>
-            <input
-              type="text"
-              className="field mono"
-              placeholder="DLM / MCVP8"
-              value={productCode}
-              onChange={(e) => setProductCode(e.target.value.toUpperCase())}
-            />
-          </div>
-          <div>
-            <label className="fieldlbl">Version</label>
-            <input
-              type="text"
-              className="field mono"
-              placeholder="V1 / V2"
-              value={version}
-              onChange={(e) => setVersion(e.target.value.toUpperCase())}
-            />
-          </div>
+        <div>
+          <label className="fieldlbl">Product (type)</label>
+          <input
+            type="text"
+            className="field mono"
+            placeholder="DLM / MCVP4 / MCVP8V1 / MCVP8V2 / SPV2 / SPV3"
+            value={productCode}
+            onChange={(e) => setProductCode(e.target.value.toUpperCase())}
+          />
         </div>
 
         <div>

@@ -14,18 +14,13 @@ export function MachineListRow({ m }: { m: MachineListItem }) {
       <div className="left">
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
           <CodeBadge>{m.machine_no}</CodeBadge>
-          {m.product_code && (
+          {m.product_code ? (
             <span className="chip" style={{ fontSize: 10 }}>
               {m.product_code}
             </span>
-          )}
-          {m.version ? (
-            <span className="chip" style={{ fontSize: 10 }}>
-              v{m.version}
-            </span>
           ) : (
             <span className="chip chip-soft" style={{ fontSize: 10, color: "var(--warn)" }}>
-              No version
+              No product
             </span>
           )}
         </div>

@@ -16,15 +16,14 @@ export const dynamic = "force-dynamic";
 export default async function MachinesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; version?: string }>;
+  searchParams: Promise<{ q?: string }>;
 }) {
   const ME = await meCode();
   const sp = await searchParams;
   const q = sp.q ?? "";
-  const unknownVersion = sp.version === "unknown";
 
   const [machines, activeSession, notifications, me] = await Promise.all([
-    listMachines({ q, unknownVersion }),
+    listMachines({ q }),
     getActiveSession(ME),
     getNotifications(ME),
     currentUser(),
@@ -51,7 +50,7 @@ export default async function MachinesPage({
       <div className="scroll md:hidden">
         <div style={{ padding: "0 14px 8px", display: "flex", gap: 8, alignItems: "center" }}>
           <div style={{ flex: 1 }}>
-            <MachineFilterBar initialQ={q} unknownVersion={unknownVersion} />
+            <MachineFilterBar initialQ={q} />
           </div>
           {isAdmin && <NewMachineButton customers={customersLite} />}
         </div>
@@ -66,7 +65,7 @@ export default async function MachinesPage({
               borderRadius: "var(--r-lg)",
             }}
           >
-            {q || unknownVersion ? "No machines match." : "No machines yet."}
+            {q ? "No machines match." : "No machines yet."}
           </div>
         ) : (
           <div className="card" style={{ margin: "8px 14px 14px", overflow: "hidden" }}>
@@ -91,7 +90,7 @@ export default async function MachinesPage({
             }}
           >
             <div style={{ flex: "0 1 480px" }}>
-              <MachineFilterBar initialQ={q} unknownVersion={unknownVersion} />
+              <MachineFilterBar initialQ={q} />
             </div>
             <span style={{ fontSize: 11.5, color: "var(--ink-3)", marginLeft: "auto" }}>
               {machines.length} result{machines.length === 1 ? "" : "s"}

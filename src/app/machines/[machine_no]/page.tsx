@@ -61,18 +61,13 @@ export default async function MachineDetailPage({
         <div style={{ padding: "0 14px 12px", display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <CodeBadge>{machine.machine_no}</CodeBadge>
-            {machine.product_code && (
+            {machine.product_code ? (
               <span className="chip" style={{ fontSize: 11 }}>
                 {machine.product_code}
               </span>
-            )}
-            {machine.version ? (
-              <span className="chip" style={{ fontSize: 11 }}>
-                v{machine.version}
-              </span>
             ) : (
               <span className="chip chip-soft" style={{ fontSize: 11, color: "var(--warn)" }}>
-                Unknown version
+                No product
               </span>
             )}
           </div>

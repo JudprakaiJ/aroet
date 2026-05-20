@@ -56,6 +56,7 @@ Current migrations:
 | `12_auth.sql` | Phase 6 PIN auth: `engineers.pin_hash` column + `login_attempts` rate-limit table + bumps JKH to `role='admin'` for demo. |
 | `13_customer_geo_cleanup.sql` | Data cleanup of `customers.city` / `customers.country`: standalone country names smashed in city, "<city>, COUNTRY" jammed in one field, "<postal> COUNTRY" no-comma cases, trailing commas, and country inference from company name. Re-runnable. |
 | `14_drop_cases_description.sql` | **⚠ pending — run after deploy.** Drops the legacy `cases.description` column. The code stopped reading/writing it in phase 6f (Subject field has been the only entry point since phase 5P). |
+| `15_drop_machines_version.sql` | **⚠ pending — run after deploy.** Drops the `machines.version` column. Phase 6g consolidated "machine type" onto `product_code` — MCVP8 V1/V2 distinction now lives in the product code itself (`MCVP8V1` vs `MCVP8V2`), which is what the checklist resolver already keyed on. |
 
 ⚠️ **Migration drift is a real footgun** — Supabase joins to a missing table return `[]` *silently* (no error). If a query that should return rows returns empty, verify the table actually exists in the DB before debugging code. Use the Supabase MCP `list_tables` or a SQL probe.
 

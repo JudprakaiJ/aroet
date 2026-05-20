@@ -16,7 +16,6 @@ export interface MachineInput {
   name?: string;
   product_code?: string;
   serial_no?: string;
-  version?: string;
   warranty_expiry?: string;
   installation_date?: string;
   notes?: string;
@@ -52,7 +51,6 @@ export async function createMachine(
     name: input.name?.trim() || null,
     product_code: input.product_code?.trim() || null,
     serial_no: input.serial_no?.trim() || null,
-    version: input.version?.trim() || null,
     warranty_expiry: input.warranty_expiry || null,
     installation_date: input.installation_date || null,
     notes: input.notes?.trim() || null,
@@ -77,7 +75,6 @@ export async function updateMachine(
   if (input.name !== undefined) updates.name = input.name?.trim() || null;
   if (input.product_code !== undefined) updates.product_code = input.product_code?.trim() || null;
   if (input.serial_no !== undefined) updates.serial_no = input.serial_no?.trim() || null;
-  if (input.version !== undefined) updates.version = input.version?.trim() || null;
   if (input.warranty_expiry !== undefined) updates.warranty_expiry = input.warranty_expiry || null;
   if (input.installation_date !== undefined) updates.installation_date = input.installation_date || null;
   if (input.notes !== undefined) updates.notes = input.notes?.trim() || null;

@@ -29,7 +29,6 @@ export type CustomerMachine = {
   machine_no: string;
   name: string | null;
   product_code: string | null;
-  version: string | null;
   serial_no: string | null;
   warranty_expiry: string | null;
 };
@@ -144,7 +143,7 @@ export async function getCustomer(code: string): Promise<CustomerDetail | null> 
       .order("name", { ascending: true }),
     supabase
       .from("machines")
-      .select("machine_no, name, product_code, version, serial_no, warranty_expiry")
+      .select("machine_no, name, product_code, serial_no, warranty_expiry")
       .eq("customer_code", code)
       .order("machine_no", { ascending: true }),
     supabase

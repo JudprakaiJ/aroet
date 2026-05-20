@@ -21,7 +21,6 @@ export function EditMachineSheet({ open, onClose, m, customers }: Props) {
   const [name, setName] = useState(m.name ?? "");
   const [productCode, setProductCode] = useState(m.product_code ?? "");
   const [serialNo, setSerialNo] = useState(m.serial_no ?? "");
-  const [version, setVersion] = useState(m.version ?? "");
   const [installationDate, setInstallationDate] = useState(m.installation_date ?? "");
   const [warrantyExpiry, setWarrantyExpiry] = useState(m.warranty_expiry ?? "");
   const [notes, setNotes] = useState(m.notes ?? "");
@@ -34,7 +33,6 @@ export function EditMachineSheet({ open, onClose, m, customers }: Props) {
     setName(m.name ?? "");
     setProductCode(m.product_code ?? "");
     setSerialNo(m.serial_no ?? "");
-    setVersion(m.version ?? "");
     setInstallationDate(m.installation_date ?? "");
     setWarrantyExpiry(m.warranty_expiry ?? "");
     setNotes(m.notes ?? "");
@@ -53,7 +51,6 @@ export function EditMachineSheet({ open, onClose, m, customers }: Props) {
         name: name.trim() || undefined,
         product_code: productCode.trim() || undefined,
         serial_no: serialNo.trim() || undefined,
-        version: version.trim() || undefined,
         installation_date: installationDate || undefined,
         warranty_expiry: warrantyExpiry || undefined,
         notes: notes.trim() || undefined,
@@ -111,25 +108,15 @@ export function EditMachineSheet({ open, onClose, m, customers }: Props) {
           />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <div>
-            <label className="fieldlbl">Product code</label>
-            <input
-              type="text"
-              className="field mono"
-              value={productCode}
-              onChange={(e) => setProductCode(e.target.value.toUpperCase())}
-            />
-          </div>
-          <div>
-            <label className="fieldlbl">Version</label>
-            <input
-              type="text"
-              className="field mono"
-              value={version}
-              onChange={(e) => setVersion(e.target.value.toUpperCase())}
-            />
-          </div>
+        <div>
+          <label className="fieldlbl">Product (type)</label>
+          <input
+            type="text"
+            className="field mono"
+            placeholder="DLM / MCVP4 / MCVP8V1 / MCVP8V2 / SPV2 / SPV3"
+            value={productCode}
+            onChange={(e) => setProductCode(e.target.value.toUpperCase())}
+          />
         </div>
 
         <div>

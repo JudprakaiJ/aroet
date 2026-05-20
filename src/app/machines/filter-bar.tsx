@@ -6,10 +6,9 @@ import { Icon } from "@/components/icons";
 
 type Props = {
   initialQ: string;
-  unknownVersion: boolean;
 };
 
-export function MachineFilterBar({ initialQ, unknownVersion }: Props) {
+export function MachineFilterBar({ initialQ }: Props) {
   const router = useRouter();
   const params = useSearchParams();
   const [pending, startTransition] = useTransition();
@@ -42,49 +41,28 @@ export function MachineFilterBar({ initialQ, unknownVersion }: Props) {
   }, [q]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <div style={{ position: "relative" }}>
-        <span
-          style={{
-            position: "absolute",
-            left: 10,
-            top: "50%",
-            transform: "translateY(-50%)",
-            color: "var(--ink-4)",
-            display: "inline-flex",
-          }}
-        >
-          <Icon name="search" size={16} />
-        </span>
-        <input
-          type="search"
-          placeholder="Search machine, serial, customer…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="field"
-          style={{ paddingLeft: 34 }}
-        />
-      </div>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-        <button
-          type="button"
-          className="fchip"
-          data-on={!unknownVersion || undefined}
-          onClick={() => push({ version: null })}
-          disabled={pending}
-        >
-          All
-        </button>
-        <button
-          type="button"
-          className="fchip"
-          data-on={unknownVersion || undefined}
-          onClick={() => push({ version: unknownVersion ? null : "unknown" })}
-          disabled={pending}
-        >
-          Unknown version
-        </button>
-      </div>
+    <div style={{ position: "relative" }}>
+      <span
+        style={{
+          position: "absolute",
+          left: 10,
+          top: "50%",
+          transform: "translateY(-50%)",
+          color: "var(--ink-4)",
+          display: "inline-flex",
+        }}
+      >
+        <Icon name="search" size={16} />
+      </span>
+      <input
+        type="search"
+        placeholder="Search machine, serial, customer…"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        className="field"
+        style={{ paddingLeft: 34 }}
+        disabled={pending}
+      />
     </div>
   );
 }

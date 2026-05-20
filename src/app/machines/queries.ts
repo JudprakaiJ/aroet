@@ -3,14 +3,12 @@ import { createServiceClient } from "@/lib/supabase/service";
 
 export type MachineListFilters = {
   q?: string;
-  unknownVersion?: boolean;
 };
 
 export type MachineListItem = {
   machine_no: string;
   name: string | null;
   product_code: string | null;
-  version: string | null;
   serial_no: string | null;
   customer_code: string | null;
   customer_name: string | null;
@@ -32,7 +30,6 @@ export type MachineDetail = {
   machine_no: string;
   name: string | null;
   product_code: string | null;
-  version: string | null;
   serial_no: string | null;
   customer_code: string | null;
   customer_name: string | null;
@@ -53,7 +50,7 @@ export async function listMachines(filters: MachineListFilters): Promise<Machine
   let q = supabase
     .from("machines")
     .select(
-      "machine_no, name, product_code, version, serial_no, customer_code, customer_name, warranty_expiry"
+      "machine_no, name, product_code, serial_no, customer_code, customer_name, warranty_expiry"
     )
     .order("machine_no", { ascending: true })
     .limit(500);
@@ -65,10 +62,6 @@ export async function listMachines(filters: MachineListFilters): Promise<Machine
         `machine_no.ilike.%${term}%,name.ilike.%${term}%,serial_no.ilike.%${term}%,customer_name.ilike.%${term}%`
       );
     }
-  }
-
-  if (filters.unknownVersion) {
-    q = q.or("version.is.null,version.eq.");
   }
 
   const { data, error } = await q;
@@ -85,7 +78,7 @@ export async function getMachine(machineNo: string): Promise<MachineDetail | nul
   const { data: machine, error } = await supabase
     .from("machines")
     .select(
-      "machine_no, name, product_code, version, serial_no, customer_code, customer_name, warranty_expiry, installation_date, notes"
+      "machine_no, name, product_code, serial_no, customer_code, customer_name, warranty_expiry, installation_date, notes"
     )
     .eq("machine_no", machineNo)
     .maybeSingle();
