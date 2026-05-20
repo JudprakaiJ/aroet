@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Avatar } from "@/components/primitives/avatar";
 import { TypeBlock } from "@/components/primitives/type-block";
 import { CodeBadge } from "@/components/primitives/code-badge";
@@ -32,16 +32,22 @@ function fmtShortDate(iso: string | null | undefined): string {
 
 export function SessionCard({ so_number, s }: Props) {
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   const total = (s.travel_minutes ?? 0) + (s.work_minutes ?? 0) + (s.office_minutes ?? 0);
   const activity = s.activity_type ? activityBadge[s.activity_type] : undefined;
   const status = s.approval_status ?? "draft";
   const chip = APPROVAL_CHIPS[status];
 
   const onDelete = () => {
-    if (status === "approved") return;
-    if (!confirm("Delete this session?")) return;
+    const msg =
+      status === "approved"
+        ? "This session is APPROVED. Delete anyway? (admin only)"
+        : "Delete this session?";
+    if (!confirm(msg)) return;
+    setError(null);
     startTransition(async () => {
-      await deleteSession(s.id, so_number);
+      const r = await deleteSession(s.id, so_number);
+      if (!r.success) setError(r.error ?? "Delete failed");
     });
   };
 
@@ -116,13 +122,27 @@ export function SessionCard({ so_number, s }: Props) {
             type="button"
             className="btn btn-ghost btn-sm"
             style={{ marginLeft: "auto", minHeight: 28, padding: "0 8px", fontSize: 11, color: "var(--ink-3)" }}
-            disabled={pending || status === "approved"}
+            disabled={pending}
             onClick={onDelete}
             aria-label="delete session"
           >
             <Icon name="x" size={12} />
           </button>
         </div>
+        {error && (
+          <div
+            style={{
+              marginTop: 6,
+              padding: "6px 8px",
+              borderRadius: 6,
+              background: "var(--danger-soft)",
+              color: "var(--danger)",
+              fontSize: 11.5,
+            }}
+          >
+            <Icon name="alert" size={10} /> {error}
+          </div>
+        )}
       </div>
     </div>
   );

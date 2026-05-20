@@ -121,8 +121,8 @@ export async function deleteSession(
   so_number: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceClient();
+  const { currentUser, isApprover } = await import("@/lib/auth/current-user");
 
-  // Check status — don't allow deleting approved sessions
   const { data: existing } = await supabase
     .from("sessions")
     .select("approval_status")
@@ -130,7 +130,10 @@ export async function deleteSession(
     .single();
 
   if (existing?.approval_status === "approved") {
-    return { success: false, error: "Cannot delete approved session" };
+    const me = await currentUser();
+    if (!me || !isApprover(me.role)) {
+      return { success: false, error: "Session is approved — only admins can delete it." };
+    }
   }
 
   await supabase.from("session_approval_log").delete().eq("session_id", id);

@@ -129,20 +129,21 @@ export function SessionEditSheet({ open, onClose, session, defaultDate, engineer
               <button
                 type="button"
                 className="btn btn-danger btn-block"
-                disabled={pending || isApproved}
+                disabled={pending}
                 onClick={onDelete}
                 style={{ flex: 1 }}
               >
-                <Icon name="x" size={12} /> Confirm delete
+                <Icon name="x" size={12} />{" "}
+                {isApproved ? "Delete approved" : "Confirm delete"}
               </button>
             ) : (
               <button
                 type="button"
                 className="btn btn-ghost"
-                disabled={pending || isApproved}
+                disabled={pending}
                 onClick={() => setConfirmDelete(true)}
                 style={{ flex: "none", color: "var(--danger)" }}
-                title={isApproved ? "Approved sessions are locked" : "Delete"}
+                title={isApproved ? "Delete (admin only)" : "Delete"}
               >
                 <Icon name="x" size={12} />
               </button>
