@@ -28,7 +28,8 @@ const ADMIN: Item[] = [
   { id: "reports",   label: "Reports",   icon: "trending-up", href: "/workforce?tab=hours", matches: (p) => p === "/workforce" && false },
   { id: "customers", label: "Customers", icon: "building",    href: "/customers", matches: (p) => p.startsWith("/customers") },
   { id: "machines",  label: "Machines",  icon: "cube",        href: "/machines",  matches: (p) => p.startsWith("/machines") },
-  { id: "imports",   label: "Imports",   icon: "cloud",       href: "/admin/bulk-reparse", matches: (p) => p.startsWith("/admin") },
+  { id: "checklists",label: "Checklists",icon: "clip-list",   href: "/admin/checklists",   matches: (p) => p.startsWith("/admin/checklists") },
+  { id: "imports",   label: "Imports",   icon: "cloud",       href: "/admin/bulk-reparse", matches: (p) => p.startsWith("/admin/bulk-reparse") },
 ];
 
 const SYSTEM: Item[] = [
