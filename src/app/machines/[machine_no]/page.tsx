@@ -106,7 +106,7 @@ export default async function MachineDetailPage({
                 <Dash />
               )}
             </GridCell>
-            <GridCell label="Product">
+            <GridCell label="Machine type">
               {machine.product_code ? (
                 <span style={{ fontSize: 13, fontWeight: 600 }}>{machine.product_code}</span>
               ) : (

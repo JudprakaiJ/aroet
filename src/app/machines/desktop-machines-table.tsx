@@ -18,7 +18,7 @@ export function DesktopMachinesTable({ machines }: { machines: MachineListItem[]
           <tr>
             <th>Machine #</th>
             <th>Name</th>
-            <th>Product</th>
+            <th>Machine type</th>
             <th>Serial</th>
             <th>Customer</th>
             <th>Warranty</th>

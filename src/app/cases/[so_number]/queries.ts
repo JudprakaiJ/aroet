@@ -93,7 +93,6 @@ export type MachineDetail = {
   name: string | null;
   product_code: string | null;
   serial_no: string | null;
-  version: string | null;
   warranty_expiry: string | null;
   installation_date: string | null;
 };
@@ -268,7 +267,7 @@ export async function getMachineDetails(machineNos: string[]): Promise<MachineDe
   const { data } = await supabase
     .from("machines")
     .select(
-      "machine_no, customer_code, name, product_code, serial_no, version, warranty_expiry, installation_date"
+      "machine_no, customer_code, name, product_code, serial_no, warranty_expiry, installation_date"
     )
     .in("machine_no", machineNos);
   return (data ?? []) as MachineDetail[];

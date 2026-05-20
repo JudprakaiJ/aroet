@@ -115,7 +115,7 @@ export function NewMachineSheet({ open, onClose, customers, defaultCustomerCode 
         </div>
 
         <div>
-          <label className="fieldlbl">Product (type)</label>
+          <label className="fieldlbl">Machine type</label>
           <input
             type="text"
             className="field mono"
