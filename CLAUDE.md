@@ -52,6 +52,7 @@ Current migrations:
 | `08_sessions_nullable_so.sql` | Drops NOT NULL on `sessions.so_number` for leave + office types |
 | `09_clockin.sql` | Adds `clock_in_at`, `clock_out_at`, `paused_at`, `paused_total_minutes` + `idx_sessions_active` partial index |
 | `10_checklist_per_machine.sql` | **Per-machine PM checklist** — backfills `case_checklists.machine_no` (primary first, fallback to `cases.machine_no`), UNIQUE on `(so_number, machine_no)`, supporting index |
+| `11_grant_service_role.sql` | **Grants service_role write on every public table** + default privileges. Without this, server actions using `createServiceClient()` hit `permission denied for table ...` on INSERT/UPDATE because earlier migrations only granted `anon, authenticated`. |
 
 ⚠️ **Migration drift is a real footgun** — Supabase joins to a missing table return `[]` *silently* (no error). If a query that should return rows returns empty, verify the table actually exists in the DB before debugging code. Use the Supabase MCP `list_tables` or a SQL probe.
 
