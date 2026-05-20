@@ -148,7 +148,12 @@ export function CaseHero({ c, aggregates, customers, allMachines }: Props) {
         </div>
       )}
 
-      <DetailActions c={c} customers={customers} allMachines={allMachines} />
+      <DetailActions
+        c={c}
+        customers={customers}
+        allMachines={allMachines}
+        sessionsCount={aggregates.sessions_count}
+      />
     </div>
   );
 }

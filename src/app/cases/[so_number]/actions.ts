@@ -164,6 +164,38 @@ export async function updateCaseStatus(
   return { success: true };
 }
 
+/**
+ * Delete a case entirely. Only allowed when no sessions exist on the SO —
+ * rule of thumb: undo a wrong intake, never undo billable work. Cascade
+ * FKs in sql/01 + sql/05 clean up case_machines, case_engineers,
+ * case_references, admin_log, and case_checklists.
+ */
+export async function deleteCase(
+  so_number: string
+): Promise<{ success: boolean; error?: string }> {
+  checkEnv();
+  const supabase = createServiceClient();
+
+  const { count, error: countErr } = await supabase
+    .from("sessions")
+    .select("id", { count: "exact", head: true })
+    .eq("so_number", so_number);
+  if (countErr) return { success: false, error: countErr.message };
+  if (count && count > 0) {
+    return {
+      success: false,
+      error: `Can't delete — ${count} session${count === 1 ? "" : "s"} logged. Clear sessions first.`,
+    };
+  }
+
+  const { error } = await supabase.from("cases").delete().eq("so_number", so_number);
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/cases");
+  revalidatePath("/");
+  return { success: true };
+}
+
 const SERVICE_TYPE_NAMES: Record<string, string> = {
   "7505": "Curative maintenance",
   "7504": "Installation",
