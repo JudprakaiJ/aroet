@@ -2,18 +2,6 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { meCode } from "@/lib/auth/current-user";
 
-/**
- * Backwards-compat — pages used to import this constant. After auth the
- * engineer is determined per-request via meCode(). Keep this export so
- * older imports don't break; resolves to the signed-in engineer's code.
- */
-export async function getDashboardEngineer(): Promise<string> {
-  return meCode();
-}
-
-/** @deprecated use getDashboardEngineer() */
-export const DASHBOARD_ENGINEER = "JKH";
-
 export type DashboardCase = {
   so_number: string;
   status: string;

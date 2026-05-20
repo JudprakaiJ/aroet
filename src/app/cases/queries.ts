@@ -2,9 +2,6 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { meCode } from "@/lib/auth/current-user";
 
-/** @deprecated retained so legacy imports don't break — use `meCode()` instead. */
-export const CASES_ENGINEER = "JKH";
-
 export type CaseListFilters = {
   q?: string;
   scope?: "mine" | "team" | "all";
