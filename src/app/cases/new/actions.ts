@@ -199,7 +199,7 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
     });
     if (caseError) return { success: false, error: `Case insert failed: ${caseError.message}` };
 
-    // case_machines junction (only if machines provided)
+    // case_machines junction (machines guaranteed non-empty by guard above)
     if (machines.length > 0) {
       const machineRows = machines.map((m) => ({
         so_number: input.so_number,
@@ -207,7 +207,17 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
         is_primary: m === primaryMachine,
       }));
       const { error: cmError } = await supabase.from("case_machines").insert(machineRows);
-      if (cmError) console.error("[createCase] case_machines:", cmError.message);
+      if (cmError) {
+        // Case row already inserted — roll it back so the engineer can fix the
+        // problem (most likely cause: one of the machine_nos isn't in the
+        // machines table, FK violation). Without this they'd see a case with
+        // no machines attached and no error message.
+        await supabase.from("cases").delete().eq("so_number", input.so_number);
+        return {
+          success: false,
+          error: `Could not attach machines: ${cmError.message}. Make sure all selected machines exist in the Machines table.`,
+        };
+      }
     }
 
     // case_engineers (only if lead provided)

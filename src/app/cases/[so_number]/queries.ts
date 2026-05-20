@@ -106,13 +106,13 @@ export async function getCase(so_number: string): Promise<CaseDetail | null> {
     .select(
       `so_number, sr_number, title, description, service_type_code, service_type_name,
        customer_code, customer_name, contact_name, project_code, status, due_date,
-       close_date, created_at, source, customer_po`
+       close_date, created_at, source, customer_po, machine_no`
     )
     .eq("so_number", so_number)
     .maybeSingle();
   if (!c) return null;
 
-  const [{ data: machines }, { data: assignees }] = await Promise.all([
+  const [machinesRes, assigneesRes] = await Promise.all([
     supabase
       .from("case_machines")
       .select("machine_no, is_primary")
@@ -125,13 +125,24 @@ export async function getCase(so_number: string): Promise<CaseDetail | null> {
       .order("is_lead", { ascending: false }),
   ]);
 
+  // Legacy fallback: cases created before sql/05 only stored the single
+  // cases.machine_no — synthesize a primary entry so the UI doesn't
+  // misreport "no machine attached".
+  let machineList = (
+    (machinesRes.data ?? []) as { machine_no: string; is_primary: boolean | null }[]
+  ).map((m) => ({
+    machine_no: m.machine_no,
+    is_primary: Boolean(m.is_primary),
+  }));
+  const cAny = c as { machine_no?: string | null };
+  if (machineList.length === 0 && cAny.machine_no) {
+    machineList = [{ machine_no: cAny.machine_no, is_primary: true }];
+  }
+
   return {
-    ...(c as CaseDetail),
-    machines: ((machines ?? []) as { machine_no: string; is_primary: boolean | null }[]).map((m) => ({
-      machine_no: m.machine_no,
-      is_primary: Boolean(m.is_primary),
-    })),
-    assignees: ((assignees ?? []) as { engineer_code: string; is_lead: boolean | null }[]).map((a) => ({
+    ...(c as unknown as CaseDetail),
+    machines: machineList,
+    assignees: ((assigneesRes.data ?? []) as { engineer_code: string; is_lead: boolean | null }[]).map((a) => ({
       engineer_code: a.engineer_code,
       is_lead: Boolean(a.is_lead),
     })),
