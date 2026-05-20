@@ -291,20 +291,6 @@ export async function ChecklistTab({ c }: { c: CaseDetail }) {
                     ? `${r.product_code ?? "—"} · ${r.template!.name}`
                     : r.template!.name}
                 </div>
-                {multiMachine && r.is_primary && (
-                  <div
-                    className="sub"
-                    style={{
-                      textTransform: "none",
-                      letterSpacing: 0,
-                      fontSize: 10.5,
-                      color: "var(--ink-3)",
-                      marginTop: 1,
-                    }}
-                  >
-                    Primary machine
-                  </div>
-                )}
               </div>
               <span
                 className="chip"

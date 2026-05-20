@@ -95,7 +95,6 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
           project_code: result.project_code ?? f.project_code,
           subject: result.subject ?? f.subject,
           machine_nos: nextMachines,
-          primary_machine_no: f.primary_machine_no || nextMachines[0] || "",
         };
       });
     }, 450);
@@ -119,7 +118,6 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
       sr_number: form.sr_number.trim(),
       customer_code: form.customer_code,
       machine_nos: form.machine_nos,
-      primary_machine_no: form.primary_machine_no || form.machine_nos[0],
       service_type_code: form.service_type_code,
       project_code: form.project_code.trim() || undefined,
       title: form.subject.trim() || undefined,
@@ -168,7 +166,6 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
       setForm((f) => ({
         ...f,
         machine_nos: f.machine_nos.includes(machineNo) ? f.machine_nos : [...f.machine_nos, machineNo],
-        primary_machine_no: f.primary_machine_no || machineNo,
       }));
       setCreateMachineOpen(null);
     });
@@ -310,7 +307,6 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
             onChange={(e) => {
               setField("customer_code", e.target.value);
               setField("machine_nos", []);
-              setField("primary_machine_no", "");
             }}
           >
             <option value="">Select customer…</option>
@@ -331,7 +327,6 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
             )}
             {customerMachines.map((m) => {
               const on = form.machine_nos.includes(m.machine_no);
-              const isPrim = form.primary_machine_no === m.machine_no && on;
               return (
                 <button
                   key={m.machine_no}
@@ -343,13 +338,10 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
                       ? form.machine_nos.filter((x) => x !== m.machine_no)
                       : [...form.machine_nos, m.machine_no];
                     setField("machine_nos", next);
-                    if (!on && !form.primary_machine_no) setField("primary_machine_no", m.machine_no);
-                    if (on && form.primary_machine_no === m.machine_no) setField("primary_machine_no", next[0] ?? "");
                   }}
                 >
                   {m.machine_no}
                   {m.product_code ? <span className="cnt">{m.product_code}</span> : null}
-                  {isPrim && <span style={{ fontSize: 9, marginLeft: 2 }}>★</span>}
                 </button>
               );
             })}
@@ -364,34 +356,6 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
               </button>
             )}
           </div>
-          {form.machine_nos.length > 1 && (
-            <div
-              className="sub"
-              style={{ textTransform: "none", letterSpacing: 0, fontSize: 11, marginTop: 6 }}
-            >
-              Primary: <span className="mono">{form.primary_machine_no || form.machine_nos[0]}</span>
-              {" · "}
-              <button
-                type="button"
-                onClick={() => {
-                  const idx = form.machine_nos.indexOf(form.primary_machine_no);
-                  const next = form.machine_nos[(idx + 1) % form.machine_nos.length];
-                  setField("primary_machine_no", next);
-                }}
-                style={{
-                  border: 0,
-                  background: "transparent",
-                  color: "var(--red)",
-                  cursor: "pointer",
-                  padding: 0,
-                  fontSize: 11,
-                  textDecoration: "underline",
-                }}
-              >
-                cycle
-              </button>
-            </div>
-          )}
         </Field>
       </Section>
 

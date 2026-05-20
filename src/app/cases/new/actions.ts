@@ -9,7 +9,6 @@ export interface NewCaseInput {
   // Optional fields below
   sr_number?: string;
   machine_nos?: string[];
-  primary_machine_no?: string;
   project_code?: string;
   service_type_code?: string;
   title?: string;
@@ -178,7 +177,7 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
     if (!customer) return { success: false, error: "Customer not found" };
 
     const machines = input.machine_nos ?? [];
-    const primaryMachine = input.primary_machine_no || machines[0] || null;
+    const firstMachine = machines[0] ?? null;
     const serviceTypeCode = input.service_type_code || "7505";
 
     const { error: caseError } = await supabase.from("cases").insert({
@@ -191,7 +190,7 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
       customer_code: customer.code,
       customer_name: customer.name,
       contact_name: customer.contact_name,
-      machine_no: primaryMachine,
+      machine_no: firstMachine,
       project_code: input.project_code?.trim() || null,
       due_date: input.due_date || null,
       status: "planned",
@@ -204,7 +203,7 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
       const machineRows = machines.map((m) => ({
         so_number: input.so_number,
         machine_no: m,
-        is_primary: m === primaryMachine,
+        is_primary: false,
       }));
       const { error: cmError } = await supabase.from("case_machines").insert(machineRows);
       if (cmError) {

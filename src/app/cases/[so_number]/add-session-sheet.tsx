@@ -141,7 +141,6 @@ export function AddSessionSheet({ open, onClose, soNumber, machines }: Props) {
                   style={{ display: "flex", alignItems: "center", gap: 4 }}
                 >
                   <CodeBadge>{m.machine_no}</CodeBadge>
-                  {m.is_primary && <span style={{ fontSize: 9, opacity: 0.7 }}>★</span>}
                 </button>
               ))}
             </div>

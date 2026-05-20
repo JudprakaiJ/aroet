@@ -23,25 +23,18 @@ export function EditCaseSheet({ open, onClose, c, customers, machines }: Props) 
   const [description, setDescription] = useState(c.description ?? "");
   const [customerCode, setCustomerCode] = useState(c.customer_code ?? "");
   const [machineNos, setMachineNos] = useState<string[]>(c.machines.map((m) => m.machine_no));
-  const [primary, setPrimary] = useState<string>(
-    c.machines.find((m) => m.is_primary)?.machine_no ?? c.machines[0]?.machine_no ?? ""
-  );
   const [projectCode, setProjectCode] = useState(c.project_code ?? "");
   const [serviceTypeCode, setServiceTypeCode] = useState(c.service_type_code ?? "7505");
   const [dueDate, setDueDate] = useState(c.due_date ?? "");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  // Reset when sheet opens
   useEffect(() => {
     if (!open) return;
     setTitle(c.title ?? "");
     setDescription(c.description ?? "");
     setCustomerCode(c.customer_code ?? "");
     setMachineNos(c.machines.map((m) => m.machine_no));
-    setPrimary(
-      c.machines.find((m) => m.is_primary)?.machine_no ?? c.machines[0]?.machine_no ?? ""
-    );
     setProjectCode(c.project_code ?? "");
     setServiceTypeCode(c.service_type_code ?? "7505");
     setDueDate(c.due_date ?? "");
@@ -53,33 +46,23 @@ export function EditCaseSheet({ open, onClose, c, customers, machines }: Props) 
     [machines, customerCode]
   );
 
-  // Add already-attached machines that aren't in the available list (eg. different customer)
+  // Already-attached machines that aren't in the available list (eg. customer mismatch)
+  // stay in the picker so they can be unticked instead of orphaned.
   const machineDisplay = useMemo(() => {
     const set = new Map<string, LiteMachine>();
     for (const m of availableMachines) set.set(m.machine_no, m);
     for (const mn of machineNos) {
       if (!set.has(mn)) {
-        set.set(mn, {
-          machine_no: mn,
-          customer_code: null,
-          product_code: null,
-        });
+        set.set(mn, { machine_no: mn, customer_code: null, product_code: null });
       }
     }
     return Array.from(set.values());
   }, [availableMachines, machineNos]);
 
   const toggleMachine = (mn: string) => {
-    setMachineNos((prev) => {
-      if (prev.includes(mn)) {
-        const next = prev.filter((x) => x !== mn);
-        if (primary === mn) setPrimary(next[0] ?? "");
-        return next;
-      }
-      const next = [...prev, mn];
-      if (!primary) setPrimary(mn);
-      return next;
-    });
+    setMachineNos((prev) =>
+      prev.includes(mn) ? prev.filter((x) => x !== mn) : [...prev, mn]
+    );
   };
 
   const onSave = () => {
@@ -98,7 +81,6 @@ export function EditCaseSheet({ open, onClose, c, customers, machines }: Props) 
         description: description.trim() || null,
         customer_code: customerCode,
         machine_nos: machineNos,
-        primary_machine_no: primary || machineNos[0],
         project_code: projectCode.trim() || null,
         service_type_code: serviceTypeCode,
         due_date: dueDate || null,
@@ -146,7 +128,7 @@ export function EditCaseSheet({ open, onClose, c, customers, machines }: Props) 
           <textarea
             className="field"
             rows={3}
-            placeholder="Optional — anything notable about scope, scope changes, requested by, etc."
+            placeholder="Optional — anything notable about scope, requested by, etc."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
@@ -199,7 +181,6 @@ export function EditCaseSheet({ open, onClose, c, customers, machines }: Props) 
             >
               {machineDisplay.map((m) => {
                 const selected = machineNos.includes(m.machine_no);
-                const isPrim = primary === m.machine_no && selected;
                 return (
                   <div
                     key={m.machine_no}
@@ -224,20 +205,6 @@ export function EditCaseSheet({ open, onClose, c, customers, machines }: Props) 
                     <CodeBadge>{m.machine_no}</CodeBadge>
                     {m.product_code && (
                       <span style={{ fontSize: 11, color: "var(--ink-3)" }}>{m.product_code}</span>
-                    )}
-                    {selected && (
-                      <button
-                        type="button"
-                        className="fchip"
-                        data-on={isPrim || undefined}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPrimary(m.machine_no);
-                        }}
-                        style={{ marginLeft: "auto", fontSize: 10 }}
-                      >
-                        {isPrim ? "★ Primary" : "Make primary"}
-                      </button>
                     )}
                   </div>
                 );

@@ -183,7 +183,6 @@ export interface CasePatch {
   description?: string | null;
   customer_code?: string;
   machine_nos?: string[];
-  primary_machine_no?: string | null;
   project_code?: string | null;
   service_type_code?: string;
   due_date?: string | null;
@@ -234,11 +233,12 @@ export async function updateCase(
     if (cust.contact_name) updates.contact_name = cust.contact_name;
   }
 
-  // Apply primary machine to legacy cases.machine_no column.
-  if (patch.primary_machine_no !== undefined) {
-    updates.machine_no = patch.primary_machine_no || null;
-  } else if (patch.machine_nos && patch.machine_nos.length > 0) {
-    updates.machine_no = patch.machine_nos[0];
+  // Keep legacy cases.machine_no column in sync with the first machine so
+  // older queries (reparse, planning grid, dashboard) still work. There is
+  // no "primary" concept anymore — engineers treat every machine on a case
+  // equally — but the column has to point somewhere until we retire it.
+  if (patch.machine_nos !== undefined) {
+    updates.machine_no = patch.machine_nos[0] ?? null;
   }
 
   if (Object.keys(updates).length > 0) {
@@ -249,7 +249,6 @@ export async function updateCase(
   // Reconcile case_machines if a new list was provided.
   if (patch.machine_nos) {
     const wantSet = new Set(patch.machine_nos);
-    const primary = patch.primary_machine_no ?? patch.machine_nos[0] ?? null;
     const { data: current } = await supabase
       .from("case_machines")
       .select("machine_no")
@@ -274,7 +273,7 @@ export async function updateCase(
         toAdd.map((m) => ({
           so_number,
           machine_no: m,
-          is_primary: m === primary,
+          is_primary: false,
         }))
       );
       if (insErr) {
@@ -282,24 +281,6 @@ export async function updateCase(
           success: false,
           error: `Couldn't attach machine: ${insErr.message}. Make sure all selected machines exist in the Machines table.`,
         };
-      }
-    }
-    // Re-flag primary across all remaining rows so exactly one is primary.
-    if (primary) {
-      const { error: clrErr } = await supabase
-        .from("case_machines")
-        .update({ is_primary: false })
-        .eq("so_number", so_number);
-      if (clrErr) {
-        return { success: false, error: `Couldn't clear primary flag: ${clrErr.message}` };
-      }
-      const { error: setErr } = await supabase
-        .from("case_machines")
-        .update({ is_primary: true })
-        .eq("so_number", so_number)
-        .eq("machine_no", primary);
-      if (setErr) {
-        return { success: false, error: `Couldn't set primary: ${setErr.message}` };
       }
     }
   }

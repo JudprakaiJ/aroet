@@ -115,15 +115,19 @@ export async function getCase(so_number: string): Promise<CaseDetail | null> {
   const [machinesRes, assigneesRes] = await Promise.all([
     supabase
       .from("case_machines")
-      .select("machine_no, is_primary")
+      .select("machine_no, is_primary, created_at")
       .eq("so_number", so_number)
-      .order("is_primary", { ascending: false }),
+      .order("created_at", { ascending: true }),
     supabase
       .from("case_engineers")
       .select("engineer_code, is_lead")
       .eq("so_number", so_number)
       .order("is_lead", { ascending: false }),
   ]);
+
+  if (machinesRes.error) {
+    console.error("[getCase] case_machines:", machinesRes.error.message);
+  }
 
   // Legacy fallback: cases created before sql/05 only stored the single
   // cases.machine_no — synthesize a primary entry so the UI doesn't
