@@ -1,24 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/components/icons";
+import { setDemoRole } from "./role-actions";
+import type { DemoRole } from "./role-types";
 
-type Role = "admin" | "engineer";
-const KEY = "aroet_role";
+type Props = {
+  current: DemoRole;
+};
 
-export function RoleSwitcher({ defaultRole = "admin" }: { defaultRole?: Role }) {
-  const [role, setRole] = useState<Role>(defaultRole);
-  const [mounted, setMounted] = useState(false);
+export function RoleSwitcher({ current }: Props) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
 
-  useEffect(() => {
-    const stored = typeof window !== "undefined" ? localStorage.getItem(KEY) : null;
-    if (stored === "admin" || stored === "engineer") setRole(stored);
-    setMounted(true);
-  }, []);
-
-  const set = (next: Role) => {
-    setRole(next);
-    if (typeof window !== "undefined") localStorage.setItem(KEY, next);
+  const set = (next: DemoRole) => {
+    if (next === current) return;
+    startTransition(async () => {
+      await setDemoRole(next);
+      router.refresh();
+    });
   };
 
   return (
@@ -27,20 +28,38 @@ export function RoleSwitcher({ defaultRole = "admin" }: { defaultRole?: Role }) 
         Demo · view as
       </div>
       <div className="tabs" role="tablist">
-        <button type="button" data-active={role === "admin"} onClick={() => set("admin")}>
+        <button
+          type="button"
+          data-active={current === "admin"}
+          onClick={() => set("admin")}
+          disabled={pending}
+        >
           <Icon name="star" size={12} /> Admin
         </button>
-        <button type="button" data-active={role === "engineer"} onClick={() => set("engineer")}>
+        <button
+          type="button"
+          data-active={current === "engineer"}
+          onClick={() => set("engineer")}
+          disabled={pending}
+        >
           <Icon name="wrench" size={12} /> Engineer
         </button>
       </div>
       <div
         className="sub"
-        style={{ textTransform: "none", letterSpacing: 0, fontSize: 11.5, color: "var(--ink-3)", marginTop: 8 }}
+        style={{
+          textTransform: "none",
+          letterSpacing: 0,
+          fontSize: 11.5,
+          color: "var(--ink-3)",
+          marginTop: 8,
+        }}
       >
-        {mounted ? (role === "admin" ? "Approvals + reports + customer/machine admin visible." : "Field-engineer view: only Workspace.") : "Loading…"}
+        {current === "admin"
+          ? "Approvals + reports + customer/machine admin visible in the sidebar."
+          : "Field-engineer view: Workspace only — Admin section hidden."}
         <br />
-        Server-side gating ships with real auth (Sprint 6); for now this only affects client-rendered preferences.
+        Persisted in a cookie; toggles the whole shell (sidebar + bottom-nav). Real per-user gating ships with auth (Sprint 6).
       </div>
     </div>
   );

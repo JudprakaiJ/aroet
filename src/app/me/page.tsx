@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { Avatar } from "@/components/primitives/avatar";
@@ -6,16 +7,27 @@ import { createClient } from "@/lib/supabase/server";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
 import { RoleSwitcher } from "./role-switcher";
+import { getDemoRole } from "./role-actions";
+import type { DemoRole } from "./role-types";
 
 const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
-const SETTINGS: { id: string; label: string; icon: IconName; note: string }[] = [
-  { id: "schedule", label: "My schedule",     icon: "calendar",    note: "Coming soon" },
-  { id: "reports",  label: "Service reports", icon: "doc",         note: "Sprint 7" },
-  { id: "imports",  label: "Import history",  icon: "cloud",       note: "Admin tool" },
-  { id: "settings", label: "Settings",        icon: "wrench",      note: "Theme + density (Phase 4)" },
+type Shortcut = {
+  id: string;
+  label: string;
+  icon: IconName;
+  note: string;
+  href: string;
+  adminOnly?: boolean;
+};
+
+const SHORTCUTS: Shortcut[] = [
+  { id: "cases",     label: "My cases",        icon: "folder", note: "Open + verified",     href: "/cases?scope=mine" },
+  { id: "hours",     label: "My hours",        icon: "clock",  note: "This month timesheet", href: "/workforce" },
+  { id: "approvals", label: "Approvals queue", icon: "inbox",  note: "Submitted sessions",   href: "/workforce/queue", adminOnly: true },
+  { id: "imports",   label: "Bulk reparse",    icon: "cloud",  note: "Admin tool",           href: "/admin/bulk-reparse", adminOnly: true },
 ];
 
 export default async function MePage() {
@@ -23,20 +35,22 @@ export default async function MePage() {
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
   const monthStart = today.slice(0, 7) + "-01";
 
-  const [{ data: engineer }, { count: openCount }, { data: thisMonth }, activeSession, notifications] = await Promise.all([
-    supabase.from("engineers").select("code, full_name, role, is_active").eq("code", ME).maybeSingle(),
-    supabase
-      .from("case_engineers")
-      .select("so_number", { count: "exact", head: true })
-      .eq("engineer_code", ME),
-    supabase
-      .from("sessions")
-      .select("travel_minutes, work_minutes, office_minutes, approval_status")
-      .eq("engineer_code", ME)
-      .gte("session_date", monthStart),
-    getActiveSession(ME),
-    getNotifications(ME),
-  ]);
+  const [{ data: engineer }, { count: openCount }, { data: thisMonth }, activeSession, notifications, demoRole] =
+    await Promise.all([
+      supabase.from("engineers").select("code, full_name, role, is_active").eq("code", ME).maybeSingle(),
+      supabase
+        .from("case_engineers")
+        .select("so_number", { count: "exact", head: true })
+        .eq("engineer_code", ME),
+      supabase
+        .from("sessions")
+        .select("travel_minutes, work_minutes, office_minutes, approval_status")
+        .eq("engineer_code", ME)
+        .gte("session_date", monthStart),
+      getActiveSession(ME),
+      getNotifications(ME),
+      getDemoRole(),
+    ]);
 
   const monthMin = ((thisMonth ?? []) as Array<{
     travel_minutes: number | null;
@@ -65,7 +79,10 @@ export default async function MePage() {
         activeSession={activeSession}
         notifications={notifications}
       />
-      <div className="scroll md:hidden" style={{ padding: "12px 14px 32px", display: "flex", flexDirection: "column", gap: 12 }}>
+      <div
+        className="scroll md:hidden"
+        style={{ padding: "12px 14px 32px", display: "flex", flexDirection: "column", gap: 12 }}
+      >
         <ProfileCard
           code={ME}
           name={engineer?.full_name ?? "—"}
@@ -74,8 +91,8 @@ export default async function MePage() {
           casesCount={openCount ?? 0}
           isActive={Boolean(activeSession)}
         />
-        <RoleSwitcher />
-        <SettingsList />
+        <RoleSwitcher current={demoRole} />
+        <ShortcutsCard demoRole={demoRole} />
       </div>
       <div className="dt-body hidden md:block">
         <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 14, maxWidth: 900 }}>
@@ -87,9 +104,9 @@ export default async function MePage() {
             casesCount={openCount ?? 0}
             isActive={Boolean(activeSession)}
           />
-          <RoleSwitcher />
+          <RoleSwitcher current={demoRole} />
           <div style={{ gridColumn: "1 / -1" }}>
-            <SettingsList />
+            <ShortcutsCard demoRole={demoRole} />
           </div>
         </div>
       </div>
@@ -147,18 +164,22 @@ function Stat({ label, value }: { label: string; value: number | string }) {
   );
 }
 
-function SettingsList() {
+function ShortcutsCard({ demoRole }: { demoRole: DemoRole }) {
+  const items = SHORTCUTS.filter((s) => !s.adminOnly || demoRole === "admin");
   return (
     <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-      {SETTINGS.map((s, i) => (
-        <div
+      {items.map((s, i) => (
+        <Link
           key={s.id}
+          href={s.href}
           style={{
             padding: "12px 14px",
             display: "flex",
             alignItems: "center",
             gap: 12,
             borderTop: i === 0 ? "none" : "1px solid var(--line-2)",
+            textDecoration: "none",
+            color: "inherit",
           }}
         >
           <div
@@ -185,7 +206,7 @@ function SettingsList() {
           <span style={{ color: "var(--ink-4)" }}>
             <Icon name="chevron" size={14} />
           </span>
-        </div>
+        </Link>
       ))}
     </div>
   );

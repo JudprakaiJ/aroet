@@ -4,20 +4,20 @@ import { BottomNav } from "@/components/bottom-nav";
 import { OfflineBanner } from "@/components/offline-banner";
 import { SyncWatcher } from "@/components/sync-watcher";
 import { getSidebarCounts } from "@/components/sidebar-counts";
+import { getDemoRole } from "@/app/me/role-actions";
 
 const ME = "JKH";
-const ROLE: "admin" | "engineer" = "admin";
 
 export async function Shell({ children }: { children: ReactNode }) {
-  const counts = await getSidebarCounts();
+  const [counts, role] = await Promise.all([getSidebarCounts(), getDemoRole()]);
   return (
     <div className="aroet-shell-root">
-      <Sidebar counts={counts} role={ROLE} me={ME} />
+      <Sidebar counts={counts} role={role} me={ME} />
       <main className="aroet-shell-main">
         <SyncWatcher />
         <OfflineBanner />
         {children}
-        <BottomNav pendingCount={counts.pendingApprovals} showPendingBadge={ROLE === "admin"} />
+        <BottomNav pendingCount={counts.pendingApprovals} showPendingBadge={role === "admin"} />
       </main>
     </div>
   );
