@@ -20,14 +20,24 @@ const APPROVAL_CHIPS: Record<string, { className: string; label: string }> = {
   returned:  { className: "chip chip-danger", label: "Returned" },
 };
 
+function fmtShortDate(iso: string | null | undefined): string {
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "2-digit",
+  });
+}
+
 export function SessionCard({ so_number, s }: Props) {
   const [pending, startTransition] = useTransition();
   const total = (s.travel_minutes ?? 0) + (s.work_minutes ?? 0) + (s.office_minutes ?? 0);
   const activity = s.activity_type ? activityBadge[s.activity_type] : undefined;
-  const chip = APPROVAL_CHIPS[s.approval_status ?? "draft"];
+  const status = s.approval_status ?? "draft";
+  const chip = APPROVAL_CHIPS[status];
 
   const onDelete = () => {
-    if (s.approval_status === "approved") return;
+    if (status === "approved") return;
     if (!confirm("Delete this session?")) return;
     startTransition(async () => {
       await deleteSession(s.id, so_number);
@@ -54,6 +64,21 @@ export function SessionCard({ so_number, s }: Props) {
             {s.work_done}
           </div>
         )}
+        {status === "returned" && s.return_reason && (
+          <div
+            style={{
+              marginTop: 6,
+              padding: "6px 8px",
+              borderRadius: 6,
+              background: "var(--danger-soft)",
+              color: "var(--danger)",
+              fontSize: 11.5,
+              lineHeight: 1.4,
+            }}
+          >
+            <Icon name="alert" size={10} /> <strong>Returned:</strong> {s.return_reason}
+          </div>
+        )}
         <div style={{ display: "flex", gap: 6, alignItems: "center", marginTop: 6, flexWrap: "wrap" }}>
           {(s.travel_minutes ?? 0) > 0 && (
             <span className="chip"><Icon name="car" size={11} /> {fmtTime(s.travel_minutes)}</span>
@@ -67,13 +92,29 @@ export function SessionCard({ so_number, s }: Props) {
           {(s.break_minutes ?? 0) > 0 && (
             <span className="chip chip-slate">break {fmtTime(s.break_minutes)}</span>
           )}
-          {chip && <span className={chip.className}>{chip.label}</span>}
+          {chip && (
+            <span
+              className={chip.className}
+              title={
+                status === "approved" && s.approved_by
+                  ? `Approved by ${s.approved_by}${s.approved_at ? ` on ${fmtShortDate(s.approved_at)}` : ""}`
+                  : undefined
+              }
+            >
+              {chip.label}
+              {status === "approved" && s.approved_by && (
+                <span className="mono" style={{ marginLeft: 4, opacity: 0.85 }}>
+                  · {s.approved_by}
+                </span>
+              )}
+            </span>
+          )}
           {s.source === "planner" && <span className="chip chip-slate">planner</span>}
           <button
             type="button"
             className="btn btn-ghost btn-sm"
             style={{ marginLeft: "auto", minHeight: 28, padding: "0 8px", fontSize: 11, color: "var(--ink-3)" }}
-            disabled={pending || s.approval_status === "approved"}
+            disabled={pending || status === "approved"}
             onClick={onDelete}
             aria-label="delete session"
           >

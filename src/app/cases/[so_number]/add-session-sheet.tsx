@@ -156,7 +156,7 @@ export function AddSessionSheet({ open, onClose, soNumber, primaryMachineNo }: P
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           <div>
-            <label className="fieldlbl">Travel · mins</label>
+            <label className="fieldlbl">Travel (min)</label>
             <input
               className="field mono"
               type="number"
@@ -167,7 +167,7 @@ export function AddSessionSheet({ open, onClose, soNumber, primaryMachineNo }: P
             />
           </div>
           <div>
-            <label className="fieldlbl">Break · mins</label>
+            <label className="fieldlbl">Break (min)</label>
             <input
               className="field mono"
               type="number"

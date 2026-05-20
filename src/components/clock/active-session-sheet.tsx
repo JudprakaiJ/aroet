@@ -128,7 +128,7 @@ export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut }
             </div>
             <div className="truncate" style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", marginTop: 2 }}>
               {session.case_title ??
-                (session.activity_type === "office" && !session.so_number ? "Office time" : "Untitled case")}
+                (session.activity_type === "office" && !session.so_number ? "Office time" : "Untitled")}
             </div>
             <div className="sub truncate" style={{ textTransform: "none", letterSpacing: 0, fontSize: 11.5, color: "var(--ink-3)" }}>
               {session.customer_name ??

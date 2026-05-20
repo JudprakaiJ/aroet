@@ -85,9 +85,9 @@ export default async function CaseDetailPage({
           active={tab}
           tabs={[
             { id: "sessions", label: "Sessions", count: aggregates.sessions_count },
-            { id: "refs", label: "Refs", count: c.machines.length },
-            { id: "admin", label: "Admin", count: null },
-            { id: "tasks", label: "Tasks", count: null },
+            { id: "refs", label: "Refs", count: aggregates.refs_count },
+            { id: "admin", label: "Admin", count: aggregates.admin_count },
+            { id: "tasks", label: "Checklist", count: null },
             { id: "similar", label: "Similar", count: null },
           ]}
         />

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { CodeBadge } from "@/components/primitives/code-badge";
 import { referenceTypeBadge, fmtDate } from "@/lib/format";
@@ -14,26 +15,45 @@ export function RefsTab({ customer, machines, references, description }: Props) 
   return (
     <div style={{ padding: "0 14px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
       {customer && (
+        <Link
+          href={`/customers/${encodeURIComponent(customer.code)}`}
+          style={{ textDecoration: "none", color: "inherit" }}
+        >
+          <div className="card" style={{ padding: 14 }}>
+            <div className="kicker" style={{ marginBottom: 6 }}>
+              Customer
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>
+              {customer.name}
+            </div>
+            <div className="sub" style={{ textTransform: "none", letterSpacing: 0, fontSize: 12 }}>
+              {[customer.city, customer.country].filter(Boolean).join(", ") || "—"}
+            </div>
+            <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <CodeBadge>{customer.code}</CodeBadge>
+              {customer.contact_name && (
+                <span className="chip">
+                  <Icon name="user" size={11} /> {customer.contact_name}
+                </span>
+              )}
+              {customer.contact_mobile && (
+                <span className="chip chip-mono">{customer.contact_mobile}</span>
+              )}
+              <span style={{ marginLeft: "auto", color: "var(--ink-4)" }}>
+                <Icon name="chevron" size={12} />
+              </span>
+            </div>
+          </div>
+        </Link>
+      )}
+
+      {description && (
         <div className="card" style={{ padding: 14 }}>
           <div className="kicker" style={{ marginBottom: 6 }}>
-            Customer
+            Description
           </div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", marginBottom: 4 }}>
-            {customer.name}
-          </div>
-          <div className="sub" style={{ textTransform: "none", letterSpacing: 0, fontSize: 12 }}>
-            {[customer.city, customer.country].filter(Boolean).join(", ") || "—"}
-          </div>
-          <div style={{ display: "flex", gap: 12, marginTop: 8, flexWrap: "wrap" }}>
-            <CodeBadge>{customer.code}</CodeBadge>
-            {customer.contact_name && (
-              <span className="chip">
-                <Icon name="user" size={11} /> {customer.contact_name}
-              </span>
-            )}
-            {customer.contact_mobile && (
-              <span className="chip chip-mono">{customer.contact_mobile}</span>
-            )}
+          <div style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+            {description}
           </div>
         </div>
       )}
@@ -44,20 +64,35 @@ export function RefsTab({ customer, machines, references, description }: Props) 
             Machines · {machines.length}
           </div>
           {machines.map((m, i) => (
-            <div
+            <Link
               key={m.machine_no}
+              href={`/machines/${encodeURIComponent(m.machine_no)}`}
               style={{
+                display: "block",
                 padding: "10px 14px",
                 borderTop: i === 0 ? "none" : "1px solid var(--line-2)",
+                textDecoration: "none",
+                color: "inherit",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  marginBottom: 4,
+                  flexWrap: "wrap",
+                }}
+              >
                 <CodeBadge>{m.machine_no}</CodeBadge>
                 {m.product_code && (
                   <span className="sub" style={{ textTransform: "none", letterSpacing: 0, fontSize: 12 }}>
                     {m.product_code}
                   </span>
                 )}
+                <span style={{ marginLeft: "auto", color: "var(--ink-4)" }}>
+                  <Icon name="chevron" size={12} />
+                </span>
               </div>
               <div className="sub" style={{ textTransform: "none", letterSpacing: 0, fontSize: 12 }}>
                 {m.name ?? "—"}
@@ -73,19 +108,8 @@ export function RefsTab({ customer, machines, references, description }: Props) 
                   <span className="chip chip-warn">Warranty {fmtDate(m.warranty_expiry)}</span>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
-        </div>
-      )}
-
-      {description && (
-        <div className="card" style={{ padding: 14 }}>
-          <div className="kicker" style={{ marginBottom: 6 }}>
-            Description
-          </div>
-          <div style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
-            {description}
-          </div>
         </div>
       )}
 

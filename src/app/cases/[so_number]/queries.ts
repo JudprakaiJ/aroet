@@ -25,6 +25,8 @@ export type CaseDetail = {
 export type CaseAggregates = {
   sessions_count: number;
   hours_logged: number;
+  refs_count: number;
+  admin_count: number;
 };
 
 export type CaseSession = {
@@ -42,6 +44,9 @@ export type CaseSession = {
   approval_status: string | null;
   source: string | null;
   machine_no: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  return_reason: string | null;
 };
 
 export type CaseReference = {
@@ -135,18 +140,28 @@ export async function getCase(so_number: string): Promise<CaseDetail | null> {
 
 export async function getCaseAggregates(so_number: string): Promise<CaseAggregates> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("sessions")
-    .select("travel_minutes, work_minutes, office_minutes, approval_status")
-    .eq("so_number", so_number);
-  if (error || !data) return { sessions_count: 0, hours_logged: 0 };
+  const [sessionsRes, refsRes, adminRes] = await Promise.all([
+    supabase
+      .from("sessions")
+      .select("travel_minutes, work_minutes, office_minutes, approval_status")
+      .eq("so_number", so_number),
+    supabase
+      .from("case_references")
+      .select("id", { count: "exact", head: true })
+      .eq("so_number", so_number),
+    supabase
+      .from("admin_log")
+      .select("id", { count: "exact", head: true })
+      .eq("so_number", so_number),
+  ]);
 
-  const rows = data as Array<{
-    travel_minutes: number | null;
-    work_minutes: number | null;
-    office_minutes: number | null;
-    approval_status: string | null;
-  }>;
+  const rows =
+    (sessionsRes.data ?? []) as Array<{
+      travel_minutes: number | null;
+      work_minutes: number | null;
+      office_minutes: number | null;
+      approval_status: string | null;
+    }>;
   const total = rows
     .filter((r) => r.approval_status !== "returned")
     .reduce(
@@ -157,6 +172,8 @@ export async function getCaseAggregates(so_number: string): Promise<CaseAggregat
   return {
     sessions_count: rows.length,
     hours_logged: Math.round((total / 60) * 10) / 10,
+    refs_count: refsRes.count ?? 0,
+    admin_count: adminRes.count ?? 0,
   };
 }
 
@@ -167,7 +184,8 @@ export async function getCaseSessions(so_number: string): Promise<CaseSession[]>
     .select(
       `id, session_date, engineer_code, type_code, activity_type,
        travel_minutes, work_minutes, office_minutes, break_minutes,
-       is_weekend, work_done, approval_status, source, machine_no`
+       is_weekend, work_done, approval_status, source, machine_no,
+       approved_by, approved_at, return_reason`
     )
     .eq("so_number", so_number)
     .order("session_date", { ascending: false })

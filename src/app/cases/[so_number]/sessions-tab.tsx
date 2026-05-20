@@ -27,7 +27,7 @@ export function SessionsTab({ so_number, sessions }: { so_number: string; sessio
           className="sub"
           style={{ textTransform: "none", letterSpacing: 0, fontSize: 13, color: "var(--ink-3)" }}
         >
-          No sessions logged yet. Tap <span style={{ color: "var(--red)", fontWeight: 600 }}>Add session</span> in the header.
+          No sessions logged yet. Tap <span style={{ color: "var(--red)", fontWeight: 600 }}>Add session</span> above.
         </div>
       </div>
     );

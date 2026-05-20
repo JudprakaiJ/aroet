@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { StatusPill } from "@/components/primitives/status-pill";
 import { ServiceChip } from "@/components/primitives/service-chip";
 import { Avatar } from "@/components/primitives/avatar";
@@ -13,7 +14,9 @@ type Props = {
 };
 
 export function CaseHero({ c, aggregates }: Props) {
-  const primaryMachine = c.machines.find((m) => m.is_primary)?.machine_no ?? c.machines[0]?.machine_no ?? null;
+  const primaryMachine =
+    c.machines.find((m) => m.is_primary)?.machine_no ?? c.machines[0]?.machine_no ?? null;
+  const leadCode = c.assignees.find((a) => a.is_lead)?.engineer_code ?? null;
 
   return (
     <div style={{ padding: "0 14px 8px", display: "flex", flexDirection: "column", gap: 12 }}>
@@ -23,26 +26,50 @@ export function CaseHero({ c, aggregates }: Props) {
       </div>
 
       <div>
-        <div style={{ fontSize: 20, fontWeight: 700, color: "var(--ink)", lineHeight: 1.25, letterSpacing: "-0.01em" }}>
-          {c.title || "Untitled case"}
+        <div
+          style={{
+            fontSize: 20,
+            fontWeight: 700,
+            color: "var(--ink)",
+            lineHeight: 1.25,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {c.title || "Untitled"}
         </div>
         {c.customer_name && (
           <div style={{ fontSize: 13, color: "var(--ink-3)", fontWeight: 500, marginTop: 2 }}>
-            {c.customer_name}
+            {c.customer_code ? (
+              <Link
+                href={`/customers/${encodeURIComponent(c.customer_code)}`}
+                style={{ color: "inherit", textDecoration: "none" }}
+              >
+                {c.customer_name}
+              </Link>
+            ) : (
+              c.customer_name
+            )}
           </div>
         )}
       </div>
 
-      <div className="card" style={{ padding: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <div
+        className="card"
+        style={{ padding: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
+      >
         <GridCell label="Machine">
           {c.machines.length === 0 ? (
-            <span className="sub" style={{ textTransform: "none", letterSpacing: 0, fontSize: 12 }}>
-              — none —
-            </span>
+            <Dash />
           ) : (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
               {c.machines.map((m) => (
-                <CodeBadge key={m.machine_no}>{m.machine_no}</CodeBadge>
+                <Link
+                  key={m.machine_no}
+                  href={`/machines/${encodeURIComponent(m.machine_no)}`}
+                  style={{ textDecoration: "none" }}
+                >
+                  <CodeBadge>{m.machine_no}</CodeBadge>
+                </Link>
               ))}
             </div>
           )}
@@ -51,14 +78,22 @@ export function CaseHero({ c, aggregates }: Props) {
           {c.project_code ? <CodeBadge>{c.project_code}</CodeBadge> : <Dash />}
         </GridCell>
         <GridCell label="Due">
-          <span className="mono" style={{ fontSize: 13, color: "var(--ink)", fontWeight: 600 }}>
-            {fmtDate(c.due_date)}
-          </span>
+          {c.due_date ? (
+            <span className="mono" style={{ fontSize: 13, color: "var(--ink)", fontWeight: 600 }}>
+              {fmtDate(c.due_date)}
+            </span>
+          ) : (
+            <Dash />
+          )}
         </GridCell>
         <GridCell label="Hours logged">
-          <span className="mono" style={{ fontSize: 13, color: "var(--ink)", fontWeight: 600 }}>
-            {aggregates.hours_logged}h
-          </span>
+          {aggregates.hours_logged > 0 ? (
+            <span className="mono" style={{ fontSize: 13, color: "var(--ink)", fontWeight: 600 }}>
+              {aggregates.hours_logged}h
+            </span>
+          ) : (
+            <Dash />
+          )}
         </GridCell>
       </div>
 
@@ -66,26 +101,54 @@ export function CaseHero({ c, aggregates }: Props) {
         <div className="card" style={{ padding: 10, display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ display: "flex", gap: 4 }}>
             {c.assignees.map((a) => (
-              <Avatar key={a.engineer_code} code={a.engineer_code} />
+              <span
+                key={a.engineer_code}
+                style={{ position: "relative", display: "inline-flex" }}
+                title={a.is_lead ? `${a.engineer_code} · lead` : a.engineer_code}
+              >
+                <Avatar code={a.engineer_code} />
+                {a.is_lead && (
+                  <span
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      top: -3,
+                      right: -3,
+                      width: 12,
+                      height: 12,
+                      borderRadius: 6,
+                      background: "var(--red)",
+                      color: "#fff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "1.5px solid var(--surface)",
+                    }}
+                  >
+                    <Icon name="star" size={8} />
+                  </span>
+                )}
+              </span>
             ))}
           </div>
-          <div style={{ marginLeft: "auto", display: "flex", gap: 6, alignItems: "center" }}>
-            {c.assignees
-              .filter((a) => a.is_lead)
-              .map((a) => (
-                <span key={a.engineer_code} className="chip chip-red mono">
-                  <Icon name="star" size={11} /> Lead {a.engineer_code}
-                </span>
-              ))}
-          </div>
+          {leadCode && (
+            <span
+              className="sub"
+              style={{
+                textTransform: "none",
+                letterSpacing: 0,
+                fontSize: 11,
+                color: "var(--ink-3)",
+                marginLeft: 4,
+              }}
+            >
+              Lead: <span className="mono" style={{ fontWeight: 600 }}>{leadCode}</span>
+            </span>
+          )}
         </div>
       )}
 
-      <DetailActions
-        soNumber={c.so_number}
-        status={c.status}
-        primaryMachineNo={primaryMachine}
-      />
+      <DetailActions soNumber={c.so_number} status={c.status} primaryMachineNo={primaryMachine} />
     </div>
   );
 }
