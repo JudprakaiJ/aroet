@@ -3,6 +3,14 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { parsePlannerNote } from "@/lib/planner/parser";
 import { revalidatePath } from "next/cache";
+import { getDemoRole } from "@/app/me/role-actions";
+
+async function requireAdmin(): Promise<void> {
+  const role = await getDemoRole();
+  if (role !== "admin") {
+    throw new Error("Only admins can reparse. Switch to admin view in /me first.");
+  }
+}
 
 export interface BatchResult {
   batchStart: number;
@@ -34,6 +42,7 @@ export async function bulkReparseBatch(
   batchStart: number,
   options: { onlyEmpty?: boolean } = {}
 ): Promise<BatchResult> {
+  await requireAdmin();
   const supabase = createServiceClient();
 
   const query = supabase
