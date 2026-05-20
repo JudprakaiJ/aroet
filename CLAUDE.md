@@ -55,9 +55,9 @@ Current migrations:
 | `11_grant_service_role.sql` | **Grants service_role write on every public table** + default privileges. Without this, server actions using `createServiceClient()` hit `permission denied for table ...` on INSERT/UPDATE because earlier migrations only granted `anon, authenticated`. |
 | `12_auth.sql` | Phase 6 PIN auth: `engineers.pin_hash` column + `login_attempts` rate-limit table + bumps JKH to `role='admin'` for demo. |
 | `13_customer_geo_cleanup.sql` | Data cleanup of `customers.city` / `customers.country`: standalone country names smashed in city, "<city>, COUNTRY" jammed in one field, "<postal> COUNTRY" no-comma cases, trailing commas, and country inference from company name. Re-runnable. |
-| `14_drop_cases_description.sql` | **⚠ pending — run after deploy.** Drops the legacy `cases.description` column. The code stopped reading/writing it in phase 6f (Subject field has been the only entry point since phase 5P). |
-| `15_drop_machines_version.sql` | **⚠ pending — run after deploy.** Drops the `machines.version` column. Phase 6g consolidated "machine type" onto `product_code` — MCVP8 V1/V2 distinction now lives in the product code itself (`MCVP8V1` vs `MCVP8V2`), which is what the checklist resolver already keyed on. |
-| `16_clean_checklist_text.sql` | Phase 6h-2 cleanup of the Belgian-English in `checklist_items.text` (322 of 460 items). Idempotent — keyed on `(machine_type, version, section_no, item_no)` with `text <> new_text` guard, so re-runs are no-ops. Engineer pass/fail results key off `item_id` so this is a pure text refresh. Canonical source is `sql/checklist-data.json`. |
+| `14_drop_cases_description.sql` | **⚠ pending — not applied yet (verified 2026-05-20).** Drops the legacy `cases.description` column. The code stopped reading/writing it in phase 6f (Subject field has been the only entry point since phase 5P). Safe to run any time. |
+| `15_drop_machines_version.sql` | Applied (verified 2026-05-20). Dropped the `machines.version` column. Phase 6g consolidated "machine type" onto `product_code` — MCVP8 V1/V2 distinction now lives in the product code itself (`MCVP8V1` vs `MCVP8V2`), which is what the checklist resolver already keyed on. |
+| `16_clean_checklist_text.sql` | Applied (verified 2026-05-20). Phase 6h-2 cleanup of the Belgian-English in `checklist_items.text` (322 of 460 items). Idempotent — keyed on `(machine_type, version, section_no, item_no)` with `text <> new_text` guard, so re-runs are no-ops. Engineer pass/fail results key off `item_id` so this is a pure text refresh. Canonical source is `sql/checklist-data.json`. |
 
 ⚠️ **Migration drift is a real footgun** — Supabase joins to a missing table return `[]` *silently* (no error). If a query that should return rows returns empty, verify the table actually exists in the DB before debugging code. Use the Supabase MCP `list_tables` or a SQL probe.
 
@@ -382,6 +382,30 @@ select table_name from information_schema.tables
 - WFH → work_minutes = 480 (remote)
 - OFF → office_minutes = 480
 - AL/SICK/PERS → 0 ทั้งหมด (leave, ไม่ต้อง SO)
+
+### 🔖 Session handoff (2026-05-20)
+
+**ค้างไว้ — pickup พรุ่งนี้:**
+
+- Job ตอบ option (c) สำหรับ 7 templates ที่ขาด → จะ paste content จาก PDF แต่ละไฟล์ใน `Checklist for Maintenance job/`, ผม gen `sql/17_add_missing_templates.sql`
+- ลำดับใน PDF dir: `12 MEVP`, `34 MITSF`, `42 Focovision SR2`, `D1 ProMapper`, `F1 MTVP4`, `F3 MCVP4-V3`, `H2 Focovision SR3`
+- **Machine_type code ที่ propose** (Job ยังไม่ confirm — ถ้าไม่ทักท้วงใช้ตามนี้):
+
+| PDF | machine_type | version | engineer ใส่ product_code |
+|---|---|---|---|
+| 12 MEVP | `MEVP` | null | `MEVP...` |
+| 34 MITSF | `MITSF` | null | `MITSF...` |
+| 42 Focovision SR2 | `SR2` | null | `SR2...` |
+| D1 ProMapper | `PROMAPPER` | null | `PROMAPPER...` |
+| F1 MTVP4 | `MTVP4` | null | `MTVP4...` |
+| F3 MCVP4-V3 | `MCVP4` | `V3` | `MCVP4V3...` |
+| H2 Focovision SR3 | `SR3` | null | `SR3...` |
+
+- ตอนเพิ่ม templates ใหม่ — ต้อง **update `src/lib/checklist.ts`** ด้วย (เพิ่ม branch `if (code.startsWith("MEVP")) return { machine_type: "MEVP", version: null }` etc.) ไม่งั้น resolver ไม่รู้จัก
+- **Job ยังต้องรัน `sql/14_drop_cases_description.sql`** เมื่อพร้อม (DB ตอนนี้ column ยังอยู่ — UI/code ไม่เขียนแล้ว แต่ pgsql ยังเก็บข้อมูลเก่าไว้)
+- PDFs 12 ไฟล์ใน `Checklist for Maintenance job/` (~1.5MB total) **ยัง untracked ใน git** — Job ตัดสินใจวันพรุ่งนี้ว่าจะ commit เก็บไว้เป็น reference หรือเปล่า
+- Vercel preview deploy ล่าสุด: `dpl_GCfLgeANYrrmnCDFMjaUQMy4rd4q` (commit `f0ed82d`, sin1, READY)
+- Dev server localhost:3000 อาจยังเปิดค้างไว้ (Job ปิดทิ้งได้ถ้าไม่ใช้)
 
 ### Phase 6 (เสร็จแล้ว)
 
