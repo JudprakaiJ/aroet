@@ -3,6 +3,7 @@ import { DesktopTopBar } from "@/components/desktop-top";
 import { SectionHeader } from "@/components/primitives/section-header";
 import { SmartStartCTA } from "@/components/clock/smart-start-cta";
 import { ActiveSessionCard } from "@/components/clock/active-session-card";
+import { StaleSessionBanner } from "@/components/clock/stale-session-banner";
 import { CaseCard } from "@/components/dashboard/case-card";
 import { SessionRow } from "@/components/dashboard/session-row";
 import { UpcomingMini } from "@/components/dashboard/upcoming-mini";
@@ -51,6 +52,7 @@ export default async function DashboardPage() {
 
       {/* Mobile content */}
       <div className="scroll md:hidden">
+        {activeSession && <StaleSessionBanner session={activeSession} />}
         <div style={{ padding: "10px 14px 4px" }}>
           {activeSession ? (
             <ActiveSessionCard session={activeSession} />
@@ -109,6 +111,7 @@ export default async function DashboardPage() {
 
       {/* Desktop content */}
       <div className="dt-body hidden md:block">
+        {activeSession && <StaleSessionBanner session={activeSession} />}
         {activeSession && (
           <div style={{ marginBottom: 18 }}>
             <ActiveSessionCard session={activeSession} />

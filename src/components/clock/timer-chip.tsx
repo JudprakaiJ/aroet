@@ -48,6 +48,7 @@ export function TimerChip({ session, onClick, onLongPress, variant = "appbar" }:
   const h = Math.floor(min / 60);
   const m = min % 60;
   const paused = Boolean(session.paused_at);
+  const overLong = min > 600; // > 10h elapsed
   const height = variant === "desktop" ? 30 : 32;
 
   return (
@@ -66,10 +67,10 @@ export function TimerChip({ session, onClick, onLongPress, variant = "appbar" }:
         gap: 6,
         padding: "0 10px",
         borderRadius: 8,
-        background: paused ? "var(--surface-2)" : "var(--red-50)",
+        background: paused ? "var(--surface-2)" : overLong ? "var(--warn-soft)" : "var(--red-50)",
         border: "1px solid",
-        borderColor: paused ? "var(--line)" : "var(--red-line)",
-        color: paused ? "var(--ink-3)" : "var(--red)",
+        borderColor: paused ? "var(--line)" : overLong ? "var(--warn)" : "var(--red-line)",
+        color: paused ? "var(--ink-3)" : overLong ? "var(--warn)" : "var(--red)",
         fontSize: 11,
         fontWeight: 700,
         letterSpacing: ".02em",
@@ -91,6 +92,7 @@ export function TimerChip({ session, onClick, onLongPress, variant = "appbar" }:
       </span>
       <span style={{ opacity: 0.7 }}>{session.type_code}</span>
       {paused && <span>· PAUSED</span>}
+      {!paused && overLong && <span>· check?</span>}
     </button>
   );
 }
