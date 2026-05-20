@@ -3,6 +3,7 @@ import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
+import { meCode } from "@/lib/auth/current-user";
 import { CodeBadge } from "@/components/primitives/code-badge";
 import { Icon } from "@/components/icons";
 import { getCustomer } from "../queries";
@@ -11,7 +12,6 @@ import { ContactsPanel } from "./contacts-panel";
 import { MachinesPanel } from "./machines-panel";
 import { CasesPanel } from "./cases-panel";
 
-const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +25,7 @@ export default async function CustomerDetailPage({
   params: Promise<{ code: string }>;
   searchParams: Promise<{ tab?: string }>;
 }) {
+  const ME = await meCode();
   const { code } = await params;
   const decoded = decodeURIComponent(code);
   const { tab: rawTab } = await searchParams;

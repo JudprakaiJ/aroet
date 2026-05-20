@@ -1,6 +1,17 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { meCode } from "@/lib/auth/current-user";
 
+/**
+ * Backwards-compat — pages used to import this constant. After auth the
+ * engineer is determined per-request via meCode(). Keep this export so
+ * older imports don't break; resolves to the signed-in engineer's code.
+ */
+export async function getDashboardEngineer(): Promise<string> {
+  return meCode();
+}
+
+/** @deprecated use getDashboardEngineer() */
 export const DASHBOARD_ENGINEER = "JKH";
 
 export type DashboardCase = {
@@ -69,6 +80,7 @@ function shapeCase(row: CaseRow): DashboardCase {
 
 export async function getMyActiveCases(): Promise<DashboardCase[]> {
   const supabase = await createClient();
+  const me = await meCode();
   const { data, error } = await supabase
     .from("cases")
     .select(
@@ -77,7 +89,7 @@ export async function getMyActiveCases(): Promise<DashboardCase[]> {
        case_engineers!inner(engineer_code, is_lead),
        case_machines(machine_no, is_primary)`
     )
-    .eq("case_engineers.engineer_code", DASHBOARD_ENGINEER)
+    .eq("case_engineers.engineer_code", me)
     .in("status", ["planned", "in_progress"])
     .order("due_date", { ascending: true, nullsFirst: false })
     .limit(4);
@@ -88,6 +100,7 @@ export async function getMyActiveCases(): Promise<DashboardCase[]> {
 
 export async function getTodaySessions(): Promise<DashboardSession[]> {
   const supabase = await createClient();
+  const me = await meCode();
   const today = bangkokToday();
   const { data, error } = await supabase
     .from("sessions")
@@ -97,7 +110,7 @@ export async function getTodaySessions(): Promise<DashboardSession[]> {
        approval_status, work_done,
        cases(customer_name)`
     )
-    .eq("engineer_code", DASHBOARD_ENGINEER)
+    .eq("engineer_code", me)
     .eq("session_date", today)
     .neq("approval_status", "returned")
     .order("id", { ascending: true });
@@ -293,6 +306,7 @@ export async function getRecentCases(): Promise<RecentCaseRow[]> {
 
 export async function getUpcomingThisWeek(): Promise<DashboardCase[]> {
   const supabase = await createClient();
+  const me = await meCode();
   const today = bangkokToday();
   const weekOut = addDaysISO(today, 7);
   const { data, error } = await supabase
@@ -303,7 +317,7 @@ export async function getUpcomingThisWeek(): Promise<DashboardCase[]> {
        case_engineers!inner(engineer_code, is_lead),
        case_machines(machine_no, is_primary)`
     )
-    .eq("case_engineers.engineer_code", DASHBOARD_ENGINEER)
+    .eq("case_engineers.engineer_code", me)
     .in("status", ["planned", "in_progress"])
     .gt("due_date", today)
     .lte("due_date", weekOut)

@@ -11,7 +11,6 @@ import { DesktopDashboard } from "@/components/dashboard/desktop-dashboard";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
 import {
-  DASHBOARD_ENGINEER,
   getMyActiveCases,
   getTodaySessions,
   getUpcomingThisWeek,
@@ -19,10 +18,12 @@ import {
   getPendingApprovalsTeaser,
   getRecentCases,
 } from "@/app/dashboard/queries";
+import { meCode } from "@/lib/auth/current-user";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
+  const me = await meCode();
   const [myActive, today, upcoming, kpis, approvals, recent, activeSession, notifications] =
     await Promise.all([
       getMyActiveCases(),
@@ -31,15 +32,15 @@ export default async function DashboardPage() {
       getDashboardKpis(),
       getPendingApprovalsTeaser(),
       getRecentCases(),
-      getActiveSession(DASHBOARD_ENGINEER),
-      getNotifications(DASHBOARD_ENGINEER),
+      getActiveSession(me),
+      getNotifications(me),
     ]);
 
   return (
     <>
       <AppBar
         title="Dashboard"
-        sub={`Hello ${DASHBOARD_ENGINEER}`}
+        sub={`Hello ${me}`}
         activeSession={activeSession}
         notifications={notifications}
       />
@@ -57,7 +58,7 @@ export default async function DashboardPage() {
           {activeSession ? (
             <ActiveSessionCard session={activeSession} />
           ) : (
-            <SmartStartCTA engineerCode={DASHBOARD_ENGINEER} />
+            <SmartStartCTA engineerCode={me} />
           )}
         </div>
 
@@ -72,7 +73,7 @@ export default async function DashboardPage() {
                 className="sub"
                 style={{ textTransform: "none", letterSpacing: 0, fontSize: 13, color: "var(--ink-3)" }}
               >
-                No active cases assigned to {DASHBOARD_ENGINEER}.
+                No active cases assigned to {me}.
               </div>
             </div>
           </div>
@@ -119,7 +120,7 @@ export default async function DashboardPage() {
         )}
         {!activeSession && (
           <div style={{ marginBottom: 18 }}>
-            <SmartStartCTA engineerCode={DASHBOARD_ENGINEER} />
+            <SmartStartCTA engineerCode={me} />
           </div>
         )}
         <DesktopDashboard kpis={kpis} approvals={approvals} recent={recent} />

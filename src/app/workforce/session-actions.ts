@@ -3,8 +3,7 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { revalidatePath } from "next/cache";
 import { typeCodeFor } from "@/lib/clock/types";
-
-const ME = "JKH";
+import { meCode } from "@/lib/auth/current-user";
 
 export type SessionPatch = {
   session_date?: string;
@@ -101,7 +100,7 @@ export async function createManualSession(
   if (!input.activity_type) return { success: false, error: "Activity required" };
 
   const row = {
-    engineer_code: input.engineer_code ?? ME,
+    engineer_code: input.engineer_code ?? (await meCode()),
     session_date: input.session_date,
     so_number: input.so_number || null,
     machine_no: null,

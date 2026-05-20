@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { Avatar } from "@/components/primitives/avatar";
@@ -6,11 +7,8 @@ import { Icon, type IconName } from "@/components/icons";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
+import { currentUser, isApprover } from "@/lib/auth/current-user";
 import { RoleSwitcher } from "./role-switcher";
-import { getDemoRole, getActingAs } from "./role-actions";
-import type { DemoRole } from "./role-types";
-
-const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
@@ -31,11 +29,15 @@ const SHORTCUTS: Shortcut[] = [
 ];
 
 export default async function MePage() {
+  const me = await currentUser();
+  if (!me) redirect("/login");
+  const ME = me.code;
+
   const supabase = await createClient();
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
   const monthStart = today.slice(0, 7) + "-01";
 
-  const [{ data: engineer }, { count: openCount }, { data: thisMonth }, activeSession, notifications, demoRole, actingAs] =
+  const [{ data: engineer }, { count: openCount }, { data: thisMonth }, activeSession, notifications] =
     await Promise.all([
       supabase.from("engineers").select("code, full_name, role, is_active").eq("code", ME).maybeSingle(),
       supabase
@@ -49,9 +51,9 @@ export default async function MePage() {
         .gte("session_date", monthStart),
       getActiveSession(ME),
       getNotifications(ME),
-      getDemoRole(),
-      getActingAs(),
     ]);
+
+  const isAdmin = isApprover(me.role);
 
   const monthMin = ((thisMonth ?? []) as Array<{
     travel_minutes: number | null;
@@ -92,8 +94,8 @@ export default async function MePage() {
           casesCount={openCount ?? 0}
           isActive={Boolean(activeSession)}
         />
-        <RoleSwitcher current={demoRole} actingAs={actingAs} />
-        <ShortcutsCard demoRole={demoRole} />
+        <RoleSwitcher code={ME} fullName={engineer?.full_name ?? null} role={me.role} />
+        <ShortcutsCard isAdmin={isAdmin} />
       </div>
       <div className="dt-body hidden md:block">
         <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 14, maxWidth: 900 }}>
@@ -105,9 +107,9 @@ export default async function MePage() {
             casesCount={openCount ?? 0}
             isActive={Boolean(activeSession)}
           />
-          <RoleSwitcher current={demoRole} actingAs={actingAs} />
+          <RoleSwitcher code={ME} fullName={engineer?.full_name ?? null} role={me.role} />
           <div style={{ gridColumn: "1 / -1" }}>
-            <ShortcutsCard demoRole={demoRole} />
+            <ShortcutsCard isAdmin={isAdmin} />
           </div>
         </div>
       </div>
@@ -165,8 +167,8 @@ function Stat({ label, value }: { label: string; value: number | string }) {
   );
 }
 
-function ShortcutsCard({ demoRole }: { demoRole: DemoRole }) {
-  const items = SHORTCUTS.filter((s) => !s.adminOnly || demoRole === "admin");
+function ShortcutsCard({ isAdmin }: { isAdmin: boolean }) {
+  const items = SHORTCUTS.filter((s) => !s.adminOnly || isAdmin);
   return (
     <div className="card" style={{ padding: 0, overflow: "hidden" }}>
       {items.map((s, i) => (

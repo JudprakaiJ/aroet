@@ -2,12 +2,12 @@ import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
+import { meCode } from "@/lib/auth/current-user";
 import { listCustomers } from "./queries";
 import { SearchBar } from "./search-bar";
 import { CustomerListRow } from "./list-row";
 import { DesktopCustomersTable } from "./desktop-customers-table";
 
-const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +16,7 @@ export default async function CustomersPage({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
+  const ME = await meCode();
   const sp = await searchParams;
   const q = sp.q ?? "";
 

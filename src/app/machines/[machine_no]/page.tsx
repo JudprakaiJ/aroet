@@ -4,13 +4,13 @@ import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
+import { meCode } from "@/lib/auth/current-user";
 import { CodeBadge } from "@/components/primitives/code-badge";
 import { Icon } from "@/components/icons";
 import { fmtDate } from "@/lib/format";
 import { getMachine } from "../queries";
 import { ServiceHistoryTable } from "./service-history-table";
 
-const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +19,7 @@ export default async function MachineDetailPage({
 }: {
   params: Promise<{ machine_no: string }>;
 }) {
+  const ME = await meCode();
   const { machine_no } = await params;
   const decoded = decodeURIComponent(machine_no);
 

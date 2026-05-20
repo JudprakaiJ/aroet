@@ -2,11 +2,13 @@
 
 import { createServiceClient } from "@/lib/supabase/service";
 import { revalidatePath } from "next/cache";
+import { meCode } from "@/lib/auth/current-user";
 
 export interface AddSessionInput {
   so_number: string;
   machine_no?: string | null;
-  engineer_code: string;
+  /** Defaults to the signed-in engineer when omitted. */
+  engineer_code?: string;
   session_date: string;
   activity_type: string;
   start_minutes: number;
@@ -20,8 +22,9 @@ export async function addSession(
   input: AddSessionInput
 ): Promise<{ success: boolean; id?: number; error?: string }> {
   const supabase = createServiceClient();
+  const engineerCode = input.engineer_code ?? (await meCode());
 
-  if (!input.engineer_code) return { success: false, error: "Engineer required" };
+  if (!engineerCode) return { success: false, error: "Engineer required" };
   if (!input.session_date) return { success: false, error: "Date required" };
 
   const duration = input.end_minutes - input.start_minutes - input.break_minutes;
@@ -42,7 +45,7 @@ export async function addSession(
   const insertRow: any = {
     so_number: input.so_number,
     machine_no: input.machine_no || null,
-    engineer_code: input.engineer_code,
+    engineer_code: engineerCode,
     session_date: input.session_date,
     travel_minutes: travel,
     work_minutes: work,

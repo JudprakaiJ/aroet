@@ -1,112 +1,154 @@
 "use client";
 
-import { useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { Icon } from "@/components/icons";
-import { setDemoRole, setActingAs } from "./role-actions";
-import { APPROVERS, type DemoRole, type ApproverCode } from "./role-types";
+import { logout, changePin } from "@/app/login/actions";
 
 type Props = {
-  current: DemoRole;
-  actingAs: ApproverCode;
+  code: string;
+  fullName: string | null;
+  role: string;
 };
 
-export function RoleSwitcher({ current, actingAs }: Props) {
-  const router = useRouter();
+export function RoleSwitcher({ code, fullName, role }: Props) {
   const [pending, startTransition] = useTransition();
+  const [changing, setChanging] = useState(false);
+  const [currentPin, setCurrentPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [okMsg, setOkMsg] = useState<string | null>(null);
 
-  const setRole = (next: DemoRole) => {
-    if (next === current) return;
+  const onLogout = () => {
     startTransition(async () => {
-      await setDemoRole(next);
-      router.refresh();
+      await logout();
     });
   };
 
-  const setApprover = (next: ApproverCode) => {
-    if (next === actingAs) return;
+  const onChangePin = () => {
+    setError(null);
+    setOkMsg(null);
+    if (!/^\d{4}$/.test(currentPin) || !/^\d{4}$/.test(newPin)) {
+      setError("Both PINs must be 4 digits");
+      return;
+    }
     startTransition(async () => {
-      await setActingAs(next);
-      router.refresh();
+      const r = await changePin(currentPin, newPin);
+      if (r.success) {
+        setOkMsg("PIN changed");
+        setChanging(false);
+        setCurrentPin("");
+        setNewPin("");
+      } else {
+        setError(r.error ?? "Failed");
+      }
     });
   };
+
+  const roleLabel =
+    role === "boss" ? "Boss" :
+    role === "admin" ? "Admin" :
+    role === "tech_manager" ? "Tech Manager" : "Engineer";
 
   return (
     <div className="card" style={{ padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
       <div>
-        <div className="kicker" style={{ marginBottom: 8 }}>
-          Demo · view as
+        <div className="kicker" style={{ marginBottom: 6 }}>
+          Signed in as
         </div>
-        <div className="tabs" role="tablist">
-          <button
-            type="button"
-            data-active={current === "admin"}
-            onClick={() => setRole("admin")}
-            disabled={pending}
-          >
-            <Icon name="star" size={12} /> Admin
-          </button>
-          <button
-            type="button"
-            data-active={current === "engineer"}
-            onClick={() => setRole("engineer")}
-            disabled={pending}
-          >
-            <Icon name="wrench" size={12} /> Engineer
-          </button>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)" }}>
+          {fullName ?? code}
+        </div>
+        <div className="sub" style={{ textTransform: "none", letterSpacing: 0, fontSize: 12, color: "var(--ink-3)" }}>
+          <span className="mono">{code}</span>
+          <span className="chip chip-red" style={{ marginLeft: 6, fontSize: 9 }}>{roleLabel}</span>
         </div>
       </div>
 
-      {current === "admin" && (
-        <div>
-          <div className="kicker" style={{ marginBottom: 6 }}>
-            Acting as · approver identity
-          </div>
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-            {APPROVERS.map((code) => (
+      <div style={{ borderTop: "1px solid var(--line-2)", paddingTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+        {!changing ? (
+          <>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setChanging(true)}
+              disabled={pending}
+            >
+              <Icon name="wrench" size={12} /> Change PIN
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              style={{ color: "var(--danger)" }}
+              onClick={onLogout}
+              disabled={pending}
+            >
+              <Icon name="x" size={12} /> {pending ? "Signing out…" : "Sign out"}
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="kicker">Change PIN</div>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              className="field mono"
+              placeholder="Current PIN"
+              value={currentPin}
+              onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+            />
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={4}
+              className="field mono"
+              placeholder="New PIN"
+              value={newPin}
+              onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+            />
+            {error && (
+              <div style={{ color: "var(--danger)", fontSize: 12 }}>
+                <Icon name="alert" size={11} /> {error}
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 6 }}>
               <button
-                key={code}
                 type="button"
-                className="fchip"
-                data-on={actingAs === code || undefined}
-                onClick={() => setApprover(code)}
+                className="btn btn-ghost btn-block"
+                onClick={() => {
+                  setChanging(false);
+                  setCurrentPin("");
+                  setNewPin("");
+                  setError(null);
+                }}
                 disabled={pending}
               >
-                {code}
+                Cancel
               </button>
-            ))}
-          </div>
+              <button
+                type="button"
+                className="btn btn-primary btn-block"
+                onClick={onChangePin}
+                disabled={pending}
+              >
+                {pending ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </>
+        )}
+        {okMsg && (
           <div
-            className="sub"
             style={{
-              textTransform: "none",
-              letterSpacing: 0,
-              fontSize: 11,
-              color: "var(--ink-3)",
-              marginTop: 6,
+              fontSize: 12,
+              color: "var(--ok)",
+              padding: "6px 10px",
+              background: "var(--ok-soft)",
+              borderRadius: 6,
             }}
           >
-            Goes into <span className="mono">approved_by</span> when you approve hours.
+            <Icon name="check" size={11} /> {okMsg}
           </div>
-        </div>
-      )}
-
-      <div
-        className="sub"
-        style={{
-          textTransform: "none",
-          letterSpacing: 0,
-          fontSize: 11.5,
-          color: "var(--ink-3)",
-          paddingTop: 4,
-          borderTop: "1px solid var(--line-2)",
-        }}
-      >
-        {current === "admin"
-          ? "Approvals + reports + customer/machine admin visible in the sidebar."
-          : "Field-engineer view: Workspace only — Admin section hidden."}
-        <br />
-        Persisted in a cookie. Real per-user gating ships with auth (Sprint 6).
+        )}
       </div>
     </div>
   );

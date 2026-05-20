@@ -2,12 +2,12 @@ import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
+import { meCode } from "@/lib/auth/current-user";
 import { listMachines } from "./queries";
 import { MachineFilterBar } from "./filter-bar";
 import { MachineListRow } from "./list-row";
 import { DesktopMachinesTable } from "./desktop-machines-table";
 
-const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +16,7 @@ export default async function MachinesPage({
 }: {
   searchParams: Promise<{ q?: string; version?: string }>;
 }) {
+  const ME = await meCode();
   const sp = await searchParams;
   const q = sp.q ?? "";
   const unknownVersion = sp.version === "unknown";

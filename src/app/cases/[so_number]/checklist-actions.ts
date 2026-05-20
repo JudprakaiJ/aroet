@@ -2,9 +2,8 @@
 
 import { createServiceClient } from "@/lib/supabase/service";
 import { revalidatePath } from "next/cache";
+import { currentUser } from "@/lib/auth/current-user";
 import type { ItemStatus } from "@/lib/checklist";
-
-const ME = "JKH";
 
 export async function ensureCaseChecklist(
   so_number: string,
@@ -29,7 +28,7 @@ export async function ensureCaseChecklist(
       so_number,
       machine_no,
       template_id,
-      performed_by: ME,
+      performed_by: (await currentUser())?.code ?? "JKH",
       performed_at: new Date().toISOString().slice(0, 10),
       status: "in_progress",
     })

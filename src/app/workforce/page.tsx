@@ -2,6 +2,7 @@ import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
+import { meCode } from "@/lib/auth/current-user";
 import { getDemoRole } from "@/app/me/role-actions";
 import { computePayPeriod, type PayPeriodPreset } from "@/lib/pay-period";
 import { listActiveEngineers, getHoursSessions, aggregateTotals } from "./queries";
@@ -9,7 +10,6 @@ import { PeriodPicker } from "./period-picker";
 import { TotalsCard } from "./totals-card";
 import { HoursSection } from "./hours-section";
 
-const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +33,7 @@ export default async function WorkforcePage({
 }: {
   searchParams: Promise<Search>;
 }) {
+  const ME = await meCode();
   const sp = await searchParams;
 
   const now = new Date();

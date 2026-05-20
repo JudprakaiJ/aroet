@@ -3,9 +3,9 @@ import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
+import { meCode } from "@/lib/auth/current-user";
 import { CaseHero } from "./hero";
 
-const ME = "JKH";
 import { TabsStrip } from "./tabs-strip";
 import { SessionsTab } from "./sessions-tab";
 import { RefsTab } from "./refs-tab";
@@ -37,6 +37,7 @@ export default async function CaseDetailPage({
   params: Promise<{ so_number: string }>;
   searchParams: Promise<{ tab?: string }>;
 }) {
+  const ME = await meCode();
   const { so_number } = await params;
   const decoded = decodeURIComponent(so_number);
   const { tab: rawTab } = await searchParams;

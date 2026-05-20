@@ -2,16 +2,17 @@ import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
+import { meCode } from "@/lib/auth/current-user";
 import { getDemoRole } from "@/app/me/role-actions";
 import { getReparseCounts } from "./actions";
 import { ReparseClient } from "./reparse-client";
 import Link from "next/link";
 
-const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
 export default async function BulkReparsePage() {
+  const ME = await meCode();
   const [counts, activeSession, notifications, role] = await Promise.all([
     getReparseCounts(),
     getActiveSession(ME),

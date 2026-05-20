@@ -3,9 +3,9 @@ import { DesktopTopBar } from "@/components/desktop-top";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
+import { meCode } from "@/lib/auth/current-user";
 import { NewCaseClient } from "./new-client";
 
-const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +14,7 @@ type Machine = { machine_no: string; customer_code: string | null; name: string 
 type Engineer = { code: string; full_name: string | null; role: string | null };
 
 export default async function NewCasePage() {
+  const ME = await meCode();
   const supabase = await createClient();
   const [{ data: customers }, { data: machines }, { data: engineers }, activeSession, notifications] = await Promise.all([
     supabase.from("customers").select("code, name").order("name", { ascending: true }),

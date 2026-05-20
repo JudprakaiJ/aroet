@@ -3,8 +3,12 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { revalidatePath } from "next/cache";
 import { typeCodeFor, type ClockOutReview } from "@/lib/clock/types";
+import { requireUser } from "@/lib/auth/current-user";
 
-const ME = "JKH";
+async function meCode(): Promise<string> {
+  const u = await requireUser();
+  return u.code;
+}
 
 type ClockInArgs = {
   so_number: string | null;
@@ -21,11 +25,12 @@ export async function clockIn({
   started_at,
 }: ClockInArgs): Promise<{ success: boolean; session_id?: number; error?: string }> {
   const supabase = createServiceClient();
+  const me = await meCode();
 
   const { data: existing } = await supabase
     .from("sessions")
     .select("id")
-    .eq("engineer_code", ME)
+    .eq("engineer_code", me)
     .not("clock_in_at", "is", null)
     .is("clock_out_at", null)
     .limit(1)
@@ -50,7 +55,7 @@ export async function clockIn({
     .insert({
       so_number,
       machine_no: machine_no ?? null,
-      engineer_code: ME,
+      engineer_code: me,
       session_date: sessionDate,
       activity_type,
       type_code: typeCodeFor(activity_type),
@@ -98,6 +103,7 @@ export async function chainNext(
   args: ChainNextArgs
 ): Promise<{ success: boolean; session_id?: number; error?: string }> {
   const supabase = createServiceClient();
+  const me = await meCode();
 
   const backMin = Math.max(0, Math.round(args.backdate_minutes ?? 0));
   const transitionAt = new Date(Date.now() - backMin * 60_000);
@@ -108,7 +114,7 @@ export async function chainNext(
     .select(
       "id, so_number, clock_in_at, paused_at, paused_total_minutes, activity_type"
     )
-    .eq("engineer_code", ME)
+    .eq("engineer_code", me)
     .not("clock_in_at", "is", null)
     .is("clock_out_at", null)
     .order("clock_in_at", { ascending: false })
@@ -175,10 +181,11 @@ export async function chainNext(
 
 export async function takeBreak(): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceClient();
+  const me = await meCode();
   const { data: active } = await supabase
     .from("sessions")
     .select("id, paused_at, clock_out_at")
-    .eq("engineer_code", ME)
+    .eq("engineer_code", me)
     .not("clock_in_at", "is", null)
     .is("clock_out_at", null)
     .limit(1)
@@ -190,10 +197,11 @@ export async function takeBreak(): Promise<{ success: boolean; error?: string }>
 
 export async function endBreak(): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceClient();
+  const me = await meCode();
   const { data: active } = await supabase
     .from("sessions")
     .select("id, paused_at, clock_out_at")
-    .eq("engineer_code", ME)
+    .eq("engineer_code", me)
     .not("clock_in_at", "is", null)
     .is("clock_out_at", null)
     .limit(1)
@@ -310,10 +318,11 @@ export async function clockOut(
   if (error) return { success: false, error: error.message };
 
   if (review.submit_immediately) {
+    const me = await meCode();
     await supabase.from("session_approval_log").insert({
       session_id,
       action: "submitted",
-      by_engineer: ME,
+      by_engineer: me,
     });
   }
 
@@ -362,12 +371,13 @@ export type EmergencyCase = {
 
 export async function searchCasesForEmergency(query: string): Promise<EmergencyCase[]> {
   const supabase = createServiceClient();
+  const me = await meCode();
   const q = query.trim();
 
   const { data: mySos } = await supabase
     .from("case_engineers")
     .select("so_number")
-    .eq("engineer_code", ME);
+    .eq("engineer_code", me);
   const mySet = new Set(((mySos ?? []) as { so_number: string }[]).map((r) => r.so_number));
 
   let req = supabase

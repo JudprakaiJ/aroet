@@ -1,6 +1,8 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { meCode } from "@/lib/auth/current-user";
 
+/** @deprecated retained so legacy imports don't break — use `meCode()` instead. */
 export const CASES_ENGINEER = "JKH";
 
 export type CaseListFilters = {
@@ -29,10 +31,11 @@ export type CaseListItem = {
 
 async function getMyCaseSOs(): Promise<string[]> {
   const supabase = await createClient();
+  const me = await meCode();
   const { data } = await supabase
     .from("case_engineers")
     .select("so_number")
-    .eq("engineer_code", CASES_ENGINEER);
+    .eq("engineer_code", me);
   return (data ?? []).map((r: { so_number: string }) => r.so_number);
 }
 

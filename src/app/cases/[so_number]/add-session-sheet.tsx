@@ -27,8 +27,6 @@ const PRESETS = [
   { id: "PM",   start: "13:00", end: "17:00" },
 ];
 
-const ME = "JKH";
-
 function toMin(hhmm: string): number {
   const [h, m] = hhmm.split(":").map(Number);
   return (h || 0) * 60 + (m || 0);
@@ -72,7 +70,6 @@ export function AddSessionSheet({ open, onClose, soNumber, machines }: Props) {
       const r = await addSession({
         so_number: soNumber,
         machine_no: machineNo,
-        engineer_code: ME,
         session_date: date,
         activity_type: activity,
         start_minutes: startMinutes,

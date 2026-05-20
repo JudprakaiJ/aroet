@@ -10,8 +10,8 @@ import { DesktopCasesTable } from "./desktop-cases-table";
 import { listCases, listAvailableYears, type CaseListFilters } from "./queries";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
+import { meCode } from "@/lib/auth/current-user";
 
-const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +28,7 @@ export default async function CasesPage({
 }: {
   searchParams: Promise<Search>;
 }) {
+  const ME = await meCode();
   const sp = await searchParams;
   const filters: CaseListFilters = {
     q: sp.q,

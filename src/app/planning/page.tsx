@@ -2,6 +2,7 @@ import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
+import { meCode } from "@/lib/auth/current-user";
 import {
   listPlanEngineers,
   listSessionsInRange,
@@ -14,7 +15,6 @@ import { WeekNav } from "./week-nav";
 import { PlanGrid } from "./grid";
 import { fmtDateLong } from "@/lib/format";
 
-const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +30,7 @@ export default async function PlanningPage({
 }: {
   searchParams: Promise<Search>;
 }) {
+  const ME = await meCode();
   const sp = await searchParams;
 
   const today = new Date().toISOString().slice(0, 10);

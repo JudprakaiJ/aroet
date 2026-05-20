@@ -2,15 +2,16 @@ import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
+import { meCode } from "@/lib/auth/current-user";
 import { getDemoRole, getActingAs } from "@/app/me/role-actions";
 import { listSubmittedSessions } from "./queries";
 import { QueueSection } from "./queue-section";
 
-const ME = "JKH";
 
 export const dynamic = "force-dynamic";
 
 export default async function ApprovalsQueuePage() {
+  const ME = await meCode();
   const [groups, activeSession, notifications, role, actingAs] = await Promise.all([
     listSubmittedSessions(),
     getActiveSession(ME),

@@ -1,48 +1,35 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { revalidatePath } from "next/cache";
-import {
-  ROLE_COOKIE,
-  ACTING_AS_COOKIE,
-  APPROVERS,
-  DEFAULT_APPROVER,
-  type DemoRole,
-  type ApproverCode,
-} from "./role-types";
+import { currentUser, isApprover } from "@/lib/auth/current-user";
+import type { DemoRole, ApproverCode } from "./role-types";
 
-export async function setDemoRole(role: DemoRole): Promise<void> {
-  const store = await cookies();
-  store.set(ROLE_COOKIE, role, {
-    path: "/",
-    sameSite: "lax",
-    httpOnly: false,
-    maxAge: 60 * 60 * 24 * 365,
-  });
-  revalidatePath("/", "layout");
-}
+/**
+ * Backwards-compat shims for code that still calls getDemoRole / getActingAs.
+ * After phase 6a these resolve to the real signed-in user's role and code,
+ * not the demo cookie. The setDemoRole / setActingAs writers are no-ops now
+ * (kept so old callers don't crash; the /me UI dropped them in phase 6a).
+ */
 
 export async function getDemoRole(): Promise<DemoRole> {
-  const store = await cookies();
-  const v = store.get(ROLE_COOKIE)?.value;
-  return v === "engineer" ? "engineer" : "admin";
-}
-
-export async function setActingAs(code: ApproverCode): Promise<void> {
-  const store = await cookies();
-  if (!(APPROVERS as readonly string[]).includes(code)) return;
-  store.set(ACTING_AS_COOKIE, code, {
-    path: "/",
-    sameSite: "lax",
-    httpOnly: false,
-    maxAge: 60 * 60 * 24 * 365,
-  });
-  revalidatePath("/", "layout");
+  const me = await currentUser();
+  if (me && isApprover(me.role)) return "admin";
+  return "engineer";
 }
 
 export async function getActingAs(): Promise<ApproverCode> {
-  const store = await cookies();
-  const v = store.get(ACTING_AS_COOKIE)?.value;
-  if (v && (APPROVERS as readonly string[]).includes(v)) return v as ApproverCode;
-  return DEFAULT_APPROVER;
+  const me = await currentUser();
+  if (me && (me.code === "PPI" || me.code === "CCH" || me.code === "LRO" || me.code === "SPE" || me.code === "JKH")) {
+    // JKH is an honorary approver code while Job is the only admin tester.
+    return me.code as ApproverCode;
+  }
+  return "PPI";
+}
+
+export async function setDemoRole(_role: DemoRole): Promise<void> {
+  // Demo toggle is gone after auth — real role comes from engineers.role.
+  void _role;
+}
+
+export async function setActingAs(_code: ApproverCode): Promise<void> {
+  void _code;
 }
