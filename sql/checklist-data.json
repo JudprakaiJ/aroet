@@ -26,7 +26,7 @@
           },
           {
             "item_no": "1.5",
-            "text": "Check convex lens holder fingers sleeves"
+            "text": "Check convex lens holder finger sleeves"
           },
           {
             "item_no": "1.6",
@@ -34,7 +34,7 @@
           },
           {
             "item_no": "1.7",
-            "text": "Check drawer touch bouton"
+            "text": "Check drawer touch button"
           },
           {
             "item_no": "1.8",
@@ -54,7 +54,7 @@
           },
           {
             "item_no": "2.2",
-            "text": "Run all checks to control correct operation"
+            "text": "Run all checks to verify correct operation"
           }
         ]
       },
@@ -64,23 +64,23 @@
         "items": [
           {
             "item_no": "2.1",
-            "text": "Control the cleanliness of the LCD glass"
+            "text": "Check cleanliness of the LCD glass"
           },
           {
             "item_no": "2.2",
-            "text": "Control the brightness of the screen LVDS"
+            "text": "Check brightness of the LVDS screen"
           },
           {
             "item_no": "2.3",
-            "text": "Control of the mirror condition"
+            "text": "Check mirror condition"
           },
           {
             "item_no": "2.4",
-            "text": "Control motor diaphragm condition"
+            "text": "Check motor diaphragm condition"
           },
           {
             "item_no": "2.5",
-            "text": "Measurment without lens"
+            "text": "Measurement without lens"
           },
           {
             "item_no": "2.6",
@@ -94,7 +94,7 @@
         "items": [
           {
             "item_no": "3.1",
-            "text": "Check concave lens holder fingers sleeves"
+            "text": "Check concave lens holder finger sleeves"
           },
           {
             "item_no": "3.2",
@@ -110,7 +110,7 @@
           },
           {
             "item_no": "3.5",
-            "text": "Run all chels to control correct operation"
+            "text": "Run all checks to verify correct operation"
           }
         ]
       },
@@ -120,11 +120,11 @@
         "items": [
           {
             "item_no": "4.1",
-            "text": "Check state of the edged lens holder gripper fingers"
+            "text": "Check state of edged lens holder gripper fingers"
           },
           {
             "item_no": "4.2",
-            "text": "Check general state of the edged lens holder gripper"
+            "text": "Check general state of edged lens holder gripper"
           },
           {
             "item_no": "4.3",
@@ -140,7 +140,7 @@
           },
           {
             "item_no": "4.6",
-            "text": "Run all checks to control correct operation"
+            "text": "Run all checks to verify correct operation"
           }
         ]
       }
@@ -157,71 +157,71 @@
         "items": [
           {
             "item_no": "1.1",
-            "text": "Exchange of the suction cups caps"
+            "text": "Exchange suction cup caps"
           },
           {
             "item_no": "1.2",
-            "text": "Exchange of suction cups"
+            "text": "Exchange suction cups"
           },
           {
             "item_no": "1.3",
-            "text": "Control of the height locking cylinder"
+            "text": "Check height locking cylinder"
           },
           {
             "item_no": "1.4",
-            "text": "Control stops and shock absorber"
+            "text": "Check stops and shock absorber"
           },
           {
             "item_no": "1.5",
-            "text": "Control of the chain cable carrier cable"
+            "text": "Check chain cable carrier cable"
           },
           {
             "item_no": "1.6",
-            "text": "Control the cylinders play and axes cleaning"
+            "text": "Check cylinder play and clean axes"
           },
           {
             "item_no": "1.7",
-            "text": "Control of suction cup telescopic"
+            "text": "Check telescopic suction cup"
           },
           {
             "item_no": "1.8",
-            "text": "Control and cleaning filters venturi"
+            "text": "Check and clean venturi filters"
           },
           {
             "item_no": "1.9",
-            "text": "Exchange of the 5 one way valves"
+            "text": "Exchange the 5 one-way valves"
           },
           {
             "item_no": "1.10",
-            "text": "Exchange of the 5 rubber fingers of the centering gripper"
+            "text": "Exchange the 5 rubber fingers of the centering gripper"
           },
           {
             "item_no": "1.11",
-            "text": "Control of the belt"
+            "text": "Check belt"
           },
           {
             "item_no": "1.12",
-            "text": "Control of the fingers grippers bearings"
+            "text": "Check finger gripper bearings"
           },
           {
             "item_no": "1.13",
-            "text": "Control of the vibration device"
+            "text": "Check vibration device"
           },
           {
             "item_no": "1.14",
-            "text": "Control of pressure regulators for gripper centering"
+            "text": "Check pressure regulators for centering gripper"
           },
           {
             "item_no": "1.15",
-            "text": "Control the condition of the loading platform"
+            "text": "Check condition of the loading platform"
           },
           {
             "item_no": "1.16",
-            "text": "Control of the X-Y position and rotation of the platform"
+            "text": "Check X-Y position and rotation of the platform"
           },
           {
             "item_no": "1.17",
-            "text": "Control of the complete loading sequence"
+            "text": "Check complete loading sequence"
           }
         ]
       },
@@ -231,35 +231,35 @@
         "items": [
           {
             "item_no": "2.1",
-            "text": ".Control of the belt tension"
+            "text": "Check belt tension"
           },
           {
             "item_no": "2.2",
-            "text": ".Control of the gap of the indexing table"
+            "text": "Check gap of the indexing table"
           },
           {
             "item_no": "2.3",
-            "text": "Control of grippers general condition"
+            "text": "Check general condition of grippers"
           },
           {
             "item_no": "2.4",
-            "text": "Control of the fingers rotation"
+            "text": "Check finger rotation"
           },
           {
             "item_no": "2.5",
-            "text": "Control of grippers opening"
+            "text": "Check gripper opening"
           },
           {
             "item_no": "2.6",
-            "text": "Control of gripper support bearings"
+            "text": "Check gripper support bearings"
           },
           {
             "item_no": "2.7",
-            "text": "Control of the grippers brakes"
+            "text": "Check gripper brakes"
           },
           {
             "item_no": "2.8",
-            "text": "Control of the electrovalves"
+            "text": "Check solenoid valves"
           }
         ]
       },
@@ -269,71 +269,71 @@
         "items": [
           {
             "item_no": "3.1",
-            "text": "Control the cleanliness of the LCD glass"
+            "text": "Check cleanliness of the LCD glass"
           },
           {
             "item_no": "3.2",
-            "text": "Control LCD hight and level"
+            "text": "Check LCD height and level"
           },
           {
             "item_no": "3.3",
-            "text": "Control LVD position according to the camera"
+            "text": "Check LVDS position according to the camera"
           },
           {
             "item_no": "3.4",
-            "text": "Control of the LCD polar filter condition"
+            "text": "Check LCD polar filter condition"
           },
           {
             "item_no": "3.5",
-            "text": "Control the brightness of the screen LVDS"
+            "text": "Check brightness of the LVDS screen"
           },
           {
             "item_no": "3.6",
-            "text": "Control of the condition and clealiness of the field lens"
+            "text": "Check condition and cleanliness of the field lens"
           },
           {
             "item_no": "3.7",
-            "text": "Control of the polar option"
+            "text": "Check polar option"
           },
           {
             "item_no": "3.8",
-            "text": "Control of the condition and clealiness of the additionnal lens"
+            "text": "Check condition and cleanliness of the additional lens"
           },
           {
             "item_no": "3.9",
-            "text": "Control of the focus camera"
+            "text": "Check camera focus"
           },
           {
             "item_no": "3.10",
-            "text": "Control motor diaphragm condition"
+            "text": "Check motor diaphragm condition"
           },
           {
             "item_no": "3.11",
-            "text": "Control of the couplings"
+            "text": "Check couplings"
           },
           {
             "item_no": "3.12",
-            "text": "Control of the X,Y tables"
+            "text": "Check X,Y tables"
           },
           {
             "item_no": "3.13",
-            "text": "Control of the shaft wear condition"
+            "text": "Check shaft wear condition"
           },
           {
             "item_no": "3.14",
-            "text": "Control of the shaft tightening"
+            "text": "Check shaft tightening"
           },
           {
             "item_no": "3.15",
-            "text": "Control of the motor cables"
+            "text": "Check motor cables"
           },
           {
             "item_no": "3.16",
-            "text": "Control of the pression regulator"
+            "text": "Check pressure regulator"
           },
           {
             "item_no": "3.17",
-            "text": "Control the cylinders play and axes cleaning"
+            "text": "Check cylinder play and clean axes"
           },
           {
             "item_no": "3.18",
@@ -351,31 +351,31 @@
         "items": [
           {
             "item_no": "4.1",
-            "text": "Control push buttons and indicator lamps"
+            "text": "Check push buttons and indicator lamps"
           },
           {
             "item_no": "4.2",
-            "text": "Control lamp voltage presence"
+            "text": "Check lamp voltage presence"
           },
           {
             "item_no": "4.3",
-            "text": "Control of the light tower"
+            "text": "Check light tower"
           },
           {
             "item_no": "4.4",
-            "text": "Control of doors detectors"
+            "text": "Check door detectors"
           },
           {
             "item_no": "4.5",
-            "text": "Control the fans and filters"
+            "text": "Check fans and filters"
           },
           {
             "item_no": "4.6",
-            "text": "Control of the filter and speed of the filter group"
+            "text": "Check filter and speed of the filter group"
           },
           {
             "item_no": "4.7",
-            "text": "General cleaning of the machines"
+            "text": "General cleaning of the machine"
           }
         ]
       },
@@ -385,27 +385,27 @@
         "items": [
           {
             "item_no": "5.1",
-            "text": "Control of cleanliness of the heads of the lenses"
+            "text": "Check cleanliness of the lens heads"
           },
           {
             "item_no": "5.2",
-            "text": "Control the alignment of the heads"
+            "text": "Check alignment of the heads"
           },
           {
             "item_no": "5.3",
-            "text": ".Control of homing height"
+            "text": "Check homing height"
           },
           {
             "item_no": "5.4",
-            "text": "Control signal interference"
+            "text": "Check signal interference"
           },
           {
             "item_no": "5.5",
-            "text": "Control signals in general"
+            "text": "Check signals in general"
           },
           {
             "item_no": "5.6",
-            "text": "Test of the 1000 mesures"
+            "text": "Test of 1000 measurements"
           }
         ]
       },
@@ -415,11 +415,11 @@
         "items": [
           {
             "item_no": "6.1",
-            "text": "Cleaning the PC filters and the frame"
+            "text": "Clean PC filters and the frame"
           },
           {
             "item_no": "6.2",
-            "text": "Control UPS battery"
+            "text": "Check UPS battery"
           }
         ]
       },
@@ -429,23 +429,23 @@
         "items": [
           {
             "item_no": "7.1",
-            "text": "Control the cleanliness of the LCD glass"
+            "text": "Check cleanliness of the LCD glass"
           },
           {
             "item_no": "7.2",
-            "text": "Control the brightness of the screen LVDS"
+            "text": "Check brightness of the LVDS screen"
           },
           {
             "item_no": "7.3",
-            "text": "Control of the mirror condition"
+            "text": "Check mirror condition"
           },
           {
             "item_no": "7.4",
-            "text": "Control motor diaphragm condition"
+            "text": "Check motor diaphragm condition"
           },
           {
             "item_no": "7.5",
-            "text": "Measurment without lens"
+            "text": "Measurement without lens"
           },
           {
             "item_no": "7.6",
@@ -463,31 +463,31 @@
         "items": [
           {
             "item_no": "8.1",
-            "text": "Exchange of suction cup cap"
+            "text": "Exchange suction cup cap"
           },
           {
             "item_no": "8.2",
-            "text": "Exchange suction cap"
+            "text": "Exchange suction cup"
           },
           {
             "item_no": "8.3",
-            "text": "Control of the chain cable carrier cable"
+            "text": "Check chain cable carrier cable"
           },
           {
             "item_no": "8.4",
-            "text": "For V1: control of the cylinders play and axes cleaning"
+            "text": "For V1: check cylinder play and clean axes"
           },
           {
             "item_no": "8.5",
-            "text": "For V2: control of the belt of the electric cylinder"
+            "text": "For V2: check belt of the electric cylinder"
           },
           {
             "item_no": "8.6",
-            "text": "Control of suction cup telescopic"
+            "text": "Check telescopic suction cup"
           },
           {
             "item_no": "8.7",
-            "text": "Control and cleaning of venturi filters"
+            "text": "Check and clean venturi filters"
           }
         ]
       },
@@ -497,27 +497,27 @@
         "items": [
           {
             "item_no": "9.1",
-            "text": "Control of the state of shaft wear"
+            "text": "Check state of shaft wear"
           },
           {
             "item_no": "9.2",
-            "text": "Control of the conec condition"
+            "text": "Check cone condition"
           },
           {
             "item_no": "9.3",
-            "text": "Control of the shaft tightening"
+            "text": "Check shaft tightening"
           },
           {
             "item_no": "9.4",
-            "text": "Control of the motor cables"
+            "text": "Check motor cables"
           },
           {
             "item_no": "9.5",
-            "text": "Control of the pression regulator"
+            "text": "Check pressure regulator"
           },
           {
             "item_no": "9.6",
-            "text": "Control of the cylinder play"
+            "text": "Check cylinder play"
           }
         ]
       },
@@ -527,23 +527,23 @@
         "items": [
           {
             "item_no": "10.1",
-            "text": "Control of the chain"
+            "text": "Check chain"
           },
           {
             "item_no": "10.2",
-            "text": "Control the pad brake cylinder"
+            "text": "Check pad brake cylinder"
           },
           {
             "item_no": "10.3",
-            "text": "Control bar code reader"
+            "text": "Check bar code reader"
           },
           {
             "item_no": "10.4",
-            "text": "Control of the stop tray"
+            "text": "Check stop tray"
           },
           {
             "item_no": "10.5",
-            "text": "Control of detectors and reflector"
+            "text": "Check detectors and reflector"
           }
         ]
       },
@@ -553,11 +553,11 @@
         "items": [
           {
             "item_no": "11.1",
-            "text": "Cleaninif device"
+            "text": "Cleaning device"
           },
           {
             "item_no": "11.2",
-            "text": "Control state of the printer head"
+            "text": "Check state of the printer head"
           }
         ]
       },
@@ -588,35 +588,35 @@
         "items": [
           {
             "item_no": "1.1",
-            "text": "Exchange of the suction cups caps"
+            "text": "Exchange suction cup caps"
           },
           {
             "item_no": "1.2",
-            "text": "Control of the téléscopic cylinder"
+            "text": "Check telescopic cylinder"
           },
           {
             "item_no": "1.3",
-            "text": "Control of the play of the téléscopic cylinder"
+            "text": "Check play of the telescopic cylinder"
           },
           {
             "item_no": "1.4",
-            "text": "Control stops and shock absorber"
+            "text": "Check stops and shock absorber"
           },
           {
             "item_no": "1.5",
-            "text": "Control of the chain cable carrier cable"
+            "text": "Check chain cable carrier cable"
           },
           {
             "item_no": "1.6",
-            "text": "Control the rubber covering on the loading platform"
+            "text": "Check rubber covering on the loading platform"
           },
           {
             "item_no": "1.7",
-            "text": "contrôle of the gripper and dampers"
+            "text": "Check gripper and dampers"
           },
           {
             "item_no": "1.8",
-            "text": "cleaning the vacum filter of venturi and tubing"
+            "text": "Clean the vacuum filter of venturi and tubing"
           },
           {
             "item_no": "1.9",
@@ -624,7 +624,7 @@
           },
           {
             "item_no": "1.10",
-            "text": "Control of the diameter gripper"
+            "text": "Check diameter gripper"
           }
         ]
       },
@@ -634,27 +634,27 @@
         "items": [
           {
             "item_no": "2.1",
-            "text": "Contrôle of the brake pressure and the bake membranes"
+            "text": "Check brake pressure and brake membranes"
           },
           {
             "item_no": "2.2",
-            "text": "Control of the gripper and refurbishement according part availability"
+            "text": "Check gripper and refurbishment according to part availability"
           },
           {
             "item_no": "2.3",
-            "text": "Lubrification of the carrier"
+            "text": "Lubrication of the carrier"
           },
           {
             "item_no": "2.4",
-            "text": "Control of the cone"
+            "text": "Check cone"
           },
           {
             "item_no": "2.5",
-            "text": "Control of cannele"
+            "text": "Check cannelure"
           },
           {
             "item_no": "2.6",
-            "text": "Control of the cone and the shaft correspondance"
+            "text": "Check cone and shaft correspondence"
           }
         ]
       },
@@ -664,71 +664,71 @@
         "items": [
           {
             "item_no": "3.1",
-            "text": "Control the cleanliness of the LCD glass"
+            "text": "Check cleanliness of the LCD glass"
           },
           {
             "item_no": "3.2",
-            "text": "Control LCD hight and level"
+            "text": "Check LCD height and level"
           },
           {
             "item_no": "3.3",
-            "text": "Control LCD position according to the camera"
+            "text": "Check LCD position according to the camera"
           },
           {
             "item_no": "3.4",
-            "text": "Control of the LCD polar filter condition"
+            "text": "Check LCD polar filter condition"
           },
           {
             "item_no": "3.5",
-            "text": "Control the brightness of the screen LVDS"
+            "text": "Check brightness of the LVDS screen"
           },
           {
             "item_no": "3.6",
-            "text": "Control of the condition and clealiness of the field lens"
+            "text": "Check condition and cleanliness of the field lens"
           },
           {
             "item_no": "3.7",
-            "text": "Control of the polar option"
+            "text": "Check polar option"
           },
           {
             "item_no": "3.8",
-            "text": "Control of the condition and clealiness of the additionnal lens"
+            "text": "Check condition and cleanliness of the additional lens"
           },
           {
             "item_no": "3.9",
-            "text": "Control of the focus camera"
+            "text": "Check camera focus"
           },
           {
             "item_no": "3.10",
-            "text": "Control motor diaphragm condition"
+            "text": "Check motor diaphragm condition"
           },
           {
             "item_no": "3.11",
-            "text": "Control of the couplings"
+            "text": "Check couplings"
           },
           {
             "item_no": "3.12",
-            "text": "Control of the X,Y tables"
+            "text": "Check X,Y tables"
           },
           {
             "item_no": "3.13",
-            "text": "Control of the shaft wear condition"
+            "text": "Check shaft wear condition"
           },
           {
             "item_no": "3.14",
-            "text": "Control of the shaft tightening"
+            "text": "Check shaft tightening"
           },
           {
             "item_no": "3.15",
-            "text": "Control of the motor cables"
+            "text": "Check motor cables"
           },
           {
             "item_no": "3.16",
-            "text": "Control of the pression regulator"
+            "text": "Check pressure regulator"
           },
           {
             "item_no": "3.17",
-            "text": "Control the cylinders play and axes cleaning"
+            "text": "Check cylinder play and clean axes"
           },
           {
             "item_no": "3.18",
@@ -746,31 +746,31 @@
         "items": [
           {
             "item_no": "4.1",
-            "text": "Control push buttons and indicator lamps"
+            "text": "Check push buttons and indicator lamps"
           },
           {
             "item_no": "4.2",
-            "text": "Control lamp voltage presence"
+            "text": "Check lamp voltage presence"
           },
           {
             "item_no": "4.3",
-            "text": "Control of the light tower"
+            "text": "Check light tower"
           },
           {
             "item_no": "4.4",
-            "text": "Control of security"
+            "text": "Check security"
           },
           {
             "item_no": "4.5",
-            "text": "Control the fans and filters"
+            "text": "Check fans and filters"
           },
           {
             "item_no": "4.6",
-            "text": "Control of the filter and speed of the filter group"
+            "text": "Check filter and speed of the filter group"
           },
           {
             "item_no": "4.7",
-            "text": "General cleaning of the machines"
+            "text": "General cleaning of the machine"
           }
         ]
       },
@@ -780,27 +780,27 @@
         "items": [
           {
             "item_no": "5.1",
-            "text": "Control of cleanliness of the heads of the lenses"
+            "text": "Check cleanliness of the lens heads"
           },
           {
             "item_no": "5.2",
-            "text": "Control the alignment of the heads"
+            "text": "Check alignment of the heads"
           },
           {
             "item_no": "5.3",
-            "text": "Control of homing height"
+            "text": "Check homing height"
           },
           {
             "item_no": "5.4",
-            "text": "Control signal interference"
+            "text": "Check signal interference"
           },
           {
             "item_no": "5.5",
-            "text": "Control signals in general"
+            "text": "Check signals in general"
           },
           {
             "item_no": "5.6",
-            "text": "Test of the 1000 mesures"
+            "text": "Test of 1000 measurements"
           }
         ]
       },
@@ -810,7 +810,7 @@
         "items": [
           {
             "item_no": "6.1",
-            "text": "Cleaning the PC filters and the frame"
+            "text": "Clean PC filters and the frame"
           },
           {
             "item_no": "6.2",
@@ -818,7 +818,7 @@
           },
           {
             "item_no": "6.2",
-            "text": "Control UPS battery"
+            "text": "Check UPS battery"
           }
         ]
       },
@@ -828,23 +828,23 @@
         "items": [
           {
             "item_no": "7.1",
-            "text": "Control the cleanliness of the LCD glass"
+            "text": "Check cleanliness of the LCD glass"
           },
           {
             "item_no": "7.2",
-            "text": "Control the brightness of the screen LVDS"
+            "text": "Check brightness of the LVDS screen"
           },
           {
             "item_no": "7.3",
-            "text": "Control of the mirror condition"
+            "text": "Check mirror condition"
           },
           {
             "item_no": "7.4",
-            "text": "Control motor diaphragm condition"
+            "text": "Check motor diaphragm condition"
           },
           {
             "item_no": "7.5",
-            "text": "Measurment without lens"
+            "text": "Measurement without lens"
           },
           {
             "item_no": "7.6",
@@ -862,43 +862,43 @@
         "items": [
           {
             "item_no": "8.1",
-            "text": "Control of the shaft wear condition"
+            "text": "Check shaft wear condition"
           },
           {
             "item_no": "8.2",
-            "text": "Control of the shaft tightening"
+            "text": "Check shaft tightening"
           },
           {
             "item_no": "8.3",
-            "text": "Control of the motor cables"
+            "text": "Check motor cables"
           },
           {
             "item_no": "8.4",
-            "text": "Control of the pression regulator"
+            "text": "Check pressure regulator"
           },
           {
             "item_no": "8.5",
-            "text": "Control the cylinders play and axes cleaning"
+            "text": "Check cylinder play and clean axes"
           },
           {
             "item_no": "8.6",
-            "text": "Control of the additional prisme"
+            "text": "Check additional prism"
           },
           {
             "item_no": "8.7",
-            "text": "Control of the couplings"
+            "text": "Check couplings"
           },
           {
             "item_no": "8.9",
-            "text": "Control of the X, Y tables"
+            "text": "Check X, Y tables"
           },
           {
             "item_no": "8.10",
-            "text": "Control the ball screw of the fixe axes"
+            "text": "Check ball screw of the fixed axes"
           },
           {
             "item_no": "8.11",
-            "text": "Control of the truck and guide Star"
+            "text": "Check truck and Star guide"
           },
           {
             "item_no": "8.12",
@@ -910,7 +910,7 @@
           },
           {
             "item_no": "8.14",
-            "text": "Control of the optical alignment"
+            "text": "Check optical alignment"
           },
           {
             "item_no": "8.15",
@@ -924,7 +924,7 @@
         "items": [
           {
             "item_no": "9.1",
-            "text": "Control of the rotary switch for transmition and reflection"
+            "text": "Check rotary switch for transmission and reflection"
           },
           {
             "item_no": "9.2",
@@ -932,15 +932,15 @@
           },
           {
             "item_no": "9.3",
-            "text": "Control of the lamps and cleaning of the reflectors"
+            "text": "Check lamps and clean reflectors"
           },
           {
             "item_no": "9.4",
-            "text": "Control of the UV led"
+            "text": "Check UV LED"
           },
           {
             "item_no": "9.5",
-            "text": "Control Bright and dark calibration"
+            "text": "Check bright and dark calibration"
           }
         ]
       },
@@ -950,39 +950,39 @@
         "items": [
           {
             "item_no": "11.1",
-            "text": "Control the cleanliness of the LCD glass"
+            "text": "Check cleanliness of the LCD glass"
           },
           {
             "item_no": "11.2",
-            "text": "Control LCD hight and level"
+            "text": "Check LCD height and level"
           },
           {
             "item_no": "11.3",
-            "text": "Control LVD position according to the camera"
+            "text": "Check LVDS position according to the camera"
           },
           {
             "item_no": "11.4",
-            "text": "Control of the LCD polar filter condition"
+            "text": "Check LCD polar filter condition"
           },
           {
             "item_no": "11.5",
-            "text": "Control the brightness of the screen LVDS"
+            "text": "Check brightness of the LVDS screen"
           },
           {
             "item_no": "11.6",
-            "text": "Control of the condition and clealiness of the field lens"
+            "text": "Check condition and cleanliness of the field lens"
           },
           {
             "item_no": "11.7",
-            "text": "Control of the focus camera"
+            "text": "Check camera focus"
           },
           {
             "item_no": "11.8",
-            "text": "Control motor diaphragm condition"
+            "text": "Check motor diaphragm condition"
           },
           {
             "item_no": "11.9",
-            "text": "Calibration of the aperture motor diaphragm"
+            "text": "Calibration of the motor diaphragm aperture"
           },
           {
             "item_no": "11.10",
@@ -996,7 +996,7 @@
         "items": [
           {
             "item_no": "12.1",
-            "text": "Exchange of suction cup cap"
+            "text": "Exchange suction cup cap"
           },
           {
             "item_no": "12.2",
@@ -1004,23 +1004,23 @@
           },
           {
             "item_no": "12.3",
-            "text": "Control of the chain cable carrier cable"
+            "text": "Check chain cable carrier cable"
           },
           {
             "item_no": "12.4",
-            "text": "For V1: control of the cylinders play and axes cleaning"
+            "text": "For V1: check cylinder play and clean axes"
           },
           {
             "item_no": "12.5",
-            "text": "For V2: control of the belt of the electric cylinder"
+            "text": "For V2: check belt of the electric cylinder"
           },
           {
             "item_no": "12.6",
-            "text": "Control of suction cup telescopic"
+            "text": "Check telescopic suction cup"
           },
           {
             "item_no": "12.7",
-            "text": "Control and cleaning of venturi filters"
+            "text": "Check and clean venturi filters"
           }
         ]
       },
@@ -1030,27 +1030,27 @@
         "items": [
           {
             "item_no": "13.1",
-            "text": "Control of the state of shaft wear"
+            "text": "Check state of shaft wear"
           },
           {
             "item_no": "13.2",
-            "text": "Control of the cone condition"
+            "text": "Check cone condition"
           },
           {
             "item_no": "13.3",
-            "text": "Control of the shaft tightening"
+            "text": "Check shaft tightening"
           },
           {
             "item_no": "13.4",
-            "text": "Control of the motor cables"
+            "text": "Check motor cables"
           },
           {
             "item_no": "13.5",
-            "text": "Control of the pression regulator"
+            "text": "Check pressure regulator"
           },
           {
             "item_no": "13.6",
-            "text": "Control of the cylinder play"
+            "text": "Check cylinder play"
           }
         ]
       },
@@ -1060,19 +1060,19 @@
         "items": [
           {
             "item_no": "14.1",
-            "text": "Control of the chain"
+            "text": "Check chain"
           },
           {
             "item_no": "14.2",
-            "text": "Control and clean the bar code reader"
+            "text": "Check and clean the bar code reader"
           },
           {
             "item_no": "14.3",
-            "text": "Control of the stop tray"
+            "text": "Check stop tray"
           },
           {
             "item_no": "14.4",
-            "text": "Control of detectors and reflector"
+            "text": "Check detectors and reflector"
           }
         ]
       },
@@ -1082,15 +1082,15 @@
         "items": [
           {
             "item_no": "15.1",
-            "text": "Control of all shoch absorber"
+            "text": "Check all shock absorbers"
           },
           {
             "item_no": "15.2",
-            "text": "contrôle of the condition of the pusher and guiding plates"
+            "text": "Check condition of the pusher and guiding plates"
           },
           {
             "item_no": "15.3",
-            "text": "Cleaning of the platfroms and adjustment if required"
+            "text": "Cleaning of the platforms and adjustment if required"
           }
         ]
       },
@@ -1100,27 +1100,27 @@
         "items": [
           {
             "item_no": "16.1",
-            "text": "Cleaninif device"
+            "text": "Cleaning device"
           },
           {
             "item_no": "16.2",
-            "text": "Control state of the printer head"
+            "text": "Check state of the printer head"
           },
           {
             "item_no": "17.1",
-            "text": "Control of the state of the UV lamp"
+            "text": "Check state of the UV lamp"
           },
           {
             "item_no": "17.2",
-            "text": "Check 0° Inclinaison"
+            "text": "Check 0 degree inclination"
           },
           {
             "item_no": "18.1",
-            "text": "Control the robot belt"
+            "text": "Check robot belt"
           },
           {
             "item_no": "18.2",
-            "text": "remplace the battery"
+            "text": "Replace the battery"
           },
           {
             "item_no": "18.3",
@@ -1128,15 +1128,15 @@
           },
           {
             "item_no": "18.4",
-            "text": "Control of all air tubes and cables"
+            "text": "Check all air tubes and cables"
           },
           {
             "item_no": "19.1",
-            "text": "Control of the smoothness of the pistont"
+            "text": "Check smoothness of the piston"
           },
           {
             "item_no": "19.2",
-            "text": "Control tightness of screws of motor couplings"
+            "text": "Check tightness of motor coupling screws"
           }
         ]
       },
@@ -1150,7 +1150,7 @@
           },
           {
             "item_no": "20.2",
-            "text": "Control of station-to-station alignment (CALI30)"
+            "text": "Check station-to-station alignment (CALI30)"
           },
           {
             "item_no": "20.10",
@@ -1171,71 +1171,71 @@
         "items": [
           {
             "item_no": "1.1",
-            "text": "Exchange of the suction cups caps"
+            "text": "Exchange suction cup caps"
           },
           {
             "item_no": "1.2",
-            "text": "Exchange of suction cups"
+            "text": "Exchange suction cups"
           },
           {
             "item_no": "1.3",
-            "text": "Control of the height locking cylinder"
+            "text": "Check height locking cylinder"
           },
           {
             "item_no": "1.4",
-            "text": "Control stops and shock absorber"
+            "text": "Check stops and shock absorber"
           },
           {
             "item_no": "1.5",
-            "text": "Control of the chain cable carrier cable"
+            "text": "Check chain cable carrier cable"
           },
           {
             "item_no": "1.6",
-            "text": "Control the cylinders play and axes cleaning"
+            "text": "Check cylinder play and clean axes"
           },
           {
             "item_no": "1.7",
-            "text": "Control of suction cup telescopic"
+            "text": "Check telescopic suction cup"
           },
           {
             "item_no": "1.8",
-            "text": "Control and cleaning filters venturi"
+            "text": "Check and clean venturi filters"
           },
           {
             "item_no": "1.9",
-            "text": "Exchange of the 5 one way valves"
+            "text": "Exchange the 5 one-way valves"
           },
           {
             "item_no": "1.10",
-            "text": "Exchange of the 5 rubber fingers of the centering gripper"
+            "text": "Exchange the 5 rubber fingers of the centering gripper"
           },
           {
             "item_no": "1.11",
-            "text": "Control of the belt"
+            "text": "Check belt"
           },
           {
             "item_no": "1.12",
-            "text": "Control of the fingers grippers bearings"
+            "text": "Check finger gripper bearings"
           },
           {
             "item_no": "1.13",
-            "text": "Control of the vibration device"
+            "text": "Check vibration device"
           },
           {
             "item_no": "1.14",
-            "text": "Control of pressure regulators for gripper centering"
+            "text": "Check pressure regulators for centering gripper"
           },
           {
             "item_no": "1.15",
-            "text": "Control the condition of the loading platform"
+            "text": "Check condition of the loading platform"
           },
           {
             "item_no": "1.16",
-            "text": "Control of the X-Y position and rotation of the platform"
+            "text": "Check X-Y position and rotation of the platform"
           },
           {
             "item_no": "1.17",
-            "text": "Control of the complete loading sequence"
+            "text": "Check complete loading sequence"
           }
         ]
       },
@@ -1245,35 +1245,35 @@
         "items": [
           {
             "item_no": "2.1",
-            "text": "Control of the belt tension"
+            "text": "Check belt tension"
           },
           {
             "item_no": "2.2",
-            "text": "Control of the gap of the indexing table"
+            "text": "Check gap of the indexing table"
           },
           {
             "item_no": "2.3",
-            "text": "Control of grippers general condition"
+            "text": "Check general condition of grippers"
           },
           {
             "item_no": "2.4",
-            "text": "Control of the fingers rotation"
+            "text": "Check finger rotation"
           },
           {
             "item_no": "2.5",
-            "text": "Control of grippers opening"
+            "text": "Check gripper opening"
           },
           {
             "item_no": "2.6",
-            "text": "Control of gripper support bearings"
+            "text": "Check gripper support bearings"
           },
           {
             "item_no": "2.7",
-            "text": "Control of the grippers brakes"
+            "text": "Check gripper brakes"
           },
           {
             "item_no": "2.8",
-            "text": "Control of the electrovalves"
+            "text": "Check solenoid valves"
           }
         ]
       },
@@ -1283,71 +1283,71 @@
         "items": [
           {
             "item_no": "3.1",
-            "text": "Control the cleanliness of the LCD glass"
+            "text": "Check cleanliness of the LCD glass"
           },
           {
             "item_no": "3.2",
-            "text": "Control LCD hight and level"
+            "text": "Check LCD height and level"
           },
           {
             "item_no": "3.3",
-            "text": "Control LCD position according to the camera"
+            "text": "Check LCD position according to the camera"
           },
           {
             "item_no": "3.4",
-            "text": "Control of the LCD polar filter condition"
+            "text": "Check LCD polar filter condition"
           },
           {
             "item_no": "3.5",
-            "text": "Control the brightness of the screen LVDS"
+            "text": "Check brightness of the LVDS screen"
           },
           {
             "item_no": "3.6",
-            "text": "Control of the condition and clealiness of the field lens"
+            "text": "Check condition and cleanliness of the field lens"
           },
           {
             "item_no": "3.7",
-            "text": "Control of the polar option"
+            "text": "Check polar option"
           },
           {
             "item_no": "3.8",
-            "text": "Control of the condition and clealiness of the additionnal lens"
+            "text": "Check condition and cleanliness of the additional lens"
           },
           {
             "item_no": "3.9",
-            "text": "Control of the focus camera"
+            "text": "Check camera focus"
           },
           {
             "item_no": "3.10",
-            "text": "Control motor diaphragm condition"
+            "text": "Check motor diaphragm condition"
           },
           {
             "item_no": "3.11",
-            "text": "Control of the couplings"
+            "text": "Check couplings"
           },
           {
             "item_no": "3.12",
-            "text": "Control of the X,Y tables"
+            "text": "Check X,Y tables"
           },
           {
             "item_no": "3.13",
-            "text": "Control of the shaft wear condition"
+            "text": "Check shaft wear condition"
           },
           {
             "item_no": "3.14",
-            "text": "Control of the shaft tightening"
+            "text": "Check shaft tightening"
           },
           {
             "item_no": "3.15",
-            "text": "Control of the motor cables"
+            "text": "Check motor cables"
           },
           {
             "item_no": "3.16",
-            "text": "Control of the pression regulator"
+            "text": "Check pressure regulator"
           },
           {
             "item_no": "3.17",
-            "text": "Control the cylinders play and axes cleaning"
+            "text": "Check cylinder play and clean axes"
           },
           {
             "item_no": "3.18",
@@ -1365,31 +1365,31 @@
         "items": [
           {
             "item_no": "4.1",
-            "text": "Control push buttons and indicator lamps"
+            "text": "Check push buttons and indicator lamps"
           },
           {
             "item_no": "4.2",
-            "text": "Control lamp voltage presence"
+            "text": "Check lamp voltage presence"
           },
           {
             "item_no": "4.3",
-            "text": "Control of the light tower"
+            "text": "Check light tower"
           },
           {
             "item_no": "4.4",
-            "text": "Control of doors detectors"
+            "text": "Check door detectors"
           },
           {
             "item_no": "4.5",
-            "text": "Control the fans and filters"
+            "text": "Check fans and filters"
           },
           {
             "item_no": "4.6",
-            "text": "Control of the filter and speed of the filter group"
+            "text": "Check filter and speed of the filter group"
           },
           {
             "item_no": "4.7",
-            "text": "General cleaning of the machines"
+            "text": "General cleaning of the machine"
           }
         ]
       },
@@ -1399,27 +1399,27 @@
         "items": [
           {
             "item_no": "5.1",
-            "text": "Control of cleanliness of the heads of the lenses"
+            "text": "Check cleanliness of the lens heads"
           },
           {
             "item_no": "5.2",
-            "text": "Control the alignment of the heads"
+            "text": "Check alignment of the heads"
           },
           {
             "item_no": "5.3",
-            "text": "Control of homing height"
+            "text": "Check homing height"
           },
           {
             "item_no": "5.4",
-            "text": "Control signal interference"
+            "text": "Check signal interference"
           },
           {
             "item_no": "5.5",
-            "text": "Control signals in general"
+            "text": "Check signals in general"
           },
           {
             "item_no": "5.6",
-            "text": "Test of the 1000 mesures"
+            "text": "Test of 1000 measurements"
           }
         ]
       },
@@ -1429,11 +1429,11 @@
         "items": [
           {
             "item_no": "6.1",
-            "text": "Cleaning the PC filters and the frame"
+            "text": "Clean PC filters and the frame"
           },
           {
             "item_no": "6.2",
-            "text": "Control UPS battery"
+            "text": "Check UPS battery"
           }
         ]
       },
@@ -1443,23 +1443,23 @@
         "items": [
           {
             "item_no": "7.1",
-            "text": "Control the cleanliness of the LCD glass"
+            "text": "Check cleanliness of the LCD glass"
           },
           {
             "item_no": "7.2",
-            "text": "Control the brightness of the screen LVDS"
+            "text": "Check brightness of the LVDS screen"
           },
           {
             "item_no": "7.3",
-            "text": "Control of the mirror condition"
+            "text": "Check mirror condition"
           },
           {
             "item_no": "7.4",
-            "text": "Control motor diaphragm condition"
+            "text": "Check motor diaphragm condition"
           },
           {
             "item_no": "7.5",
-            "text": "Measurment without lens"
+            "text": "Measurement without lens"
           },
           {
             "item_no": "7.6",
@@ -1477,43 +1477,43 @@
         "items": [
           {
             "item_no": "8.1",
-            "text": "Control of the shaft wear condition"
+            "text": "Check shaft wear condition"
           },
           {
             "item_no": "8.2",
-            "text": "Control of the shaft tightening"
+            "text": "Check shaft tightening"
           },
           {
             "item_no": "8.3",
-            "text": "Control of the motor cables"
+            "text": "Check motor cables"
           },
           {
             "item_no": "8.4",
-            "text": "Control of the pression regulator"
+            "text": "Check pressure regulator"
           },
           {
             "item_no": "8.5",
-            "text": "Control the cylinders play and axes cleaning"
+            "text": "Check cylinder play and clean axes"
           },
           {
             "item_no": "8.6",
-            "text": "Control of the additional prisme"
+            "text": "Check additional prism"
           },
           {
             "item_no": "8.7",
-            "text": "Control of the couplings"
+            "text": "Check couplings"
           },
           {
             "item_no": "8.9",
-            "text": "Control of the X, Y tables"
+            "text": "Check X, Y tables"
           },
           {
             "item_no": "8.10",
-            "text": "Control the ball screw of the fixe axes"
+            "text": "Check ball screw of the fixed axes"
           },
           {
             "item_no": "8.11",
-            "text": "Control of the truck and guide Star"
+            "text": "Check truck and Star guide"
           },
           {
             "item_no": "8.12",
@@ -1525,7 +1525,7 @@
           },
           {
             "item_no": "8.14",
-            "text": "Control of the optical alignment"
+            "text": "Check optical alignment"
           },
           {
             "item_no": "8.15",
@@ -1539,7 +1539,7 @@
         "items": [
           {
             "item_no": "9.1",
-            "text": "Control of the rotary switch for transmition and reflection"
+            "text": "Check rotary switch for transmission and reflection"
           },
           {
             "item_no": "9.2",
@@ -1547,15 +1547,15 @@
           },
           {
             "item_no": "9.3",
-            "text": "Control of the lamps and cleaning of the reflectors"
+            "text": "Check lamps and clean reflectors"
           },
           {
             "item_no": "9.4",
-            "text": "Control of the UV led"
+            "text": "Check UV LED"
           },
           {
             "item_no": "9.5",
-            "text": "Control Bright and dark calibration"
+            "text": "Check bright and dark calibration"
           }
         ]
       },
@@ -1569,7 +1569,7 @@
           },
           {
             "item_no": "10.2",
-            "text": "removingÊdustÊwithÊaÊvacuumÊcleaner, cleaning with a suitable product and cloth"
+            "text": "Remove dust with a vacuum cleaner, clean with a suitable product and cloth"
           },
           {
             "item_no": "10.3",
@@ -1581,7 +1581,7 @@
           },
           {
             "item_no": "10.5",
-            "text": "Check cleannes of whole system"
+            "text": "Check cleanliness of whole system"
           },
           {
             "item_no": "10.6",
@@ -1609,11 +1609,11 @@
           },
           {
             "item_no": "10.12",
-            "text": "Check the status (visual) of Flat cable. exchange if the flat seems damaged"
+            "text": "Check the status (visual) of flat cable; exchange if the flat seems damaged"
           },
           {
             "item_no": "10.13",
-            "text": "Check the cleaness of the head"
+            "text": "Check cleanliness of the head"
           },
           {
             "item_no": "10.14",
@@ -1621,11 +1621,11 @@
           },
           {
             "item_no": "10.15",
-            "text": "Check axis alignement"
+            "text": "Check axis alignment"
           },
           {
             "item_no": "10.16",
-            "text": "Check and ajust double layout"
+            "text": "Check and adjust double layout"
           },
           {
             "item_no": "10.17",
@@ -1639,39 +1639,39 @@
         "items": [
           {
             "item_no": "11.1",
-            "text": "Control the cleanliness of the LCD glass"
+            "text": "Check cleanliness of the LCD glass"
           },
           {
             "item_no": "11.2",
-            "text": "Control LCD hight and level"
+            "text": "Check LCD height and level"
           },
           {
             "item_no": "11.3",
-            "text": "Control LVD position according to the camera"
+            "text": "Check LVDS position according to the camera"
           },
           {
             "item_no": "11.4",
-            "text": "Control of the LCD polar filter condition"
+            "text": "Check LCD polar filter condition"
           },
           {
             "item_no": "11.5",
-            "text": "Control the brightness of the screen LVDS"
+            "text": "Check brightness of the LVDS screen"
           },
           {
             "item_no": "11.6",
-            "text": "Control of the condition and clealiness of the field lens"
+            "text": "Check condition and cleanliness of the field lens"
           },
           {
             "item_no": "11.7",
-            "text": "Control of the focus camera"
+            "text": "Check camera focus"
           },
           {
             "item_no": "11.8",
-            "text": "Control motor diaphragm condition"
+            "text": "Check motor diaphragm condition"
           },
           {
             "item_no": "11.9",
-            "text": "Calibration of the aperture motor diaphragm"
+            "text": "Calibration of the motor diaphragm aperture"
           },
           {
             "item_no": "11.10",
@@ -1685,31 +1685,31 @@
         "items": [
           {
             "item_no": "12.1",
-            "text": "Exchange of suction cup cap"
+            "text": "Exchange suction cup cap"
           },
           {
             "item_no": "12.2",
-            "text": "Exchange suction caup"
+            "text": "Exchange suction cup"
           },
           {
             "item_no": "12.3",
-            "text": "Control of the chain cable carrier cable"
+            "text": "Check chain cable carrier cable"
           },
           {
             "item_no": "12.4",
-            "text": "For V1: control of the cylinders play and axes cleaning"
+            "text": "For V1: check cylinder play and clean axes"
           },
           {
             "item_no": "12.5",
-            "text": "For V2: control of the belt of the electric cylinder"
+            "text": "For V2: check belt of the electric cylinder"
           },
           {
             "item_no": "12.6",
-            "text": "Control of suction cup telescopic"
+            "text": "Check telescopic suction cup"
           },
           {
             "item_no": "12.7",
-            "text": "Control and cleaning of venturi filters"
+            "text": "Check and clean venturi filters"
           }
         ]
       },
@@ -1719,27 +1719,27 @@
         "items": [
           {
             "item_no": "13.1",
-            "text": "Control of the state of shaft wear"
+            "text": "Check state of shaft wear"
           },
           {
             "item_no": "13.2",
-            "text": "Control of the conec condition"
+            "text": "Check cone condition"
           },
           {
             "item_no": "13.3",
-            "text": "Control of the shaft tightening"
+            "text": "Check shaft tightening"
           },
           {
             "item_no": "13.4",
-            "text": "Control of the motor cables"
+            "text": "Check motor cables"
           },
           {
             "item_no": "13.5",
-            "text": "Control of the pression regulator"
+            "text": "Check pressure regulator"
           },
           {
             "item_no": "13.6",
-            "text": "Control of the cylinder play"
+            "text": "Check cylinder play"
           }
         ]
       },
@@ -1749,23 +1749,23 @@
         "items": [
           {
             "item_no": "14.1",
-            "text": "Control of the chain"
+            "text": "Check chain"
           },
           {
             "item_no": "14.2",
-            "text": "Control the pad brake cylinder"
+            "text": "Check pad brake cylinder"
           },
           {
             "item_no": "14.3",
-            "text": "Control bar code reader"
+            "text": "Check bar code reader"
           },
           {
             "item_no": "14.4",
-            "text": "Control of the stop tray"
+            "text": "Check stop tray"
           },
           {
             "item_no": "14.5",
-            "text": "Control of detectors and reflector"
+            "text": "Check detectors and reflector"
           }
         ]
       },
@@ -1775,11 +1775,11 @@
         "items": [
           {
             "item_no": "15.1",
-            "text": "Cleaninif device"
+            "text": "Cleaning device"
           },
           {
             "item_no": "15.2",
-            "text": "Control state of the printer head"
+            "text": "Check state of the printer head"
           }
         ]
       },
@@ -1826,7 +1826,7 @@
           },
           {
             "item_no": "1.6",
-            "text": "Check the communication of the printer and the thickness measurment"
+            "text": "Check communication of the printer and the thickness measurement"
           }
         ]
       },
@@ -1922,11 +1922,11 @@
           },
           {
             "item_no": "3.6",
-            "text": "Check differents holders of visualization"
+            "text": "Check different visualization holders"
           },
           {
             "item_no": "3.7",
-            "text": "Check LED's and fibers for the visualization"
+            "text": "Check LEDs and fibers for the visualization"
           },
           {
             "item_no": "3.8",
@@ -1952,7 +1952,7 @@
           },
           {
             "item_no": "4.4",
-            "text": "Check marking position according dimension calibration"
+            "text": "Check marking position according to dimension calibration"
           }
         ]
       },
@@ -2022,7 +2022,7 @@
           },
           {
             "item_no": "7.2",
-            "text": "Check the ajdustment"
+            "text": "Check the adjustment"
           }
         ]
       }
@@ -2055,7 +2055,7 @@
           },
           {
             "item_no": "1.6",
-            "text": "Check the communication of the printer and the thickness measurment"
+            "text": "Check communication of the printer and the thickness measurement"
           }
         ]
       },
@@ -2147,11 +2147,11 @@
           },
           {
             "item_no": "3.6",
-            "text": "Check differents holders of visualization"
+            "text": "Check different visualization holders"
           },
           {
             "item_no": "3.7",
-            "text": "Check LED's and fibers for the visualization"
+            "text": "Check LEDs and fibers for the visualization"
           },
           {
             "item_no": "3.8",
@@ -2177,7 +2177,7 @@
           },
           {
             "item_no": "4.4",
-            "text": "Check marking position according dimension calibration"
+            "text": "Check marking position according to dimension calibration"
           }
         ]
       },
@@ -2247,7 +2247,7 @@
           },
           {
             "item_no": "7.2",
-            "text": "Check the ajdustment"
+            "text": "Check the adjustment"
           }
         ]
       }
