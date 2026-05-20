@@ -6,11 +6,12 @@ const STYLES: Record<Status, { bg: string; border: string; color: string; dot: s
   offline: { bg: "#FEF3C7",          border: "#FCD34D",                color: "#92400E",      dot: "var(--warn)", label: "OFFLINE" },
 };
 
-export function SyncChip({ status = "online" }: { status?: Status }) {
+export function SyncChip({ status = "online", count = 0 }: { status?: Status; count?: number }) {
   const s = STYLES[status];
   return (
     <span
       aria-label="sync status"
+      title={count > 0 ? `${count} pending change${count === 1 ? "" : "s"}` : undefined}
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -32,9 +33,23 @@ export function SyncChip({ status = "online" }: { status?: Status }) {
           height: 6,
           borderRadius: 3,
           background: s.dot,
+          animation: status === "syncing" ? "pulse-presence 1.2s infinite" : undefined,
         }}
       />
       {s.label}
+      {count > 0 && (
+        <span
+          style={{
+            marginLeft: 2,
+            padding: "0 5px",
+            borderRadius: 6,
+            background: "rgba(0,0,0,.08)",
+            fontSize: 9,
+          }}
+        >
+          {count}
+        </span>
+      )}
     </span>
   );
 }

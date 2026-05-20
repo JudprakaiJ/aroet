@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Sidebar } from "@/components/sidebar";
 import { BottomNav } from "@/components/bottom-nav";
 import { OfflineBanner } from "@/components/offline-banner";
+import { SyncWatcher } from "@/components/sync-watcher";
 import { getSidebarCounts } from "@/components/sidebar-counts";
 
 const ME = "JKH";
@@ -13,6 +14,7 @@ export async function Shell({ children }: { children: ReactNode }) {
     <div className="aroet-shell-root">
       <Sidebar counts={counts} role={ROLE} me={ME} />
       <main className="aroet-shell-main">
+        <SyncWatcher />
         <OfflineBanner />
         {children}
         <BottomNav pendingCount={counts.pendingApprovals} showPendingBadge={ROLE === "admin"} />

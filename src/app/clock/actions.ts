@@ -288,3 +288,158 @@ export async function editStartTime(
   revalidatePath("/");
   return { success: true };
 }
+
+export type EmergencyCase = {
+  so_number: string;
+  title: string | null;
+  customer_name: string | null;
+  machine_no: string | null;
+  status: string | null;
+  service_type_code: string | null;
+  is_mine: boolean;
+};
+
+export async function searchCasesForEmergency(query: string): Promise<EmergencyCase[]> {
+  const supabase = createServiceClient();
+  const q = query.trim();
+
+  const { data: mySos } = await supabase
+    .from("case_engineers")
+    .select("so_number")
+    .eq("engineer_code", ME);
+  const mySet = new Set(((mySos ?? []) as { so_number: string }[]).map((r) => r.so_number));
+
+  let req = supabase
+    .from("cases")
+    .select("so_number, title, customer_name, machine_no, status, service_type_code")
+    .in("status", ["planned", "in_progress"])
+    .order("due_date", { ascending: true, nullsFirst: false })
+    .limit(40);
+
+  if (q.length > 0) {
+    const like = `%${q}%`;
+    req = req.or(
+      `so_number.ilike.${like},title.ilike.${like},customer_name.ilike.${like},machine_no.ilike.${like}`
+    );
+  }
+
+  const { data } = await req;
+  return ((data ?? []) as Omit<EmergencyCase, "is_mine">[]).map((c) => ({
+    ...c,
+    is_mine: mySet.has(c.so_number),
+  }));
+}
+
+export type EmergencyMode = "continue" | "restart";
+
+export async function emergencySwitchCase(
+  session_id: number,
+  new_so_number: string,
+  new_machine_no: string | null,
+  mode: EmergencyMode,
+  new_activity_type?: string
+): Promise<{ success: boolean; new_session_id?: number; error?: string }> {
+  const supabase = createServiceClient();
+  const { data: s } = await supabase
+    .from("sessions")
+    .select(
+      "id, so_number, clock_in_at, paused_at, paused_total_minutes, activity_type, type_code, clock_out_at"
+    )
+    .eq("id", session_id)
+    .single();
+  if (!s || !s.clock_in_at || s.clock_out_at) return { success: false, error: "Not active" };
+  if (s.so_number === new_so_number && mode === "continue") {
+    return { success: false, error: "Already on this case" };
+  }
+
+  const oldSo = s.so_number;
+
+  if (mode === "continue") {
+    const { error } = await supabase
+      .from("sessions")
+      .update({
+        so_number: new_so_number,
+        machine_no: new_machine_no,
+        ...(new_activity_type
+          ? { activity_type: new_activity_type, type_code: typeCodeFor(new_activity_type) }
+          : {}),
+      })
+      .eq("id", session_id);
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath("/");
+    if (oldSo) revalidatePath(`/cases/${oldSo}`);
+    revalidatePath(`/cases/${new_so_number}`);
+    return { success: true, new_session_id: session_id };
+  }
+
+  const now = new Date();
+  let pausedTotal = s.paused_total_minutes ?? 0;
+  if (s.paused_at) {
+    pausedTotal += Math.max(
+      0,
+      Math.round((now.getTime() - new Date(s.paused_at).getTime()) / 60_000)
+    );
+  }
+  const elapsedMin = Math.max(
+    0,
+    Math.round((now.getTime() - new Date(s.clock_in_at).getTime()) / 60_000) - pausedTotal
+  );
+  let workMin = 0;
+  let officeMin = 0;
+  let travelMin = 0;
+  if (s.activity_type === "office") officeMin = elapsedMin;
+  else if (s.activity_type === "travel") travelMin = elapsedMin;
+  else workMin = elapsedMin;
+
+  const { error: closeErr } = await supabase
+    .from("sessions")
+    .update({
+      clock_out_at: now.toISOString(),
+      paused_at: null,
+      paused_total_minutes: pausedTotal,
+      travel_minutes: travelMin,
+      break_minutes: 0,
+      work_minutes: workMin,
+      office_minutes: officeMin,
+      work_done: "Emergency switch — auto-closed",
+      approval_status: "draft",
+    })
+    .eq("id", session_id);
+  if (closeErr) return { success: false, error: closeErr.message };
+
+  const activity = new_activity_type ?? s.activity_type ?? "field";
+  const sessionDate = now.toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+  const dow = new Date(sessionDate).getDay();
+
+  const { data: inserted, error: insertErr } = await supabase
+    .from("sessions")
+    .insert({
+      so_number: new_so_number,
+      machine_no: new_machine_no,
+      engineer_code: ME,
+      session_date: sessionDate,
+      activity_type: activity,
+      type_code: typeCodeFor(activity),
+      travel_minutes: 0,
+      break_minutes: 0,
+      work_minutes: 0,
+      office_minutes: 0,
+      is_weekend: dow === 0 || dow === 6,
+      is_holiday: false,
+      source: "manual",
+      approval_status: "draft",
+      clock_in_at: now.toISOString(),
+      paused_total_minutes: 0,
+    })
+    .select("id")
+    .single();
+
+  if (insertErr || !inserted) return { success: false, error: insertErr?.message ?? "Restart failed" };
+
+  revalidatePath("/");
+  revalidatePath("/cases");
+  if (oldSo) revalidatePath(`/cases/${oldSo}`);
+  revalidatePath(`/cases/${new_so_number}`);
+  return { success: true, new_session_id: inserted.id };
+}

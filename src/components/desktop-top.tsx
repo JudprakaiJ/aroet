@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Icon } from "@/components/icons";
-import { SyncChip } from "@/components/primitives/sync-chip";
+import { SyncStatus } from "@/components/sync-status";
 import { ClockInWidget } from "@/components/clock/clock-in-widget";
 import { Bell } from "@/components/notifications/bell";
 import type { ActiveSession } from "@/lib/clock/types";
@@ -83,7 +83,7 @@ export function DesktopTopBar({
           )
         )}
 
-        {showSync && !activeSession && <SyncChip status="online" />}
+        {showSync && !activeSession && <SyncStatus />}
 
         {showBell && notifications && <Bell items={notifications} variant="desktop" />}
 

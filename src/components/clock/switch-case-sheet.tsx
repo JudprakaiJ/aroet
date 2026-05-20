@@ -5,9 +5,9 @@ import { Sheet } from "@/components/sheet";
 import { Icon } from "@/components/icons";
 import {
   listMyActiveCasesForSwitch,
-  switchActiveCase,
   type SwitchableCase,
 } from "@/app/clock/actions";
+import { callOrQueue } from "@/lib/offline/queue";
 
 type Props = {
   open: boolean;
@@ -33,7 +33,7 @@ export function SwitchCaseSheet({ open, onClose, sessionId, currentSoNumber }: P
   const pick = (c: SwitchableCase) => {
     setError(null);
     startTransition(async () => {
-      const r = await switchActiveCase(sessionId, c.so_number, c.machine_no);
+      const r = await callOrQueue("switchActiveCase", [sessionId, c.so_number, c.machine_no]);
       if (r.success) onClose();
       else setError(r.error ?? "Switch failed");
     });

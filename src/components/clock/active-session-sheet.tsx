@@ -5,7 +5,7 @@ import { Sheet } from "@/components/sheet";
 import { Icon, type IconName } from "@/components/icons";
 import { TypeBlock } from "@/components/primitives/type-block";
 import { computeElapsedMinutes, type ActiveSession } from "@/lib/clock/types";
-import { pauseSession, resumeSession } from "@/app/clock/actions";
+import { callOrQueue } from "@/lib/offline/queue";
 import { SwitchCaseSheet } from "./switch-case-sheet";
 import { ChangeActivitySheet } from "./change-activity-sheet";
 import { EditStartTimeSheet } from "./edit-start-time-sheet";
@@ -15,6 +15,7 @@ type Props = {
   onClose: () => void;
   session: ActiveSession;
   onRequestClockOut: () => void;
+  onRequestEmergency?: () => void;
 };
 
 const ACTIVITY_ICON: Record<string, IconName> = {
@@ -34,7 +35,7 @@ function fmtElapsedSec(totalMin: number, extraSec: number): string {
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
-export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut }: Props) {
+export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut, onRequestEmergency }: Props) {
   const [, setTick] = useState(0);
   const [pending, startTransition] = useTransition();
   const [switchOpen, setSwitchOpen] = useState(false);
@@ -56,8 +57,8 @@ export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut }
 
   const onPauseResume = () => {
     startTransition(async () => {
-      if (paused) await resumeSession(session.id);
-      else await pauseSession(session.id);
+      if (paused) await callOrQueue("resume", [session.id]);
+      else await callOrQueue("pause", [session.id]);
     });
   };
 
@@ -162,7 +163,17 @@ export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut }
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
           <SecondaryRow icon="refresh" label="Switch case" onClick={() => setSwitchOpen(true)} />
           <SecondaryRow icon="sparkles" label="Change activity" onClick={() => setActivityOpen(true)} />
-          <SecondaryRow icon="clock" label="Edit start time" onClick={() => setEditTimeOpen(true)} isLast />
+          <SecondaryRow icon="clock" label="Edit start time" onClick={() => setEditTimeOpen(true)} isLast={!onRequestEmergency} />
+          {onRequestEmergency && (
+            <SecondaryRow
+              icon="bolt"
+              label="Emergency switch"
+              sublabel="Jump to urgent case (any SO)"
+              onClick={onRequestEmergency}
+              accent="danger"
+              isLast
+            />
+          )}
         </div>
       </div>
 
@@ -191,14 +202,19 @@ export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut }
 function SecondaryRow({
   icon,
   label,
+  sublabel,
   onClick,
   isLast,
+  accent,
 }: {
   icon: IconName;
   label: string;
+  sublabel?: string;
   onClick: () => void;
   isLast?: boolean;
+  accent?: "danger";
 }) {
+  const isDanger = accent === "danger";
   return (
     <button
       type="button"
@@ -222,8 +238,8 @@ function SecondaryRow({
           width: 32,
           height: 32,
           borderRadius: 8,
-          background: "var(--surface-2)",
-          color: "var(--ink-2)",
+          background: isDanger ? "var(--red-50)" : "var(--surface-2)",
+          color: isDanger ? "var(--red)" : "var(--ink-2)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -232,7 +248,25 @@ function SecondaryRow({
       >
         <Icon name={icon} size={15} />
       </div>
-      <span style={{ flex: 1, fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>{label}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: isDanger ? 700 : 500,
+            color: isDanger ? "var(--red)" : "var(--ink)",
+          }}
+        >
+          {label}
+        </div>
+        {sublabel && (
+          <div
+            className="sub"
+            style={{ textTransform: "none", letterSpacing: 0, fontSize: 11, color: "var(--ink-3)" }}
+          >
+            {sublabel}
+          </div>
+        )}
+      </div>
       <Icon name="chevron" size={14} />
     </button>
   );

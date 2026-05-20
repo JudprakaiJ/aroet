@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Icon, type IconName } from "@/components/icons";
-import { SyncChip } from "@/components/primitives/sync-chip";
+import { SyncStatus } from "@/components/sync-status";
 import { ClockInWidget } from "@/components/clock/clock-in-widget";
 import { Bell } from "@/components/notifications/bell";
 import type { ActiveSession } from "@/lib/clock/types";
@@ -39,7 +39,7 @@ export function AppBar({
       {activeSession ? (
         <ClockInWidget activeSession={activeSession} variant="appbar" />
       ) : (
-        showSync && <SyncChip status="online" />
+        showSync && <SyncStatus />
       )}
       {showBell && notifications && <Bell items={notifications} variant="appbar" />}
       {right}

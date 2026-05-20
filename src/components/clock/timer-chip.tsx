@@ -1,20 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { computeElapsedMinutes, type ActiveSession } from "@/lib/clock/types";
 
 type Props = {
   session: ActiveSession;
   onClick?: () => void;
+  onLongPress?: () => void;
   variant?: "appbar" | "desktop";
 };
 
-export function TimerChip({ session, onClick, variant = "appbar" }: Props) {
+const LONG_PRESS_MS = 600;
+
+export function TimerChip({ session, onClick, onLongPress, variant = "appbar" }: Props) {
   const [, setTick] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const firedLongRef = useRef(false);
+
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
+
+  const start = () => {
+    if (!onLongPress) return;
+    firedLongRef.current = false;
+    timerRef.current = setTimeout(() => {
+      firedLongRef.current = true;
+      onLongPress();
+    }, LONG_PRESS_MS);
+  };
+  const cancel = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+  const handleClick = () => {
+    if (firedLongRef.current) {
+      firedLongRef.current = false;
+      return;
+    }
+    onClick?.();
+  };
 
   const min = computeElapsedMinutes(session);
   const h = Math.floor(min / 60);
@@ -25,8 +53,13 @@ export function TimerChip({ session, onClick, variant = "appbar" }: Props) {
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={handleClick}
+      onPointerDown={start}
+      onPointerUp={cancel}
+      onPointerLeave={cancel}
+      onPointerCancel={cancel}
       aria-label="active session"
+      title={onLongPress ? "Tap: details · Hold: emergency switch" : undefined}
       style={{
         display: "inline-flex",
         alignItems: "center",

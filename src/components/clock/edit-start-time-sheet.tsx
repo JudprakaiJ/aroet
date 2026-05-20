@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Sheet } from "@/components/sheet";
 import { Icon } from "@/components/icons";
-import { editStartTime } from "@/app/clock/actions";
+import { callOrQueue } from "@/lib/offline/queue";
 
 type Props = {
   open: boolean;
@@ -41,7 +41,7 @@ export function EditStartTimeSheet({ open, onClose, sessionId, currentClockInISO
       return;
     }
     startTransition(async () => {
-      const r = await editStartTime(sessionId, target.toISOString());
+      const r = await callOrQueue("editStartTime", [sessionId, target.toISOString()]);
       if (r.success) onClose();
       else setError(r.error ?? "Save failed");
     });

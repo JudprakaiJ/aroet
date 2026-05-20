@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Sheet } from "@/components/sheet";
 import { Icon, type IconName } from "@/components/icons";
-import { changeActivity } from "@/app/clock/actions";
+import { callOrQueue } from "@/lib/offline/queue";
 
 type Props = {
   open: boolean;
@@ -30,7 +30,7 @@ export function ChangeActivitySheet({ open, onClose, sessionId, currentActivity 
     }
     setError(null);
     startTransition(async () => {
-      const r = await changeActivity(sessionId, next);
+      const r = await callOrQueue("changeActivity", [sessionId, next]);
       if (r.success) onClose();
       else setError(r.error ?? "Failed");
     });
