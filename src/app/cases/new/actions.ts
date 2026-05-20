@@ -161,7 +161,6 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
     if (!input.machine_nos || input.machine_nos.length === 0)
       return { success: false, error: "At least 1 machine required" };
     if (!input.service_type_code) return { success: false, error: "Service type required" };
-    if (!input.description?.trim()) return { success: false, error: "Description required" };
     if (!input.lead_engineer) return { success: false, error: "Lead engineer required" };
 
     const { data: existing } = await supabase
@@ -232,22 +231,29 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
   }
 }
 
+export interface ParseTitleResult {
+  so_number?: string;
+  project_code?: string;
+  project_code_source?: "db" | "pattern";
+  /** All machine codes detected — DB-confirmed first, then unknown candidates. */
+  machine_codes: string[];
+  /** Subset of machine_codes that match an existing machines row. */
+  machine_codes_db: string[];
+  subject?: string;
+  unmatched_codes: string[];
+}
+
 /**
  * Smart title parser — uses regex + DB lookup
  * Parses D365 case titles like:
- *   "SO2604-05 - ESRY13 - Line#15 - Installation and Training Automapper..."
- * Returns:
- *   so_number, project_code, machine_code, subject, unmatched_codes (hints)
+ *   "SO2604-05 - ESRY13 MCSF15 - Line#15 - Installation and Training…"
+ * Detects all machine codes (not just the first), and falls back to
+ * project-style markers (Line#NN / Group N / MCE#N) when no DB project
+ * code is known.
  */
-export async function parseTitleSmart(title: string): Promise<{
-  so_number?: string;
-  project_code?: string;
-  machine_code?: string;
-  subject?: string;
-  unmatched_codes: string[];
-}> {
+export async function parseTitleSmart(title: string): Promise<ParseTitleResult> {
   if (!title || !title.trim()) {
-    return { unmatched_codes: [] };
+    return { machine_codes: [], machine_codes_db: [], unmatched_codes: [] };
   }
 
   const supabase = createServiceClient();
@@ -257,83 +263,86 @@ export async function parseTitleSmart(title: string): Promise<{
   const soMatch = text.match(/\bSO\d{4}-\d{1,3}\b/i);
   const so_number = soMatch ? soMatch[0].toUpperCase() : undefined;
 
-  // 2. Extract all candidate codes
-  // Patterns: uppercase+digits, Line#N, Group N, MCE#N, AR-style serial
-  const codePatterns = [
-    /\bLine#\d+\b/gi,
-    /\bGroup\s+\d+\b/gi,
-    /\bMCE#\d+\b/gi,
+  // 2. Project-style codes (format markers, not machines)
+  const PROJECT_PATTERNS = [/\bLine#\d+\b/gi, /\bGroup\s+\d+\b/gi, /\bMCE#\d+\b/gi];
+  const MACHINE_PATTERNS = [
     /\bAR\d+SV\d+\b/g,
-    /\b[A-Z]{3,7}\d{2,3}\b/g, // ESRY13, ROTH99, MITSF27, ESTH48
+    /\b[A-Z]{2,7}\d{2,3}\b/g, // ESRY13, ROTH99, MITSF27, MCSF15, MCSF13
     /\b(?:RE|MCVP|SPF|SPV|PE|DLM|TLS|MTVP|MCV)\d+(?:-\d+)?\b/gi,
   ];
 
-  const candidatesSet = new Set<string>();
-  for (const p of codePatterns) {
-    const matches = text.match(p) ?? [];
-    for (const m of matches) {
-      candidatesSet.add(m);
-    }
+  const projectSet = new Set<string>();
+  const machineSet = new Set<string>();
+  for (const p of PROJECT_PATTERNS) {
+    for (const m of text.match(p) ?? []) projectSet.add(m);
+  }
+  for (const p of MACHINE_PATTERNS) {
+    for (const m of text.match(p) ?? []) machineSet.add(m);
   }
 
-  // 3. Filter out noise
-  const candidates: string[] = [];
-  for (const c of Array.from(candidatesSet)) {
-    // Skip if matches SO
-    if (so_number && c.toUpperCase() === so_number.toUpperCase()) continue;
-    // Skip 10+ digit POs
-    if (/^\d{10,}$/.test(c)) continue;
-    // Skip PO formats
-    if (/^E?LN\d{2}-\d{4}-\d+$/i.test(c)) continue;
-    // Skip CS prefix
-    if (/^CS\d{4,}$/i.test(c)) continue;
-    // Skip SQ
-    if (/^SQ\d/i.test(c)) continue;
-    candidates.push(c);
-  }
+  const noise = (c: string) =>
+    /^\d{10,}$/.test(c) ||
+    /^E?LN\d{2}-\d{4}-\d+$/i.test(c) ||
+    /^CS\d{4,}$/i.test(c) ||
+    /^SQ\d/i.test(c) ||
+    (so_number !== undefined && c.toUpperCase() === so_number.toUpperCase());
 
-  // 4. DB lookup — find which candidates match machines vs projects
-  let machine_code: string | undefined;
+  const machineCandidates = Array.from(machineSet).filter((c) => !noise(c));
+  const projectCandidates = Array.from(projectSet).filter((c) => !noise(c));
+
+  // 3. DB lookup
   let project_code: string | undefined;
-  const matched_codes: string[] = [];
+  let project_code_source: "db" | "pattern" | undefined;
+  const dbMachines = new Set<string>();
+  const unknownMachines: string[] = [];
 
-  if (candidates.length > 0) {
-    // Query machines
+  if (machineCandidates.length > 0) {
     const { data: machinesData } = await supabase
       .from("machines")
       .select("machine_no")
-      .in("machine_no", candidates);
-    const machineSet = new Set((machinesData ?? []).map((m: any) => m.machine_no));
-
-    // Query projects from cases table
-    const { data: projectsData } = await supabase
-      .from("cases")
-      .select("project_code")
-      .in("project_code", candidates)
-      .not("project_code", "is", null);
-    const projectSet = new Set(
-      (projectsData ?? []).map((p: any) => p.project_code).filter(Boolean)
+      .in("machine_no", machineCandidates);
+    const knownMachineSet = new Set(
+      ((machinesData ?? []) as { machine_no: string }[]).map((m) => m.machine_no)
     );
 
-    // Match
-    for (const c of candidates) {
-      if (machineSet.has(c) && !machine_code) {
-        machine_code = c;
-        matched_codes.push(c);
-      } else if (projectSet.has(c) && !project_code) {
+    // Some machine-shaped tokens may actually be project codes
+    const { data: projectFromCases } = await supabase
+      .from("cases")
+      .select("project_code")
+      .in("project_code", machineCandidates)
+      .not("project_code", "is", null);
+    const knownProjectSet = new Set(
+      ((projectFromCases ?? []) as { project_code: string }[])
+        .map((p) => p.project_code)
+        .filter(Boolean)
+    );
+
+    for (const c of machineCandidates) {
+      if (knownMachineSet.has(c)) {
+        dbMachines.add(c);
+      } else if (knownProjectSet.has(c) && !project_code) {
         project_code = c;
-        matched_codes.push(c);
+        project_code_source = "db";
+      } else {
+        unknownMachines.push(c);
       }
     }
   }
 
+  // 4. Project pattern fallback: Line#NN / Group N / MCE#N
+  if (!project_code && projectCandidates.length > 0) {
+    project_code = projectCandidates[0];
+    project_code_source = "pattern";
+  }
+
+  const machine_codes = [...Array.from(dbMachines), ...unknownMachines];
+
   // 5. Build subject by stripping all known tokens + noise
   let subject = text;
   if (so_number) subject = subject.replace(new RegExp(escapeRegex(so_number), "i"), "");
-  for (const c of candidates) {
+  for (const c of [...machineCandidates, ...projectCandidates]) {
     subject = subject.replace(new RegExp("\\b" + escapeRegex(c) + "\\b", "gi"), "");
   }
-  // Strip noise patterns
   subject = subject.replace(/\bCS\d{4,}\b/gi, "");
   subject = subject.replace(/\bE?LN\d{2}-\d{4}-\d+\b/gi, "");
   subject = subject.replace(/\(SQ\d{4}-\d{1,3}(?:\s+SQ\d{4}-\d{1,3})*\)/gi, "");
@@ -341,20 +350,17 @@ export async function parseTitleSmart(title: string): Promise<{
   subject = subject.replace(/\s*-\s*-\s*/g, " - ");
   subject = subject.replace(/^[\s\-,]+|[\s\-,]+$/g, "");
   subject = subject.replace(/\s+/g, " ").trim();
-
-  // Final cleanup: standalone "- 0" leftovers
   subject = subject.replace(/\s+-\s+\d+\s*$/g, "").trim();
   subject = subject.replace(/^[\s\-,]+|[\s\-,]+$/g, "").trim();
-
-  // Unmatched candidates (hints for user)
-  const unmatched_codes = candidates.filter((c) => !matched_codes.includes(c));
 
   return {
     so_number,
     project_code,
-    machine_code,
+    project_code_source,
+    machine_codes,
+    machine_codes_db: Array.from(dbMachines),
     subject: subject.length > 0 ? subject : undefined,
-    unmatched_codes,
+    unmatched_codes: unknownMachines,
   };
 }
 
