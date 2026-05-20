@@ -9,7 +9,7 @@ export type IconName =
   | "calendar" | "clip-list" | "inbox" | "history"
   | "plane" | "stop" | "play" | "pause" | "car" | "wrench"
   | "cloud" | "send" | "alert" | "dot" | "refresh"
-  | "doc" | "star" | "trending-up";
+  | "doc" | "star" | "trending-up" | "phone" | "mail";
 
 export type IconProps = {
   name: IconName;
@@ -183,6 +183,15 @@ const ICON_PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="m3 17 6-6 4 4 8-8" />
       <path d="M14 7h7v7" />
+    </>
+  ),
+  phone: (
+    <path d="M5 4h3l2 5-2.5 1.5a11 11 0 0 0 6 6L15 14l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z" />
+  ),
+  mail: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3 7 9 6 9-6" />
     </>
   ),
 };
