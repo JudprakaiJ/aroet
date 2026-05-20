@@ -7,7 +7,7 @@ import { computePayPeriod, type PayPeriodPreset } from "@/lib/pay-period";
 import { listActiveEngineers, getHoursSessions, aggregateTotals } from "./queries";
 import { PeriodPicker } from "./period-picker";
 import { TotalsCard } from "./totals-card";
-import { HoursTable } from "./hours-table";
+import { HoursSection } from "./hours-section";
 
 const ME = "JKH";
 
@@ -98,7 +98,12 @@ export default async function WorkforcePage({
         </div>
 
         <TotalsCard totals={totals} />
-        <HoursTable sessions={sessions} start={period.start} end={period.end} />
+        <HoursSection
+          sessions={sessions}
+          start={period.start}
+          end={period.end}
+          engineerCode={engineer}
+        />
 
         <div style={{ height: 40 }} />
       </div>
