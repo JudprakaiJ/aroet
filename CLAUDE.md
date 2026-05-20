@@ -57,6 +57,7 @@ Current migrations:
 | `13_customer_geo_cleanup.sql` | Data cleanup of `customers.city` / `customers.country`: standalone country names smashed in city, "<city>, COUNTRY" jammed in one field, "<postal> COUNTRY" no-comma cases, trailing commas, and country inference from company name. Re-runnable. |
 | `14_drop_cases_description.sql` | **⚠ pending — run after deploy.** Drops the legacy `cases.description` column. The code stopped reading/writing it in phase 6f (Subject field has been the only entry point since phase 5P). |
 | `15_drop_machines_version.sql` | **⚠ pending — run after deploy.** Drops the `machines.version` column. Phase 6g consolidated "machine type" onto `product_code` — MCVP8 V1/V2 distinction now lives in the product code itself (`MCVP8V1` vs `MCVP8V2`), which is what the checklist resolver already keyed on. |
+| `16_clean_checklist_text.sql` | Phase 6h-2 cleanup of the Belgian-English in `checklist_items.text` (322 of 460 items). Idempotent — keyed on `(machine_type, version, section_no, item_no)` with `text <> new_text` guard, so re-runs are no-ops. Engineer pass/fail results key off `item_id` so this is a pure text refresh. Canonical source is `sql/checklist-data.json`. |
 
 ⚠️ **Migration drift is a real footgun** — Supabase joins to a missing table return `[]` *silently* (no error). If a query that should return rows returns empty, verify the table actually exists in the DB before debugging code. Use the Supabase MCP `list_tables` or a SQL probe.
 
@@ -84,13 +85,14 @@ Top-level routes (redesign branch, all live):
 | `/cases` | engineer | Card list (mobile) / table (desktop) with filter rail + scope chips |
 | `/cases/new` | engineer | Smart-paste + manual create. Multi-machine + inline machine register |
 | `/cases/[so_number]` | engineer | Hero + 5 tabs (Sessions / Refs / Admin / Checklist / Similar) + Edit case sheet |
-| `/customers` + `/customers/[code]` | admin | List + detail with Contacts / Machines / Cases tabs |
-| `/machines` + `/machines/[machine_no]` | admin | List + service history per machine |
+| `/customers` + `/customers/[code]` | admin | List + detail with Contacts / Machines / Cases tabs. Admin: "+ New customer", Edit / Delete (guarded), Add/Edit/Delete contact, Add machine pre-filled with this customer |
+| `/machines` + `/machines/[machine_no]` | admin | List + service history per machine. Admin: "+ New machine" (customer picker), Edit / Delete (guarded) |
 | `/planning` | all | Engineer × N-day grid (1w/2w/4w). Click any cell to assign / edit |
 | `/workforce` | all | Pay-period Hours timesheet. Edit / add / delete sessions inline |
 | `/workforce/queue` | admin | Approvals queue grouped by engineer. Approve / bulk-approve / return-with-reason |
+| `/admin/checklists` + `/admin/checklists/[id]` | admin | PM checklist template editor — list, create, edit template / sections / items, duplicate templates, ↑↓ reorder, bulk-paste items. Schema unchanged. |
 | `/admin/bulk-reparse` | admin | Batched reparse of all planner notes with live progress |
-| `/me` | engineer | Profile + Demo role toggle + Acting-as (admin identity for approvals) + shortcuts |
+| `/me` | engineer | Profile + (legacy) demo role toggle + shortcuts. Real role + identity come from `currentUser()` since phase 6a. |
 
 Path alias `@/*` → `src/*` (tsconfig). Use it instead of relative paths beyond one level.
 
@@ -381,12 +383,27 @@ select table_name from information_schema.tables
 - OFF → office_minutes = 480
 - AL/SICK/PERS → 0 ทั้งหมด (leave, ไม่ต้อง SO)
 
+### Phase 6 (เสร็จแล้ว)
+
+- [x] **6a** PIN auth (sql/12 + `src/lib/auth/*` + `middleware.ts`)
+- [x] **6b** Delete case when no sessions logged
+- [x] **6c** Admin can delete approved sessions
+- [x] **6d** Drop dead `JKH` constants + demo cookie defs (auth seam closed)
+- [x] **6e** Customer / Machine CRUD sheets on `/customers` + `/machines` (admin-only)
+- [x] **6f** Drop `cases.description` from code (sql/14 pending)
+- [x] **6g** Drop `machines.version` — product_code IS the machine type (sql/15 pending)
+- [x] **6h-1** Rename "Product" → "Machine type" in Machine UI
+- [x] **6h-2** Clean Belgian-English in checklist items (sql/16, 322 of 460 changed)
+- [x] **6h-3** Admin checklist editor at `/admin/checklists` (templates / sections / items CRUD + duplicate + bulk paste)
+- [x] **Codespaces fix** — `next.config.ts` allows `*.app.github.dev` for Server Actions
+
 ### เหลือก่อน merge → `main`
 
-- [ ] Sprint 6 — Auth (replace `ME='JKH'` + cookies → real session, RLS on)
-- [ ] Customer / machine **create/edit modal** จากหน้า `/customers` + `/machines` (ตอนนี้สร้างได้แค่ผ่าน /cases/new)
+- [ ] รัน sql/14 + sql/15 ใน Supabase SQL Editor (drop legacy columns)
+- [ ] เพิ่ม 7 templates ที่ขาด (12 MEVP, 34 MITSF, 42 SR2, D1 ProMapper, F1 MTVP4, F3 MCVP4-V3, H2 SR3) ผ่าน `/admin/checklists` (PDFs ใน `Checklist for Maintenance job/`)
 - [ ] Checklist photo upload (Supabase Storage)
 - [ ] Notification realtime (Supabase Realtime + persistent unread state)
+- [ ] RLS on (เปิดทุกตาราง + เขียน policies — ทำท้ายสุด)
 - [ ] Visual smoke test สาย mobile (375px) + desktop (1400px) ก่อน merge
 
 ### Reference files
