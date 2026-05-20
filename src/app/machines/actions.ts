@@ -2,6 +2,13 @@
 
 import { createServiceClient } from "@/lib/supabase/service";
 import { revalidatePath } from "next/cache";
+import { currentUser, isApprover } from "@/lib/auth/current-user";
+
+async function adminOrError(): Promise<string | null> {
+  const me = await currentUser();
+  if (!me || !isApprover(me.role)) return "Admin role required";
+  return null;
+}
 
 export interface MachineInput {
   machine_no: string;
@@ -18,6 +25,8 @@ export interface MachineInput {
 export async function createMachine(
   input: MachineInput
 ): Promise<{ success: boolean; machine_no?: string; error?: string }> {
+  const denied = await adminOrError();
+  if (denied) return { success: false, error: denied };
   const supabase = createServiceClient();
 
   if (!input.machine_no?.trim()) return { success: false, error: "Machine number required" };
@@ -60,6 +69,8 @@ export async function updateMachine(
   machineNo: string,
   input: Partial<MachineInput>
 ): Promise<{ success: boolean; error?: string }> {
+  const denied = await adminOrError();
+  if (denied) return { success: false, error: denied };
   const supabase = createServiceClient();
   const updates: any = {};
 
@@ -92,6 +103,8 @@ export async function updateMachine(
 export async function deleteMachine(
   machineNo: string
 ): Promise<{ success: boolean; error?: string }> {
+  const denied = await adminOrError();
+  if (denied) return { success: false, error: denied };
   const supabase = createServiceClient();
 
   // Check if machine is referenced

@@ -3,6 +3,13 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { currentUser, isApprover } from "@/lib/auth/current-user";
+
+async function adminOrError(): Promise<string | null> {
+  const me = await currentUser();
+  if (!me || !isApprover(me.role)) return "Admin role required";
+  return null;
+}
 
 export interface CustomerContactInput {
   name: string;
@@ -25,6 +32,8 @@ export interface CustomerInput {
 export async function createCustomer(
   input: CustomerInput
 ): Promise<{ success: boolean; code?: string; error?: string }> {
+  const denied = await adminOrError();
+  if (denied) return { success: false, error: denied };
   const supabase = createServiceClient();
 
   if (!input.name?.trim()) return { success: false, error: "Legal name required" };
@@ -90,6 +99,8 @@ export async function updateCustomer(
   code: string,
   input: Partial<CustomerInput>
 ): Promise<{ success: boolean; error?: string }> {
+  const denied = await adminOrError();
+  if (denied) return { success: false, error: denied };
   const supabase = createServiceClient();
 
   const updates: any = {};
@@ -110,6 +121,8 @@ export async function updateCustomer(
 export async function deleteCustomer(
   code: string
 ): Promise<{ success: boolean; error?: string }> {
+  const denied = await adminOrError();
+  if (denied) return { success: false, error: denied };
   const supabase = createServiceClient();
 
   // Check if customer has cases
@@ -142,6 +155,8 @@ export async function addContactToCustomer(
   customerCode: string,
   contact: CustomerContactInput
 ): Promise<{ success: boolean; error?: string }> {
+  const denied = await adminOrError();
+  if (denied) return { success: false, error: denied };
   const supabase = createServiceClient();
   if (!contact.name?.trim()) return { success: false, error: "Contact name required" };
 
@@ -171,6 +186,8 @@ export async function updateContact(
   contactId: number,
   input: CustomerContactInput
 ): Promise<{ success: boolean; error?: string }> {
+  const denied = await adminOrError();
+  if (denied) return { success: false, error: denied };
   const supabase = createServiceClient();
 
   // Get the customer_code first for revalidation
@@ -207,6 +224,8 @@ export async function updateContact(
 }
 
 export async function deleteContact(contactId: number): Promise<{ success: boolean; error?: string }> {
+  const denied = await adminOrError();
+  if (denied) return { success: false, error: denied };
   const supabase = createServiceClient();
 
   const { data: existing } = await supabase

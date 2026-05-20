@@ -2,11 +2,13 @@ import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
-import { meCode } from "@/lib/auth/current-user";
+import { currentUser, isApprover, meCode } from "@/lib/auth/current-user";
 import { listMachines } from "./queries";
+import { listCustomersLite } from "../customers/queries";
 import { MachineFilterBar } from "./filter-bar";
 import { MachineListRow } from "./list-row";
 import { DesktopMachinesTable } from "./desktop-machines-table";
+import { NewMachineButton } from "./new-machine-button";
 
 
 export const dynamic = "force-dynamic";
@@ -21,11 +23,14 @@ export default async function MachinesPage({
   const q = sp.q ?? "";
   const unknownVersion = sp.version === "unknown";
 
-  const [machines, activeSession, notifications] = await Promise.all([
+  const [machines, activeSession, notifications, me] = await Promise.all([
     listMachines({ q, unknownVersion }),
     getActiveSession(ME),
     getNotifications(ME),
+    currentUser(),
   ]);
+  const isAdmin = !!me && isApprover(me.role);
+  const customersLite = isAdmin ? await listCustomersLite() : [];
 
   return (
     <>
@@ -44,8 +49,11 @@ export default async function MachinesPage({
 
       {/* Mobile */}
       <div className="scroll md:hidden">
-        <div style={{ padding: "0 14px 8px" }}>
-          <MachineFilterBar initialQ={q} unknownVersion={unknownVersion} />
+        <div style={{ padding: "0 14px 8px", display: "flex", gap: 8, alignItems: "center" }}>
+          <div style={{ flex: 1 }}>
+            <MachineFilterBar initialQ={q} unknownVersion={unknownVersion} />
+          </div>
+          {isAdmin && <NewMachineButton customers={customersLite} />}
         </div>
         {machines.length === 0 ? (
           <div
@@ -88,6 +96,7 @@ export default async function MachinesPage({
             <span style={{ fontSize: 11.5, color: "var(--ink-3)", marginLeft: "auto" }}>
               {machines.length} result{machines.length === 1 ? "" : "s"}
             </span>
+            {isAdmin && <NewMachineButton customers={customersLite} />}
           </div>
           <DesktopMachinesTable machines={machines} />
         </div>

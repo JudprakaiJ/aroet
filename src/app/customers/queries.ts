@@ -57,6 +57,18 @@ export type CustomerDetail = {
   cases: CustomerCase[];
 };
 
+export type CustomerLite = { code: string; name: string };
+
+export async function listCustomersLite(): Promise<CustomerLite[]> {
+  const supabase = createServiceClient();
+  const { data } = await supabase
+    .from("customers")
+    .select("code, name")
+    .order("name", { ascending: true })
+    .limit(2000);
+  return (data ?? []) as CustomerLite[];
+}
+
 export async function listCustomers(filters: CustomerListFilters): Promise<CustomerListItem[]> {
   const supabase = createServiceClient();
 

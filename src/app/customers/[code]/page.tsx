@@ -3,14 +3,16 @@ import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
-import { meCode } from "@/lib/auth/current-user";
+import { currentUser, isApprover, meCode } from "@/lib/auth/current-user";
 import { CodeBadge } from "@/components/primitives/code-badge";
 import { Icon } from "@/components/icons";
-import { getCustomer } from "../queries";
+import { getCustomer, listCustomersLite } from "../queries";
 import { TabsStrip } from "./tabs-strip";
 import { ContactsPanel } from "./contacts-panel";
 import { MachinesPanel } from "./machines-panel";
 import { CasesPanel } from "./cases-panel";
+import { DetailActions } from "./detail-actions";
+import { NewMachineButton } from "../../machines/new-machine-button";
 
 
 export const dynamic = "force-dynamic";
@@ -31,13 +33,17 @@ export default async function CustomerDetailPage({
   const { tab: rawTab } = await searchParams;
   const tab: TabId = (TAB_IDS as string[]).includes(rawTab ?? "") ? (rawTab as TabId) : "machines";
 
-  const [customer, activeSession, notifications] = await Promise.all([
+  const [customer, activeSession, notifications, me] = await Promise.all([
     getCustomer(decoded),
     getActiveSession(ME),
     getNotifications(ME),
+    currentUser(),
   ]);
+  const isAdmin = !!me && isApprover(me.role);
 
   if (!customer) notFound();
+
+  const customersLite = isAdmin && tab === "machines" ? await listCustomersLite() : [];
 
   const loc = [customer.city, customer.country].filter(Boolean).join(", ");
 
@@ -84,6 +90,8 @@ export default async function CustomerDetailPage({
               {customer.name}
             </div>
           </div>
+          {isAdmin && <DetailActions c={customer} />}
+
           {(customer.address || customer.notes || customer.contact_name) && (
             <div className="card" style={{ padding: 12, display: "grid", gap: 10 }}>
               {customer.contact_name && (
@@ -133,9 +141,28 @@ export default async function CustomerDetailPage({
           ]}
         />
 
-        {tab === "machines" && <MachinesPanel machines={customer.machines} />}
+        {tab === "machines" && (
+          <>
+            {isAdmin && (
+              <div style={{ padding: "0 14px 8px", display: "flex", justifyContent: "flex-end" }}>
+                <NewMachineButton
+                  customers={customersLite}
+                  defaultCustomerCode={customer.code}
+                  label="Add machine"
+                />
+              </div>
+            )}
+            <MachinesPanel machines={customer.machines} />
+          </>
+        )}
         {tab === "cases" && <CasesPanel cases={customer.cases} />}
-        {tab === "contacts" && <ContactsPanel contacts={customer.contacts} />}
+        {tab === "contacts" && (
+          <ContactsPanel
+            contacts={customer.contacts}
+            customerCode={customer.code}
+            admin={isAdmin}
+          />
+        )}
 
         <div style={{ height: 40 }} />
       </div>

@@ -4,12 +4,14 @@ import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
-import { meCode } from "@/lib/auth/current-user";
+import { currentUser, isApprover, meCode } from "@/lib/auth/current-user";
 import { CodeBadge } from "@/components/primitives/code-badge";
 import { Icon } from "@/components/icons";
 import { fmtDate } from "@/lib/format";
 import { getMachine } from "../queries";
+import { listCustomersLite } from "../../customers/queries";
 import { ServiceHistoryTable } from "./service-history-table";
+import { DetailActions } from "./detail-actions";
 
 
 export const dynamic = "force-dynamic";
@@ -23,13 +25,17 @@ export default async function MachineDetailPage({
   const { machine_no } = await params;
   const decoded = decodeURIComponent(machine_no);
 
-  const [machine, activeSession, notifications] = await Promise.all([
+  const [machine, activeSession, notifications, me] = await Promise.all([
     getMachine(decoded),
     getActiveSession(ME),
     getNotifications(ME),
+    currentUser(),
   ]);
+  const isAdmin = !!me && isApprover(me.role);
 
   if (!machine) notFound();
+
+  const customersLite = isAdmin ? await listCustomersLite() : [];
 
   return (
     <>
@@ -134,6 +140,8 @@ export default async function MachineDetailPage({
               </div>
             </div>
           )}
+
+          {isAdmin && <DetailActions m={machine} customers={customersLite} />}
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
             <StatCard label="Cases" value={machine.totals.all} />
