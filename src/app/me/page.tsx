@@ -117,6 +117,13 @@ export default async function MePage() {
   );
 }
 
+const ROLE_LABEL: Record<string, string> = {
+  engineer: "Engineer",
+  tech_manager: "Tech Manager",
+  admin: "Admin",
+  boss: "Boss",
+};
+
 function ProfileCard({
   code,
   name,
@@ -132,20 +139,38 @@ function ProfileCard({
   casesCount: number;
   isActive: boolean;
 }) {
+  const roleLabel = ROLE_LABEL[role] ?? role;
+  const isAdminRole = role === "admin" || role === "boss";
   return (
     <div className="card" style={{ padding: 16 }}>
       <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 12 }}>
         <Avatar code={code} size={56} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: "var(--ink)" }}>{name}</div>
-          <div className="mono" style={{ fontSize: 12, color: "var(--ink-3)", marginTop: 2 }}>
-            {code} · {role}
-          </div>
-          {isActive && (
-            <span className="chip chip-red" style={{ marginTop: 4 }}>
-              <Icon name="play" size={11} /> Clocked in now
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              marginTop: 4,
+              flexWrap: "wrap",
+            }}
+          >
+            <span className="mono" style={{ fontSize: 11.5, color: "var(--ink-3)", fontWeight: 600 }}>
+              {code}
             </span>
-          )}
+            <span
+              className={isAdminRole ? "chip chip-red" : "chip"}
+              style={{ fontSize: 10, fontWeight: 600 }}
+            >
+              {roleLabel}
+            </span>
+            {isActive && (
+              <span className="chip chip-red" style={{ fontSize: 10 }}>
+                <Icon name="play" size={10} /> Clocked in
+              </span>
+            )}
+          </div>
         </div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
