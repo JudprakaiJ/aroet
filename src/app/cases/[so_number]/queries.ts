@@ -5,7 +5,6 @@ export type CaseDetail = {
   so_number: string;
   sr_number: string | null;
   title: string | null;
-  description: string | null;
   service_type_code: string | null;
   service_type_name: string | null;
   customer_code: string | null;
@@ -104,7 +103,7 @@ export async function getCase(so_number: string): Promise<CaseDetail | null> {
   const { data: c } = await supabase
     .from("cases")
     .select(
-      `so_number, sr_number, title, description, service_type_code, service_type_name,
+      `so_number, sr_number, title, service_type_code, service_type_name,
        customer_code, customer_name, contact_name, project_code, status, due_date,
        close_date, created_at, source, customer_po, machine_no`
     )

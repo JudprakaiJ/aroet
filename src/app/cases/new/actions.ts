@@ -12,7 +12,6 @@ export interface NewCaseInput {
   project_code?: string;
   service_type_code?: string;
   title?: string;
-  description?: string;
   due_date?: string;
   lead_engineer?: string;
   other_engineers?: string[];
@@ -183,7 +182,6 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
       so_number: input.so_number.trim(),
       sr_number: input.sr_number?.trim() || null,
       title: input.title?.trim() || null,
-      description: input.description?.trim() || null,
       service_type_code: serviceTypeCode,
       service_type_name: SERVICE_TYPE_NAMES[serviceTypeCode] || serviceTypeCode,
       customer_code: customer.code,

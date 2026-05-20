@@ -54,7 +54,8 @@ Current migrations:
 | `10_checklist_per_machine.sql` | **Per-machine PM checklist** — backfills `case_checklists.machine_no` (primary first, fallback to `cases.machine_no`), UNIQUE on `(so_number, machine_no)`, supporting index |
 | `11_grant_service_role.sql` | **Grants service_role write on every public table** + default privileges. Without this, server actions using `createServiceClient()` hit `permission denied for table ...` on INSERT/UPDATE because earlier migrations only granted `anon, authenticated`. |
 | `12_auth.sql` | Phase 6 PIN auth: `engineers.pin_hash` column + `login_attempts` rate-limit table + bumps JKH to `role='admin'` for demo. |
-| `13_customer_geo_cleanup.sql` | **⚠ pending — not applied yet.** Data cleanup of `customers.city` / `customers.country`: standalone country names smashed in city, "<city>, COUNTRY" jammed in one field, "<postal> COUNTRY" no-comma cases, trailing commas, and country inference from company name. Re-runnable. Run via Supabase SQL Editor when ready. |
+| `13_customer_geo_cleanup.sql` | Data cleanup of `customers.city` / `customers.country`: standalone country names smashed in city, "<city>, COUNTRY" jammed in one field, "<postal> COUNTRY" no-comma cases, trailing commas, and country inference from company name. Re-runnable. |
+| `14_drop_cases_description.sql` | **⚠ pending — run after deploy.** Drops the legacy `cases.description` column. The code stopped reading/writing it in phase 6f (Subject field has been the only entry point since phase 5P). |
 
 ⚠️ **Migration drift is a real footgun** — Supabase joins to a missing table return `[]` *silently* (no error). If a query that should return rows returns empty, verify the table actually exists in the DB before debugging code. Use the Supabase MCP `list_tables` or a SQL probe.
 
@@ -196,7 +197,7 @@ Five tabs via `?tab=sessions|refs|admin|tasks|similar`, with `tasks` rendered as
 - **Project code fallback**: when no DB match, falls back to regex on `Line#NN` / `Group N` / `MCE#N` and returns `project_code_source: 'pattern'` so the UI labels it.
 - **Inline machine register**: paste surfaces a warning + "Add MCSF15" chips when machines are unknown. Opens a floating card with `machine_no` + `product_code` + `serial_no`; on save the machine is persisted and added to the form.
 - **Manual list**: dashed "+ New machine" chip at the end of customer's machines triggers the same flow.
-- **Subject field** replaces separate Title + Description. `createCase` accepts the merged text into both columns for now; `description` no longer required.
+- **Subject field** replaces separate Title + Description. `createCase` writes it into `cases.title` only — the legacy `cases.description` column was dropped in phase 6f / sql/14.
 - **SR number is optional** (UI + server). Only SO + Customer + ≥1 Machine + Service type + Lead block submit.
 - **Layout**: Project code lives inside the "Customer & machines" card, directly under the Machines chip row — D365 titles read "machines, then project", so the form mirrors that. Service type is its own card after.
 - **Rollback safety**: if `case_machines` insert fails (e.g. FK violation), the case row is deleted and the engineer sees the real error — no orphan cases with empty machine lists.
@@ -385,7 +386,6 @@ select table_name from information_schema.tables
 - [ ] Customer / machine **create/edit modal** จากหน้า `/customers` + `/machines` (ตอนนี้สร้างได้แค่ผ่าน /cases/new)
 - [ ] Checklist photo upload (Supabase Storage)
 - [ ] Notification realtime (Supabase Realtime + persistent unread state)
-- [ ] Optional: drop `cases.description` column (Subject field รวมแล้ว) — schema cleanup
 - [ ] Visual smoke test สาย mobile (375px) + desktop (1400px) ก่อน merge
 
 ### Reference files

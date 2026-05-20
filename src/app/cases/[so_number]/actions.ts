@@ -212,7 +212,6 @@ const EDITABLE_STATUSES = new Set<CaseStatus>(["planned", "in_progress"]);
 
 export interface CasePatch {
   title?: string | null;
-  description?: string | null;
   customer_code?: string;
   machine_nos?: string[];
   project_code?: string | null;
@@ -244,7 +243,6 @@ export async function updateCase(
 
   const updates: Record<string, unknown> = {};
   if (patch.title !== undefined) updates.title = patch.title?.trim() || null;
-  if (patch.description !== undefined) updates.description = patch.description?.trim() || null;
   if (patch.project_code !== undefined) updates.project_code = patch.project_code?.trim() || null;
   if (patch.due_date !== undefined) updates.due_date = patch.due_date || null;
   if (patch.status !== undefined) updates.status = patch.status;

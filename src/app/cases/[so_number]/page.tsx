@@ -118,7 +118,6 @@ export default async function CaseDetailPage({
             customer={customer}
             machines={machineDetails}
             references={references}
-            description={c.description}
           />
         )}
         {tab === "admin" && <AdminTab c={c} log={log} />}

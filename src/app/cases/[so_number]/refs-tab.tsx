@@ -8,10 +8,9 @@ type Props = {
   customer: CustomerDetail | null;
   machines: MachineDetail[];
   references: CaseReference[];
-  description: string | null;
 };
 
-export function RefsTab({ customer, machines, references, description }: Props) {
+export function RefsTab({ customer, machines, references }: Props) {
   return (
     <div style={{ padding: "0 14px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
       {customer && (
@@ -45,17 +44,6 @@ export function RefsTab({ customer, machines, references, description }: Props) 
             </div>
           </div>
         </Link>
-      )}
-
-      {description && (
-        <div className="card" style={{ padding: 14 }}>
-          <div className="kicker" style={{ marginBottom: 6 }}>
-            Description
-          </div>
-          <div style={{ fontSize: 13, color: "var(--ink-2)", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
-            {description}
-          </div>
-        </div>
       )}
 
       {machines.length > 0 && (

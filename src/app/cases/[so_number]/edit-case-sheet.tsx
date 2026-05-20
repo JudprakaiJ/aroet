@@ -20,7 +20,6 @@ type Props = {
 export function EditCaseSheet({ open, onClose, c, customers, machines }: Props) {
   const router = useRouter();
   const [title, setTitle] = useState(c.title ?? "");
-  const [description, setDescription] = useState(c.description ?? "");
   const [customerCode, setCustomerCode] = useState(c.customer_code ?? "");
   const [machineNos, setMachineNos] = useState<string[]>(c.machines.map((m) => m.machine_no));
   const [projectCode, setProjectCode] = useState(c.project_code ?? "");
@@ -32,7 +31,6 @@ export function EditCaseSheet({ open, onClose, c, customers, machines }: Props) 
   useEffect(() => {
     if (!open) return;
     setTitle(c.title ?? "");
-    setDescription(c.description ?? "");
     setCustomerCode(c.customer_code ?? "");
     setMachineNos(c.machines.map((m) => m.machine_no));
     setProjectCode(c.project_code ?? "");
@@ -78,7 +76,6 @@ export function EditCaseSheet({ open, onClose, c, customers, machines }: Props) 
     startTransition(async () => {
       const r = await updateCase(c.so_number, {
         title: title.trim() || null,
-        description: description.trim() || null,
         customer_code: customerCode,
         machine_nos: machineNos,
         project_code: projectCode.trim() || null,
@@ -120,17 +117,6 @@ export function EditCaseSheet({ open, onClose, c, customers, machines }: Props) 
             placeholder="Short title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="fieldlbl">Description</label>
-          <textarea
-            className="field"
-            rows={3}
-            placeholder="Optional — anything notable about scope, requested by, etc."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
           />
         </div>
 

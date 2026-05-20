@@ -120,7 +120,6 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
       service_type_code: form.service_type_code,
       project_code: form.project_code.trim() || undefined,
       title: form.subject.trim() || undefined,
-      description: form.subject.trim() || undefined,
       due_date: form.due_date || undefined,
       lead_engineer: form.lead_engineer,
     };
