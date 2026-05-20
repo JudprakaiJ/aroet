@@ -260,32 +260,47 @@ export async function updateCase(
     const toRemove = Array.from(have).filter((m) => !wantSet.has(m));
 
     if (toRemove.length > 0) {
-      await supabase
+      const { error: delErr } = await supabase
         .from("case_machines")
         .delete()
         .eq("so_number", so_number)
         .in("machine_no", toRemove);
+      if (delErr) {
+        return { success: false, error: `Couldn't remove machine: ${delErr.message}` };
+      }
     }
     if (toAdd.length > 0) {
-      await supabase.from("case_machines").insert(
+      const { error: insErr } = await supabase.from("case_machines").insert(
         toAdd.map((m) => ({
           so_number,
           machine_no: m,
           is_primary: m === primary,
         }))
       );
+      if (insErr) {
+        return {
+          success: false,
+          error: `Couldn't attach machine: ${insErr.message}. Make sure all selected machines exist in the Machines table.`,
+        };
+      }
     }
     // Re-flag primary across all remaining rows so exactly one is primary.
     if (primary) {
-      await supabase
+      const { error: clrErr } = await supabase
         .from("case_machines")
         .update({ is_primary: false })
         .eq("so_number", so_number);
-      await supabase
+      if (clrErr) {
+        return { success: false, error: `Couldn't clear primary flag: ${clrErr.message}` };
+      }
+      const { error: setErr } = await supabase
         .from("case_machines")
         .update({ is_primary: true })
         .eq("so_number", so_number)
         .eq("machine_no", primary);
+      if (setErr) {
+        return { success: false, error: `Couldn't set primary: ${setErr.message}` };
+      }
     }
   }
 
