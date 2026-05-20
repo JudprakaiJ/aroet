@@ -6,14 +6,16 @@ import { CodeBadge } from "@/components/primitives/code-badge";
 import { Icon } from "@/components/icons";
 import { fmtDate } from "@/lib/format";
 import { DetailActions } from "./detail-actions";
-import type { CaseDetail, CaseAggregates } from "./queries";
+import type { CaseDetail, CaseAggregates, LiteCustomer, LiteMachine } from "./queries";
 
 type Props = {
   c: CaseDetail;
   aggregates: CaseAggregates;
+  customers: LiteCustomer[];
+  allMachines: LiteMachine[];
 };
 
-export function CaseHero({ c, aggregates }: Props) {
+export function CaseHero({ c, aggregates, customers, allMachines }: Props) {
   const leadCode = c.assignees.find((a) => a.is_lead)?.engineer_code ?? null;
 
   return (
@@ -146,7 +148,7 @@ export function CaseHero({ c, aggregates }: Props) {
         </div>
       )}
 
-      <DetailActions soNumber={c.so_number} status={c.status} machines={c.machines} />
+      <DetailActions c={c} customers={customers} allMachines={allMachines} />
     </div>
   );
 }

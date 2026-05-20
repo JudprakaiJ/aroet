@@ -225,6 +225,29 @@ export async function getCustomerDetail(code: string | null): Promise<CustomerDe
   return (data as CustomerDetail) ?? null;
 }
 
+export type LiteCustomer = { code: string; name: string };
+export type LiteMachine = { machine_no: string; customer_code: string | null; product_code: string | null };
+
+export async function listLiteCustomers(): Promise<LiteCustomer[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("customers")
+    .select("code, name")
+    .order("name", { ascending: true })
+    .limit(500);
+  return (data ?? []) as LiteCustomer[];
+}
+
+export async function listLiteMachines(): Promise<LiteMachine[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("machines")
+    .select("machine_no, customer_code, product_code")
+    .order("machine_no", { ascending: true })
+    .limit(2000);
+  return (data ?? []) as LiteMachine[];
+}
+
 export async function getMachineDetails(machineNos: string[]): Promise<MachineDetail[]> {
   if (machineNos.length === 0) return [];
   const supabase = await createClient();

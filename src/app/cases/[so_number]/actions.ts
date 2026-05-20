@@ -163,3 +163,134 @@ export async function updateCaseStatus(
   revalidatePath("/");
   return { success: true };
 }
+
+const SERVICE_TYPE_NAMES: Record<string, string> = {
+  "7505": "Curative maintenance",
+  "7504": "Installation",
+  "7515": "Curative maintenance under Warranty",
+  "7508": "Upgrade installation",
+  "7507": "Preventive Maintenance",
+  "7512": "Service Agreement",
+  "7235": "Service Promotion",
+  "7506": "Customer Training",
+  "7506-1": "Internal Training",
+};
+
+const EDITABLE_STATUSES = new Set<CaseStatus>(["planned", "in_progress"]);
+
+export interface CasePatch {
+  title?: string | null;
+  description?: string | null;
+  customer_code?: string;
+  machine_nos?: string[];
+  primary_machine_no?: string | null;
+  project_code?: string | null;
+  service_type_code?: string;
+  due_date?: string | null;
+  status?: CaseStatus;
+}
+
+export async function updateCase(
+  so_number: string,
+  patch: CasePatch
+): Promise<{ success: boolean; error?: string }> {
+  checkEnv();
+  const supabase = createServiceClient();
+
+  const { data: existing, error: readErr } = await supabase
+    .from("cases")
+    .select("status, customer_code")
+    .eq("so_number", so_number)
+    .maybeSingle();
+  if (readErr) return { success: false, error: readErr.message };
+  if (!existing) return { success: false, error: "Case not found" };
+  if (!EDITABLE_STATUSES.has(existing.status as CaseStatus) && patch.status !== existing.status) {
+    return {
+      success: false,
+      error: `Case is ${existing.status}. Reopen it (change status back to planned/in_progress) before editing other fields.`,
+    };
+  }
+
+  const updates: Record<string, unknown> = {};
+  if (patch.title !== undefined) updates.title = patch.title?.trim() || null;
+  if (patch.description !== undefined) updates.description = patch.description?.trim() || null;
+  if (patch.project_code !== undefined) updates.project_code = patch.project_code?.trim() || null;
+  if (patch.due_date !== undefined) updates.due_date = patch.due_date || null;
+  if (patch.status !== undefined) updates.status = patch.status;
+  if (patch.service_type_code !== undefined) {
+    updates.service_type_code = patch.service_type_code;
+    updates.service_type_name = SERVICE_TYPE_NAMES[patch.service_type_code] ?? patch.service_type_code;
+  }
+
+  if (patch.customer_code && patch.customer_code !== existing.customer_code) {
+    const { data: cust } = await supabase
+      .from("customers")
+      .select("name, contact_name, contact_mobile")
+      .eq("code", patch.customer_code)
+      .maybeSingle();
+    if (!cust) return { success: false, error: "Customer not found" };
+    updates.customer_code = patch.customer_code;
+    updates.customer_name = cust.name;
+    if (cust.contact_name) updates.contact_name = cust.contact_name;
+  }
+
+  // Apply primary machine to legacy cases.machine_no column.
+  if (patch.primary_machine_no !== undefined) {
+    updates.machine_no = patch.primary_machine_no || null;
+  } else if (patch.machine_nos && patch.machine_nos.length > 0) {
+    updates.machine_no = patch.machine_nos[0];
+  }
+
+  if (Object.keys(updates).length > 0) {
+    const { error } = await supabase.from("cases").update(updates).eq("so_number", so_number);
+    if (error) return { success: false, error: error.message };
+  }
+
+  // Reconcile case_machines if a new list was provided.
+  if (patch.machine_nos) {
+    const wantSet = new Set(patch.machine_nos);
+    const primary = patch.primary_machine_no ?? patch.machine_nos[0] ?? null;
+    const { data: current } = await supabase
+      .from("case_machines")
+      .select("machine_no")
+      .eq("so_number", so_number);
+    const have = new Set(((current ?? []) as { machine_no: string }[]).map((m) => m.machine_no));
+
+    const toAdd = patch.machine_nos.filter((m) => !have.has(m));
+    const toRemove = Array.from(have).filter((m) => !wantSet.has(m));
+
+    if (toRemove.length > 0) {
+      await supabase
+        .from("case_machines")
+        .delete()
+        .eq("so_number", so_number)
+        .in("machine_no", toRemove);
+    }
+    if (toAdd.length > 0) {
+      await supabase.from("case_machines").insert(
+        toAdd.map((m) => ({
+          so_number,
+          machine_no: m,
+          is_primary: m === primary,
+        }))
+      );
+    }
+    // Re-flag primary across all remaining rows so exactly one is primary.
+    if (primary) {
+      await supabase
+        .from("case_machines")
+        .update({ is_primary: false })
+        .eq("so_number", so_number);
+      await supabase
+        .from("case_machines")
+        .update({ is_primary: true })
+        .eq("so_number", so_number)
+        .eq("machine_no", primary);
+    }
+  }
+
+  revalidatePath(`/cases/${so_number}`);
+  revalidatePath("/cases");
+  revalidatePath("/");
+  return { success: true };
+}

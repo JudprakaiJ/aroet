@@ -21,6 +21,8 @@ import {
   getCustomerDetail,
   getMachineDetails,
   getSimilar,
+  listLiteCustomers,
+  listLiteMachines,
 } from "./queries";
 
 export const dynamic = "force-dynamic";
@@ -45,18 +47,31 @@ export default async function CaseDetailPage({
 
   const machineNos = c.machines.map((m) => m.machine_no);
 
-  const [aggregates, sessions, references, log, customer, machineDetails, similar, activeSession, notifications] =
-    await Promise.all([
-      getCaseAggregates(decoded),
-      tab === "sessions" ? getCaseSessions(decoded) : Promise.resolve([]),
-      tab === "refs" ? getCaseReferences(decoded) : Promise.resolve([]),
-      tab === "admin" ? getAdminLog(decoded) : Promise.resolve([]),
-      tab === "refs" ? getCustomerDetail(c.customer_code) : Promise.resolve(null),
-      tab === "refs" ? getMachineDetails(machineNos) : Promise.resolve([]),
-      tab === "similar" ? getSimilar(c) : Promise.resolve([]),
-      getActiveSession(ME),
-      getNotifications(ME),
-    ]);
+  const [
+    aggregates,
+    sessions,
+    references,
+    log,
+    customer,
+    machineDetails,
+    similar,
+    activeSession,
+    notifications,
+    liteCustomers,
+    liteMachines,
+  ] = await Promise.all([
+    getCaseAggregates(decoded),
+    tab === "sessions" ? getCaseSessions(decoded) : Promise.resolve([]),
+    tab === "refs" ? getCaseReferences(decoded) : Promise.resolve([]),
+    tab === "admin" ? getAdminLog(decoded) : Promise.resolve([]),
+    tab === "refs" ? getCustomerDetail(c.customer_code) : Promise.resolve(null),
+    tab === "refs" ? getMachineDetails(machineNos) : Promise.resolve([]),
+    tab === "similar" ? getSimilar(c) : Promise.resolve([]),
+    getActiveSession(ME),
+    getNotifications(ME),
+    listLiteCustomers(),
+    listLiteMachines(),
+  ]);
 
   return (
     <>
@@ -79,7 +94,12 @@ export default async function CaseDetailPage({
         notifications={notifications}
       />
       <div className="scroll">
-        <CaseHero c={c} aggregates={aggregates} />
+        <CaseHero
+          c={c}
+          aggregates={aggregates}
+          customers={liteCustomers}
+          allMachines={liteMachines}
+        />
         <TabsStrip
           soNumber={c.so_number}
           active={tab}
