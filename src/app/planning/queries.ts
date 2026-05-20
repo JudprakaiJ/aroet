@@ -17,6 +17,9 @@ export type PlanSession = {
   is_weekend: boolean | null;
   is_holiday: boolean | null;
   work_done: string | null;
+  source: string | null;
+  approval_status: string | null;
+  clock_in_at: string | null;
 };
 
 export type PlanCaseInfo = {
@@ -51,7 +54,7 @@ export async function listSessionsInRange(
   const { data, error } = await supabase
     .from("sessions")
     .select(
-      "id, engineer_code, session_date, type_code, so_number, activity_type, is_weekend, is_holiday, work_done"
+      "id, engineer_code, session_date, type_code, so_number, activity_type, is_weekend, is_holiday, work_done, source, approval_status, clock_in_at"
     )
     .gte("session_date", start)
     .lte("session_date", end)

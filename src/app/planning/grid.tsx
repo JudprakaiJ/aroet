@@ -1,6 +1,9 @@
-import Link from "next/link";
+"use client";
+
+import { useState } from "react";
 import { TypeBlock } from "@/components/primitives/type-block";
 import { Avatar } from "@/components/primitives/avatar";
+import { AssignSheet } from "./assign-sheet";
 import type { PlanEngineer, PlanSession, PlanCaseInfo } from "./queries";
 
 type Props = {
@@ -32,6 +35,22 @@ export function PlanGrid({ engineers, days, sessions, caseInfo }: Props) {
     if (!cellMap.has(key)) cellMap.set(key, s);
   }
 
+  const [editingEngineer, setEditingEngineer] = useState<PlanEngineer | null>(null);
+  const [editingDate, setEditingDate] = useState<string | null>(null);
+  const [editingSession, setEditingSession] = useState<PlanSession | null>(null);
+  const sheetOpen = editingEngineer !== null && editingDate !== null;
+
+  const openCell = (eng: PlanEngineer, date: string, session: PlanSession | undefined) => {
+    setEditingEngineer(eng);
+    setEditingDate(date);
+    setEditingSession(session ?? null);
+  };
+  const closeSheet = () => {
+    setEditingEngineer(null);
+    setEditingDate(null);
+    setEditingSession(null);
+  };
+
   if (engineers.length === 0) {
     return (
       <div style={{ padding: "24px 14px", textAlign: "center", color: "var(--ink-3)" }}>
@@ -41,93 +60,110 @@ export function PlanGrid({ engineers, days, sessions, caseInfo }: Props) {
   }
 
   return (
-    <div style={{ padding: "0 14px 14px" }}>
-      <div className="card" style={{ overflow: "hidden" }}>
-        <div style={{ overflow: "auto", maxHeight: "calc(100vh - 320px)" }}>
-          <table
-            className="dt-table"
-            style={{ minWidth: 700, tableLayout: "fixed", borderCollapse: "separate", borderSpacing: 0 }}
-          >
-            <thead>
-              <tr>
-                <th
-                  style={{
-                    position: "sticky",
-                    left: 0,
-                    background: "var(--surface-2)",
-                    zIndex: 2,
-                    width: 110,
-                    minWidth: 110,
-                  }}
-                >
-                  Engineer
-                </th>
-                {days.map((d) => {
-                  const s = dayShort(d);
-                  return (
-                    <th
-                      key={d}
-                      style={{
-                        width: 64,
-                        minWidth: 64,
-                        textAlign: "center",
-                        background: s.isWeekend ? "var(--wknd-bg)" : undefined,
-                        color: s.isWeekend ? "var(--wknd-fg)" : undefined,
-                        borderLeft: s.isMonday ? "2px solid var(--ink-4)" : undefined,
-                      }}
-                    >
-                      <div style={{ fontSize: 10, opacity: 0.7 }}>{s.dow}</div>
-                      <div className="mono" style={{ fontSize: 12, fontWeight: 700 }}>
-                        {s.day}
-                      </div>
-                    </th>
-                  );
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {engineers.map((eng) => (
-                <tr key={eng.code}>
-                  <td
+    <>
+      <div style={{ padding: "0 14px 14px" }}>
+        <div className="card" style={{ overflow: "hidden" }}>
+          <div style={{ overflow: "auto", maxHeight: "calc(100vh - 320px)" }}>
+            <table
+              className="dt-table"
+              style={{ minWidth: 700, tableLayout: "fixed", borderCollapse: "separate", borderSpacing: 0 }}
+            >
+              <thead>
+                <tr>
+                  <th
                     style={{
                       position: "sticky",
                       left: 0,
-                      background: "var(--surface)",
-                      zIndex: 1,
+                      background: "var(--surface-2)",
+                      zIndex: 2,
                       width: 110,
                       minWidth: 110,
                     }}
                   >
-                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                      <Avatar code={eng.code} />
-                      <div style={{ minWidth: 0 }}>
-                        <div className="mono" style={{ fontSize: 11.5, fontWeight: 600, color: "var(--ink)" }}>
-                          {eng.code}
-                        </div>
-                        <div
-                          className="truncate"
-                          style={{ fontSize: 10, color: "var(--ink-4)", maxWidth: 70 }}
-                        >
-                          {eng.role ?? "engineer"}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
+                    Engineer
+                  </th>
                   {days.map((d) => {
-                    const ds = dayShort(d);
-                    const s = cellMap.get(`${eng.code}|${d}`);
+                    const s = dayShort(d);
                     return (
-                      <Cell key={d} session={s} caseInfo={s?.so_number ? caseMap.get(s.so_number) : null} isWeekend={ds.isWeekend} isMonday={ds.isMonday} />
+                      <th
+                        key={d}
+                        style={{
+                          width: 64,
+                          minWidth: 64,
+                          textAlign: "center",
+                          background: s.isWeekend ? "var(--wknd-bg)" : undefined,
+                          color: s.isWeekend ? "var(--wknd-fg)" : undefined,
+                          borderLeft: s.isMonday ? "2px solid var(--ink-4)" : undefined,
+                        }}
+                      >
+                        <div style={{ fontSize: 10, opacity: 0.7 }}>{s.dow}</div>
+                        <div className="mono" style={{ fontSize: 12, fontWeight: 700 }}>
+                          {s.day}
+                        </div>
+                      </th>
                     );
                   })}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {engineers.map((eng) => (
+                  <tr key={eng.code}>
+                    <td
+                      style={{
+                        position: "sticky",
+                        left: 0,
+                        background: "var(--surface)",
+                        zIndex: 1,
+                        width: 110,
+                        minWidth: 110,
+                      }}
+                    >
+                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                        <Avatar code={eng.code} />
+                        <div style={{ minWidth: 0 }}>
+                          <div className="mono" style={{ fontSize: 11.5, fontWeight: 600, color: "var(--ink)" }}>
+                            {eng.code}
+                          </div>
+                          <div
+                            className="truncate"
+                            style={{ fontSize: 10, color: "var(--ink-4)", maxWidth: 70 }}
+                          >
+                            {eng.role ?? "engineer"}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    {days.map((d) => {
+                      const ds = dayShort(d);
+                      const s = cellMap.get(`${eng.code}|${d}`);
+                      return (
+                        <Cell
+                          key={d}
+                          session={s}
+                          caseInfo={s?.so_number ? caseMap.get(s.so_number) : null}
+                          isWeekend={ds.isWeekend}
+                          isMonday={ds.isMonday}
+                          onClick={() => openCell(eng, d, s)}
+                        />
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <Legend />
         </div>
-        <Legend />
       </div>
-    </div>
+
+      <AssignSheet
+        open={sheetOpen}
+        onClose={closeSheet}
+        engineer={editingEngineer}
+        date={editingDate}
+        session={editingSession}
+      />
+    </>
   );
 }
 
@@ -136,14 +172,19 @@ function Cell({
   caseInfo,
   isWeekend,
   isMonday,
+  onClick,
 }: {
   session: PlanSession | undefined;
   caseInfo: PlanCaseInfo | null | undefined;
   isWeekend: boolean;
   isMonday: boolean;
+  onClick: () => void;
 }) {
+  const isLocked = Boolean(
+    session && (session.approval_status === "approved" || session.clock_in_at)
+  );
   const tdStyle = {
-    padding: 4,
+    padding: 0,
     width: 64,
     minWidth: 64,
     height: 56,
@@ -152,30 +193,39 @@ function Cell({
     verticalAlign: "top" as const,
   };
 
-  if (!session) {
-    return <td style={tdStyle} />;
-  }
-
-  const t = session.type_code ?? "T";
+  const t = session?.type_code ?? "T";
 
   return (
     <td style={tdStyle}>
-      {session.so_number ? (
-        <Link
-          href={`/cases/${encodeURIComponent(session.so_number)}`}
-          style={{
-            display: "block",
-            textDecoration: "none",
-            color: "inherit",
-            height: "100%",
-          }}
-          title={caseInfo?.title ?? session.so_number}
-        >
-          <CellContent t={t} so={session.so_number} caseInfo={caseInfo} />
-        </Link>
-      ) : (
-        <CellContent t={t} so={null} caseInfo={null} />
-      )}
+      <button
+        type="button"
+        onClick={onClick}
+        title={
+          session
+            ? `${session.engineer_code} · ${session.session_date}\n${session.type_code ?? "?"}${
+                session.so_number ? ` · ${session.so_number}` : ""
+              }${caseInfo?.title ? `\n${caseInfo.title}` : ""}${isLocked ? "\n(locked — see Hours)" : ""}`
+            : "Add plan"
+        }
+        style={{
+          display: "block",
+          width: "100%",
+          height: "100%",
+          padding: 4,
+          background: "transparent",
+          border: 0,
+          textAlign: "left",
+          cursor: "pointer",
+          color: "inherit",
+          opacity: isLocked ? 0.7 : 1,
+        }}
+      >
+        {session ? (
+          <CellContent t={t} so={session.so_number} caseInfo={caseInfo} locked={isLocked} />
+        ) : (
+          <EmptyHint />
+        )}
+      </button>
     </td>
   );
 }
@@ -184,10 +234,12 @@ function CellContent({
   t,
   so,
   caseInfo,
+  locked,
 }: {
   t: string;
   so: string | null;
   caseInfo: PlanCaseInfo | null | undefined;
+  locked: boolean;
 }) {
   return (
     <div
@@ -198,6 +250,7 @@ function CellContent({
         gap: 2,
         justifyContent: "center",
         minHeight: 48,
+        position: "relative",
       }}
     >
       <TypeBlock t={t} />
@@ -209,6 +262,41 @@ function CellContent({
           {caseInfo?.project_code ?? so}
         </div>
       )}
+      {locked && (
+        <span
+          style={{
+            position: "absolute",
+            top: -2,
+            right: 0,
+            fontSize: 9,
+            color: "var(--ink-4)",
+          }}
+        >
+          🔒
+        </span>
+      )}
+    </div>
+  );
+}
+
+function EmptyHint() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "100%",
+        minHeight: 48,
+        color: "var(--ink-5)",
+        fontSize: 18,
+        fontWeight: 300,
+        opacity: 0,
+        transition: "opacity .15s",
+      }}
+      className="plan-empty-hint"
+    >
+      +
     </div>
   );
 }
@@ -233,6 +321,9 @@ function Legend() {
       {items.map((t) => (
         <TypeBlock key={t} t={t} />
       ))}
+      <span style={{ marginLeft: "auto", fontSize: 10.5, color: "var(--ink-4)" }}>
+        Click any cell to assign · 🔒 = locked
+      </span>
     </div>
   );
 }

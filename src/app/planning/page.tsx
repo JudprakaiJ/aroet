@@ -72,12 +72,6 @@ export default async function PlanningPage({
       <div className="scroll">
         <WeekNav from={from} weeks={weeks} rangeLabel={rangeLabel} />
 
-        <div style={{ padding: "0 14px 8px" }}>
-          <div className="kicker" style={{ marginBottom: 4 }}>
-            Read-only this phase — assign / edit comes next
-          </div>
-        </div>
-
         <PlanGrid engineers={engineers} days={days} sessions={sessions} caseInfo={cases} />
 
         <div style={{ height: 40 }} />
