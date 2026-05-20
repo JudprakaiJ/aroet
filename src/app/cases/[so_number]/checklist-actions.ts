@@ -13,12 +13,13 @@ export async function ensureCaseChecklist(
 ): Promise<{ success: boolean; case_checklist_id?: number; error?: string }> {
   const supabase = createServiceClient();
 
-  const { data: existing } = await supabase
+  // Lookup by (so_number, machine_no) — one checklist per case+machine.
+  let q = supabase
     .from("case_checklists")
     .select("id")
-    .eq("so_number", so_number)
-    .eq("template_id", template_id)
-    .maybeSingle();
+    .eq("so_number", so_number);
+  q = machine_no === null ? q.is("machine_no", null) : q.eq("machine_no", machine_no);
+  const { data: existing } = await q.maybeSingle();
 
   if (existing) return { success: true, case_checklist_id: existing.id };
 
