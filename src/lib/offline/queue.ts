@@ -1,17 +1,11 @@
 "use client";
 
-import {
-  pauseSession,
-  resumeSession,
-  changeActivity,
-  editStartTime,
-  switchActiveCase,
-} from "@/app/clock/actions";
+import { pauseSession, resumeSession, editStartTime } from "@/app/clock/actions";
 
 const STORAGE_KEY = "aroet_offline_queue";
 const EVT_CHANGED = "aroet:queue-changed";
 
-export type QueuedKey = "pause" | "resume" | "changeActivity" | "editStartTime" | "switchActiveCase";
+export type QueuedKey = "pause" | "resume" | "editStartTime";
 
 export type QueuedAction = {
   id: string;
@@ -66,16 +60,8 @@ async function execute(item: QueuedAction): Promise<{ success: boolean; error?: 
       return pauseSession(item.args[0] as number);
     case "resume":
       return resumeSession(item.args[0] as number);
-    case "changeActivity":
-      return changeActivity(item.args[0] as number, item.args[1] as string);
     case "editStartTime":
       return editStartTime(item.args[0] as number, item.args[1] as string);
-    case "switchActiveCase":
-      return switchActiveCase(
-        item.args[0] as number,
-        item.args[1] as string,
-        item.args[2] as string | null
-      );
   }
 }
 

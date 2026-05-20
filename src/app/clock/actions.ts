@@ -69,6 +69,122 @@ export async function startOfficeSession(): Promise<{ success: boolean; session_
   return clockIn({ so_number: null, machine_no: null, activity_type: "office" });
 }
 
+export type NextKind = "case" | "travel" | "office";
+
+export type ChainNextArgs = {
+  kind: NextKind;
+  so_number?: string | null;
+  machine_no?: string | null;
+};
+
+/**
+ * Close the current active session (if any) at "now" with its elapsed
+ * time routed to the appropriate bucket, then start a new session.
+ * One mid-day transition = one tap.
+ */
+export async function chainNext(
+  args: ChainNextArgs
+): Promise<{ success: boolean; session_id?: number; error?: string }> {
+  const supabase = createServiceClient();
+
+  // close current if any
+  const { data: current } = await supabase
+    .from("sessions")
+    .select(
+      "id, so_number, clock_in_at, paused_at, paused_total_minutes, activity_type"
+    )
+    .eq("engineer_code", ME)
+    .not("clock_in_at", "is", null)
+    .is("clock_out_at", null)
+    .order("clock_in_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (current) {
+    const now = new Date();
+    let pausedTotal = current.paused_total_minutes ?? 0;
+    if (current.paused_at) {
+      pausedTotal += Math.max(
+        0,
+        Math.round((now.getTime() - new Date(current.paused_at).getTime()) / 60_000)
+      );
+    }
+    const elapsedMin = Math.max(
+      0,
+      Math.round((now.getTime() - new Date(current.clock_in_at).getTime()) / 60_000) -
+        pausedTotal
+    );
+    let workMin = 0;
+    let officeMin = 0;
+    let travelMin = 0;
+    if (current.activity_type === "office") officeMin = elapsedMin;
+    else if (current.activity_type === "travel") travelMin = elapsedMin;
+    else workMin = elapsedMin;
+
+    const { error: closeErr } = await supabase
+      .from("sessions")
+      .update({
+        clock_out_at: now.toISOString(),
+        paused_at: null,
+        paused_total_minutes: pausedTotal,
+        travel_minutes: travelMin,
+        break_minutes: 0,
+        work_minutes: workMin,
+        office_minutes: officeMin,
+        approval_status: "draft",
+      })
+      .eq("id", current.id);
+
+    if (closeErr) return { success: false, error: closeErr.message };
+    if (current.so_number) revalidatePath(`/cases/${current.so_number}`);
+  }
+
+  // start new
+  const activityByKind: Record<NextKind, string> = {
+    case: "field",
+    travel: "travel",
+    office: "office",
+  };
+  const so = args.kind === "office" ? null : args.so_number ?? null;
+  const machine = args.kind === "office" ? null : args.machine_no ?? null;
+
+  return clockIn({
+    so_number: so,
+    machine_no: machine,
+    activity_type: activityByKind[args.kind],
+  });
+}
+
+export async function takeBreak(): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceClient();
+  const { data: active } = await supabase
+    .from("sessions")
+    .select("id, paused_at, clock_out_at")
+    .eq("engineer_code", ME)
+    .not("clock_in_at", "is", null)
+    .is("clock_out_at", null)
+    .limit(1)
+    .maybeSingle();
+  if (!active) return { success: false, error: "Nothing active to pause." };
+  if (active.paused_at) return { success: false, error: "Already on break." };
+  return pauseSession(active.id);
+}
+
+export async function endBreak(): Promise<{ success: boolean; error?: string }> {
+  const supabase = createServiceClient();
+  const { data: active } = await supabase
+    .from("sessions")
+    .select("id, paused_at, clock_out_at")
+    .eq("engineer_code", ME)
+    .not("clock_in_at", "is", null)
+    .is("clock_out_at", null)
+    .limit(1)
+    .maybeSingle();
+  if (!active) return { success: false, error: "Nothing active." };
+  if (!active.paused_at) return { success: false, error: "Not on break." };
+  return resumeSession(active.id);
+}
+
 export async function pauseSession(session_id: number): Promise<{ success: boolean; error?: string }> {
   const supabase = createServiceClient();
   const { data: s } = await supabase
@@ -190,83 +306,6 @@ export async function clockOut(
   return { success: true };
 }
 
-export type SwitchableCase = {
-  so_number: string;
-  title: string | null;
-  customer_name: string | null;
-  machine_no: string | null;
-};
-
-export async function listMyActiveCasesForSwitch(currentSo: string | null): Promise<SwitchableCase[]> {
-  const supabase = createServiceClient();
-  const { data: sos } = await supabase
-    .from("case_engineers")
-    .select("so_number")
-    .eq("engineer_code", ME);
-  const soList = ((sos ?? []) as { so_number: string }[]).map((r) => r.so_number);
-  if (soList.length === 0) return [];
-  const { data } = await supabase
-    .from("cases")
-    .select("so_number, title, customer_name, machine_no")
-    .in("so_number", soList)
-    .in("status", ["planned", "in_progress"])
-    .order("due_date", { ascending: true, nullsFirst: false });
-  return ((data ?? []) as SwitchableCase[]).filter((c) => c.so_number !== currentSo);
-}
-
-export async function switchActiveCase(
-  session_id: number,
-  new_so_number: string,
-  new_machine_no: string | null
-): Promise<{ success: boolean; error?: string }> {
-  const supabase = createServiceClient();
-  const { data: s } = await supabase
-    .from("sessions")
-    .select("so_number, clock_in_at, clock_out_at")
-    .eq("id", session_id)
-    .single();
-  if (!s || !s.clock_in_at || s.clock_out_at) return { success: false, error: "Not active" };
-  if (s.so_number === new_so_number) return { success: false, error: "Already on this case" };
-
-  const oldSo = s.so_number;
-  const { error } = await supabase
-    .from("sessions")
-    .update({ so_number: new_so_number, machine_no: new_machine_no })
-    .eq("id", session_id);
-  if (error) return { success: false, error: error.message };
-
-  revalidatePath("/");
-  if (oldSo) revalidatePath(`/cases/${oldSo}`);
-  revalidatePath(`/cases/${new_so_number}`);
-  return { success: true };
-}
-
-export async function changeActivity(
-  session_id: number,
-  new_activity_type: string
-): Promise<{ success: boolean; error?: string }> {
-  const supabase = createServiceClient();
-  const { data: s } = await supabase
-    .from("sessions")
-    .select("clock_in_at, clock_out_at, activity_type")
-    .eq("id", session_id)
-    .single();
-  if (!s || !s.clock_in_at || s.clock_out_at) return { success: false, error: "Not active" };
-  if (s.activity_type === new_activity_type) return { success: false, error: "Already on this activity" };
-
-  const { error } = await supabase
-    .from("sessions")
-    .update({
-      activity_type: new_activity_type,
-      type_code: typeCodeFor(new_activity_type),
-    })
-    .eq("id", session_id);
-  if (error) return { success: false, error: error.message };
-
-  revalidatePath("/");
-  return { success: true };
-}
-
 export async function editStartTime(
   session_id: number,
   new_clock_in_iso: string
@@ -334,116 +373,3 @@ export async function searchCasesForEmergency(query: string): Promise<EmergencyC
   }));
 }
 
-export type EmergencyMode = "continue" | "restart";
-
-export async function emergencySwitchCase(
-  session_id: number,
-  new_so_number: string,
-  new_machine_no: string | null,
-  mode: EmergencyMode,
-  new_activity_type?: string
-): Promise<{ success: boolean; new_session_id?: number; error?: string }> {
-  const supabase = createServiceClient();
-  const { data: s } = await supabase
-    .from("sessions")
-    .select(
-      "id, so_number, clock_in_at, paused_at, paused_total_minutes, activity_type, type_code, clock_out_at"
-    )
-    .eq("id", session_id)
-    .single();
-  if (!s || !s.clock_in_at || s.clock_out_at) return { success: false, error: "Not active" };
-  if (s.so_number === new_so_number && mode === "continue") {
-    return { success: false, error: "Already on this case" };
-  }
-
-  const oldSo = s.so_number;
-
-  if (mode === "continue") {
-    const { error } = await supabase
-      .from("sessions")
-      .update({
-        so_number: new_so_number,
-        machine_no: new_machine_no,
-        ...(new_activity_type
-          ? { activity_type: new_activity_type, type_code: typeCodeFor(new_activity_type) }
-          : {}),
-      })
-      .eq("id", session_id);
-    if (error) return { success: false, error: error.message };
-
-    revalidatePath("/");
-    if (oldSo) revalidatePath(`/cases/${oldSo}`);
-    revalidatePath(`/cases/${new_so_number}`);
-    return { success: true, new_session_id: session_id };
-  }
-
-  const now = new Date();
-  let pausedTotal = s.paused_total_minutes ?? 0;
-  if (s.paused_at) {
-    pausedTotal += Math.max(
-      0,
-      Math.round((now.getTime() - new Date(s.paused_at).getTime()) / 60_000)
-    );
-  }
-  const elapsedMin = Math.max(
-    0,
-    Math.round((now.getTime() - new Date(s.clock_in_at).getTime()) / 60_000) - pausedTotal
-  );
-  let workMin = 0;
-  let officeMin = 0;
-  let travelMin = 0;
-  if (s.activity_type === "office") officeMin = elapsedMin;
-  else if (s.activity_type === "travel") travelMin = elapsedMin;
-  else workMin = elapsedMin;
-
-  const { error: closeErr } = await supabase
-    .from("sessions")
-    .update({
-      clock_out_at: now.toISOString(),
-      paused_at: null,
-      paused_total_minutes: pausedTotal,
-      travel_minutes: travelMin,
-      break_minutes: 0,
-      work_minutes: workMin,
-      office_minutes: officeMin,
-      work_done: "Emergency switch — auto-closed",
-      approval_status: "draft",
-    })
-    .eq("id", session_id);
-  if (closeErr) return { success: false, error: closeErr.message };
-
-  const activity = new_activity_type ?? s.activity_type ?? "field";
-  const sessionDate = now.toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
-  const dow = new Date(sessionDate).getDay();
-
-  const { data: inserted, error: insertErr } = await supabase
-    .from("sessions")
-    .insert({
-      so_number: new_so_number,
-      machine_no: new_machine_no,
-      engineer_code: ME,
-      session_date: sessionDate,
-      activity_type: activity,
-      type_code: typeCodeFor(activity),
-      travel_minutes: 0,
-      break_minutes: 0,
-      work_minutes: 0,
-      office_minutes: 0,
-      is_weekend: dow === 0 || dow === 6,
-      is_holiday: false,
-      source: "manual",
-      approval_status: "draft",
-      clock_in_at: now.toISOString(),
-      paused_total_minutes: 0,
-    })
-    .select("id")
-    .single();
-
-  if (insertErr || !inserted) return { success: false, error: insertErr?.message ?? "Restart failed" };
-
-  revalidatePath("/");
-  revalidatePath("/cases");
-  if (oldSo) revalidatePath(`/cases/${oldSo}`);
-  revalidatePath(`/cases/${new_so_number}`);
-  return { success: true, new_session_id: inserted.id };
-}

@@ -1,33 +1,21 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Icon } from "@/components/icons";
-import { CasePickerSheet } from "./case-picker-sheet";
-import { startOfficeSession } from "@/app/clock/actions";
-import type { DashboardCase } from "@/app/dashboard/queries";
+import { WhatsNextSheet } from "./whats-next-sheet";
 
 type Props = {
   engineerCode: string;
-  cases: DashboardCase[];
 };
 
-export function SmartStartCTA({ engineerCode, cases }: Props) {
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-  const noCases = cases.length === 0;
-
-  const onStartOffice = () => {
-    setError(null);
-    startTransition(async () => {
-      const r = await startOfficeSession();
-      if (!r.success) setError(r.error ?? "Could not start office session");
-    });
-  };
+export function SmartStartCTA({ engineerCode }: Props) {
+  const [open, setOpen] = useState(false);
 
   return (
     <>
-      <div
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
         className="card"
         style={{
           padding: 16,
@@ -36,29 +24,26 @@ export function SmartStartCTA({ engineerCode, cases }: Props) {
           alignItems: "center",
           background: "linear-gradient(180deg, var(--red-50), var(--surface))",
           borderColor: "var(--red-line)",
+          width: "100%",
+          textAlign: "left",
+          cursor: "pointer",
         }}
       >
-        <button
-          type="button"
-          onClick={() => setPickerOpen(true)}
-          disabled={noCases}
-          aria-label="Pick case"
+        <div
           style={{
             width: 44,
             height: 44,
             borderRadius: 12,
-            background: noCases ? "var(--ink-5)" : "var(--red)",
+            background: "var(--red)",
             color: "#fff",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flex: "none",
-            cursor: noCases ? "not-allowed" : "pointer",
-            border: "none",
           }}
         >
           <Icon name="play" size={20} />
-        </button>
+        </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
             Ready when you are, {engineerCode}
@@ -73,53 +58,20 @@ export function SmartStartCTA({ engineerCode, cases }: Props) {
               marginTop: 2,
             }}
           >
-            {noCases
-              ? "No active cases — start office time for admin work."
-              : "Tap to clock in on a case, or start office time."}
+            Tap to clock in — case, travel, or office
           </div>
         </div>
-        <div style={{ display: "flex", gap: 6, flex: "none" }}>
-          <button
-            type="button"
-            className="dt-pill"
-            onClick={onStartOffice}
-            disabled={pending}
-            title="Start office time"
-          >
-            <Icon name="doc" size={12} /> Office
-          </button>
-          {!noCases && (
-            <button
-              type="button"
-              className="dt-pill primary"
-              onClick={() => setPickerOpen(true)}
-              disabled={pending}
-            >
-              <Icon name="play" size={12} /> Case
-            </button>
-          )}
-        </div>
-      </div>
+        <span className="dt-pill primary" style={{ flex: "none" }}>
+          What&apos;s next? <Icon name="chevron" size={12} />
+        </span>
+      </button>
 
-      {error && (
-        <div
-          className="card"
-          style={{
-            padding: 10,
-            background: "var(--danger-soft)",
-            borderColor: "rgba(220,38,38,.3)",
-            color: "var(--danger)",
-            fontSize: 13,
-            display: "flex",
-            gap: 6,
-            alignItems: "center",
-          }}
-        >
-          <Icon name="alert" size={12} /> {error}
-        </div>
-      )}
-
-      <CasePickerSheet open={pickerOpen} onClose={() => setPickerOpen(false)} cases={cases} />
+      <WhatsNextSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        hasActive={false}
+        paused={false}
+      />
     </>
   );
 }

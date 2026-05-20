@@ -55,7 +55,7 @@ export default async function DashboardPage() {
           {activeSession ? (
             <ActiveSessionCard session={activeSession} />
           ) : (
-            <SmartStartCTA engineerCode={DASHBOARD_ENGINEER} cases={myActive} />
+            <SmartStartCTA engineerCode={DASHBOARD_ENGINEER} />
           )}
         </div>
 
@@ -114,9 +114,9 @@ export default async function DashboardPage() {
             <ActiveSessionCard session={activeSession} />
           </div>
         )}
-        {!activeSession && myActive.length > 0 && (
+        {!activeSession && (
           <div style={{ marginBottom: 18 }}>
-            <SmartStartCTA engineerCode={DASHBOARD_ENGINEER} cases={myActive} />
+            <SmartStartCTA engineerCode={DASHBOARD_ENGINEER} />
           </div>
         )}
         <DesktopDashboard kpis={kpis} approvals={approvals} recent={recent} />

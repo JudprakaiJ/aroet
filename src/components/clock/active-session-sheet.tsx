@@ -1,21 +1,18 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { Sheet } from "@/components/sheet";
 import { Icon, type IconName } from "@/components/icons";
 import { TypeBlock } from "@/components/primitives/type-block";
 import { computeElapsedMinutes, type ActiveSession } from "@/lib/clock/types";
-import { callOrQueue } from "@/lib/offline/queue";
-import { SwitchCaseSheet } from "./switch-case-sheet";
-import { ChangeActivitySheet } from "./change-activity-sheet";
 import { EditStartTimeSheet } from "./edit-start-time-sheet";
+import { WhatsNextSheet } from "./whats-next-sheet";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   session: ActiveSession;
   onRequestClockOut: () => void;
-  onRequestEmergency?: () => void;
 };
 
 const ACTIVITY_ICON: Record<string, IconName> = {
@@ -35,11 +32,9 @@ function fmtElapsedSec(totalMin: number, extraSec: number): string {
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
-export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut, onRequestEmergency }: Props) {
+export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut }: Props) {
   const [, setTick] = useState(0);
-  const [pending, startTransition] = useTransition();
-  const [switchOpen, setSwitchOpen] = useState(false);
-  const [activityOpen, setActivityOpen] = useState(false);
+  const [whatsNextOpen, setWhatsNextOpen] = useState(false);
   const [editTimeOpen, setEditTimeOpen] = useState(false);
 
   useEffect(() => {
@@ -54,13 +49,6 @@ export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut, 
     : Math.floor((Date.now() - new Date(session.clock_in_at).getTime()) / 1000) % 60;
   const paused = Boolean(session.paused_at);
   const icon = ACTIVITY_ICON[session.activity_type] ?? "wrench";
-
-  const onPauseResume = () => {
-    startTransition(async () => {
-      if (paused) await callOrQueue("resume", [session.id]);
-      else await callOrQueue("pause", [session.id]);
-    });
-  };
 
   return (
     <Sheet
@@ -108,7 +96,7 @@ export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut, 
                 textTransform: "uppercase",
               }}
             >
-              {paused ? "Paused" : "Live"}
+              {paused ? "On break" : "Live"}
             </span>
           </div>
         </div>
@@ -153,48 +141,39 @@ export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut, 
           <button
             type="button"
             className="btn btn-secondary btn-block"
-            disabled={pending}
-            onClick={onPauseResume}
+            onClick={() => setWhatsNextOpen(true)}
           >
-            <Icon name={paused ? "play" : "pause"} size={14} />
-            {paused ? "Resume" : "Pause"}
+            <Icon name="refresh" size={14} />
+            What&apos;s next?
           </button>
           <button type="button" className="btn btn-primary btn-block" onClick={onRequestClockOut}>
             <Icon name="stop" size={12} />
-            Clock out
+            Done for today
           </button>
         </div>
 
         <div className="hairline" />
 
         <div className="card" style={{ padding: 0, overflow: "hidden" }}>
-          <SecondaryRow icon="refresh" label="Switch case" onClick={() => setSwitchOpen(true)} />
-          <SecondaryRow icon="sparkles" label="Change activity" onClick={() => setActivityOpen(true)} />
-          <SecondaryRow icon="clock" label="Edit start time" onClick={() => setEditTimeOpen(true)} isLast={!onRequestEmergency} />
-          {onRequestEmergency && (
-            <SecondaryRow
-              icon="bolt"
-              label="Emergency switch"
-              sublabel="Jump to urgent case (any SO)"
-              onClick={onRequestEmergency}
-              accent="danger"
-              isLast
-            />
-          )}
+          <SecondaryRow
+            icon="clock"
+            label="Edit start time"
+            sublabel="Backdate if you forgot to clock in"
+            onClick={() => setEditTimeOpen(true)}
+            isLast
+          />
         </div>
       </div>
 
-      <SwitchCaseSheet
-        open={switchOpen}
-        onClose={() => setSwitchOpen(false)}
-        sessionId={session.id}
-        currentSoNumber={session.so_number}
-      />
-      <ChangeActivitySheet
-        open={activityOpen}
-        onClose={() => setActivityOpen(false)}
-        sessionId={session.id}
-        currentActivity={session.activity_type}
+      <WhatsNextSheet
+        open={whatsNextOpen}
+        onClose={() => {
+          setWhatsNextOpen(false);
+          // active session likely changed; close the parent sheet too
+          onClose();
+        }}
+        hasActive
+        paused={paused}
       />
       <EditStartTimeSheet
         open={editTimeOpen}
@@ -212,16 +191,13 @@ function SecondaryRow({
   sublabel,
   onClick,
   isLast,
-  accent,
 }: {
   icon: IconName;
   label: string;
   sublabel?: string;
   onClick: () => void;
   isLast?: boolean;
-  accent?: "danger";
 }) {
-  const isDanger = accent === "danger";
   return (
     <button
       type="button"
@@ -245,8 +221,8 @@ function SecondaryRow({
           width: 32,
           height: 32,
           borderRadius: 8,
-          background: isDanger ? "var(--red-50)" : "var(--surface-2)",
-          color: isDanger ? "var(--red)" : "var(--ink-2)",
+          background: "var(--surface-2)",
+          color: "var(--ink-2)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -256,15 +232,7 @@ function SecondaryRow({
         <Icon name={icon} size={15} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: isDanger ? 700 : 500,
-            color: isDanger ? "var(--red)" : "var(--ink)",
-          }}
-        >
-          {label}
-        </div>
+        <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>{label}</div>
         {sublabel && (
           <div
             className="sub"
