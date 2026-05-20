@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
 import { RoleSwitcher } from "./role-switcher";
-import { getDemoRole } from "./role-actions";
+import { getDemoRole, getActingAs } from "./role-actions";
 import type { DemoRole } from "./role-types";
 
 const ME = "JKH";
@@ -35,7 +35,7 @@ export default async function MePage() {
   const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
   const monthStart = today.slice(0, 7) + "-01";
 
-  const [{ data: engineer }, { count: openCount }, { data: thisMonth }, activeSession, notifications, demoRole] =
+  const [{ data: engineer }, { count: openCount }, { data: thisMonth }, activeSession, notifications, demoRole, actingAs] =
     await Promise.all([
       supabase.from("engineers").select("code, full_name, role, is_active").eq("code", ME).maybeSingle(),
       supabase
@@ -50,6 +50,7 @@ export default async function MePage() {
       getActiveSession(ME),
       getNotifications(ME),
       getDemoRole(),
+      getActingAs(),
     ]);
 
   const monthMin = ((thisMonth ?? []) as Array<{
@@ -91,7 +92,7 @@ export default async function MePage() {
           casesCount={openCount ?? 0}
           isActive={Boolean(activeSession)}
         />
-        <RoleSwitcher current={demoRole} />
+        <RoleSwitcher current={demoRole} actingAs={actingAs} />
         <ShortcutsCard demoRole={demoRole} />
       </div>
       <div className="dt-body hidden md:block">
@@ -104,7 +105,7 @@ export default async function MePage() {
             casesCount={openCount ?? 0}
             isActive={Boolean(activeSession)}
           />
-          <RoleSwitcher current={demoRole} />
+          <RoleSwitcher current={demoRole} actingAs={actingAs} />
           <div style={{ gridColumn: "1 / -1" }}>
             <ShortcutsCard demoRole={demoRole} />
           </div>

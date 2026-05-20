@@ -17,6 +17,9 @@ export type HoursSession = {
   approval_status: string | null;
   source: string | null;
   work_done: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  return_reason: string | null;
 };
 
 export type EngineerLite = {
@@ -48,7 +51,7 @@ export async function getHoursSessions(
   const { data, error } = await supabase
     .from("sessions")
     .select(
-      "id, session_date, engineer_code, so_number, type_code, activity_type, travel_minutes, work_minutes, office_minutes, break_minutes, is_weekend, is_holiday, approval_status, source, work_done"
+      "id, session_date, engineer_code, so_number, type_code, activity_type, travel_minutes, work_minutes, office_minutes, break_minutes, is_weekend, is_holiday, approval_status, source, work_done, approved_by, approved_at, return_reason"
     )
     .eq("engineer_code", engineerCode)
     .gte("session_date", start)

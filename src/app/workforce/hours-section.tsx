@@ -151,7 +151,12 @@ export function HoursSection({ sessions, start, end, engineerCode }: Props) {
                     <td className="num">{(s.office_minutes ?? 0) > 0 ? fmtTime(s.office_minutes) : ""}</td>
                     <td className="num">{(s.break_minutes ?? 0) > 0 ? fmtTime(s.break_minutes) : ""}</td>
                     <td>
-                      <ApprovalChip status={s.approval_status} />
+                      <ApprovalChip
+                        status={s.approval_status}
+                        approvedBy={s.approved_by}
+                        approvedAt={s.approved_at}
+                        returnReason={s.return_reason}
+                      />
                     </td>
                     <td>
                       <span style={{ fontSize: 10.5, color: "var(--ink-4)" }}>
@@ -188,12 +193,41 @@ export function HoursSection({ sessions, start, end, engineerCode }: Props) {
   );
 }
 
-function ApprovalChip({ status }: { status: string | null }) {
+function ApprovalChip({
+  status,
+  approvedBy,
+  approvedAt,
+  returnReason,
+}: {
+  status: string | null;
+  approvedBy?: string | null;
+  approvedAt?: string | null;
+  returnReason?: string | null;
+}) {
   const key = (status ?? "draft") as ApprovalKey;
   const color = APPROVAL_COLOR[key] ?? APPROVAL_COLOR.draft;
+  const tooltipParts: string[] = [];
+  if (status === "approved" && approvedBy) {
+    tooltipParts.push(`Approved by ${approvedBy}`);
+    if (approvedAt) {
+      const d = new Date(approvedAt).toLocaleString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      tooltipParts.push(`on ${d}`);
+    }
+  }
+  if (status === "returned" && returnReason) {
+    tooltipParts.push(`Reason: ${returnReason}`);
+  }
+  const tooltip = tooltipParts.length > 0 ? tooltipParts.join(" ") : undefined;
   return (
     <span
       className="chip"
+      title={tooltip}
       style={{ background: color.bg, color: color.fg, fontSize: 10, fontWeight: 600 }}
     >
       {APPROVAL_LABEL[key] ?? status ?? "—"}

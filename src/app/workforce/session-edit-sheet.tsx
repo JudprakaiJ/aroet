@@ -114,6 +114,7 @@ export function SessionEditSheet({ open, onClose, session, defaultDate, engineer
   };
 
   const isApproved = session?.approval_status === "approved";
+  const isReturned = session?.approval_status === "returned";
 
   return (
     <Sheet
@@ -160,7 +161,7 @@ export function SessionEditSheet({ open, onClose, session, defaultDate, engineer
       }
     >
       <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 12 }}>
-        {isApproved && (
+        {isApproved && session?.approved_by && (
           <div
             className="card"
             style={{
@@ -171,7 +172,34 @@ export function SessionEditSheet({ open, onClose, session, defaultDate, engineer
               borderColor: "rgba(22,163,74,.3)",
             }}
           >
-            <Icon name="check" size={12} /> Approved — view only. Ask admin to return it for editing.
+            <Icon name="check" size={12} /> Approved by{" "}
+            <strong className="mono">{session.approved_by}</strong>
+            {session.approved_at && (
+              <span style={{ marginLeft: 4, opacity: 0.85 }}>
+                on{" "}
+                {new Date(session.approved_at).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "2-digit",
+                })}
+              </span>
+            )}{" "}
+            — view only. Ask admin to return it for editing.
+          </div>
+        )}
+        {isReturned && session?.return_reason && (
+          <div
+            className="card"
+            style={{
+              padding: 10,
+              background: "var(--danger-soft)",
+              color: "var(--danger)",
+              fontSize: 12,
+              borderColor: "rgba(220,38,38,.3)",
+            }}
+          >
+            <Icon name="alert" size={12} /> <strong>Returned:</strong>{" "}
+            {session.return_reason}
           </div>
         )}
 
