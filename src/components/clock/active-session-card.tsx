@@ -97,13 +97,17 @@ export function ActiveSessionCard({ session }: { session: ActiveSession }) {
             </span>
           </div>
           <div className="truncate" style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
-            {session.case_title ?? session.so_number ?? "Active session"}
+            {session.case_title ??
+              session.so_number ??
+              (session.activity_type === "office" ? "Office time" : "Active session")}
           </div>
           <div
             className="sub truncate"
             style={{ textTransform: "none", letterSpacing: 0, fontSize: 11.5, color: "var(--ink-3)" }}
           >
-            {session.customer_name ?? session.so_number ?? "—"}
+            {session.customer_name ??
+              session.so_number ??
+              (session.activity_type === "office" ? "Admin / reports / calls" : "—")}
           </div>
         </div>
         <div

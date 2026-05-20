@@ -7,7 +7,7 @@ import { typeCodeFor, type ClockOutReview } from "@/lib/clock/types";
 const ME = "JKH";
 
 type ClockInArgs = {
-  so_number: string;
+  so_number: string | null;
   machine_no?: string | null;
   activity_type: string;
 };
@@ -61,8 +61,12 @@ export async function clockIn({
   if (error || !data) return { success: false, error: error?.message ?? "Insert failed" };
 
   revalidatePath("/");
-  revalidatePath(`/cases/${so_number}`);
+  if (so_number) revalidatePath(`/cases/${so_number}`);
   return { success: true, session_id: data.id };
+}
+
+export async function startOfficeSession(): Promise<{ success: boolean; session_id?: number; error?: string }> {
+  return clockIn({ so_number: null, machine_no: null, activity_type: "office" });
 }
 
 export async function pauseSession(session_id: number): Promise<{ success: boolean; error?: string }> {

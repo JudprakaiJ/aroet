@@ -63,7 +63,12 @@ export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut, 
   };
 
   return (
-    <Sheet open={open} onClose={onClose} title="Active session" sub={session.so_number ?? "Open clock-in"}>
+    <Sheet
+      open={open}
+      onClose={onClose}
+      title="Active session"
+      sub={session.so_number ?? (session.activity_type === "office" ? "Office time" : "Open clock-in")}
+    >
       <div style={{ padding: 18, display: "flex", flexDirection: "column", gap: 18 }}>
         <div
           style={{
@@ -127,17 +132,19 @@ export function ActiveSessionSheet({ open, onClose, session, onRequestClockOut, 
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
               <span className="mono" style={{ fontSize: 12, fontWeight: 700 }}>
-                {session.so_number ?? "—"}
+                {session.so_number ?? (session.activity_type === "office" ? "OFFICE" : "—")}
               </span>
               <span className="sub" style={{ textTransform: "none", letterSpacing: 0, fontSize: 11 }}>
                 {session.activity_type}
               </span>
             </div>
             <div className="truncate" style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", marginTop: 2 }}>
-              {session.case_title ?? "Untitled case"}
+              {session.case_title ??
+                (session.activity_type === "office" && !session.so_number ? "Office time" : "Untitled case")}
             </div>
             <div className="sub truncate" style={{ textTransform: "none", letterSpacing: 0, fontSize: 11.5, color: "var(--ink-3)" }}>
-              {session.customer_name ?? "—"}
+              {session.customer_name ??
+                (session.activity_type === "office" && !session.so_number ? "Admin / reports / calls" : "—")}
             </div>
           </div>
         </div>
