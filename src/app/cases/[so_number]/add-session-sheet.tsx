@@ -1,15 +1,16 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { Sheet } from "@/components/sheet";
 import { Icon } from "@/components/icons";
+import { CodeBadge } from "@/components/primitives/code-badge";
 import { addSession } from "./session-actions";
 
 type Props = {
   open: boolean;
   onClose: () => void;
   soNumber: string;
-  primaryMachineNo: string | null;
+  machines: { machine_no: string; is_primary: boolean }[];
 };
 
 const ACTIVITIES: { id: string; label: string; icon: "wrench" | "car" | "cloud" | "doc" }[] = [
@@ -33,8 +34,10 @@ function toMin(hhmm: string): number {
   return (h || 0) * 60 + (m || 0);
 }
 
-export function AddSessionSheet({ open, onClose, soNumber, primaryMachineNo }: Props) {
+export function AddSessionSheet({ open, onClose, soNumber, machines }: Props) {
   const today = new Date().toISOString().slice(0, 10);
+  const primary =
+    machines.find((m) => m.is_primary)?.machine_no ?? machines[0]?.machine_no ?? null;
   const [activity, setActivity] = useState("field");
   const [date, setDate] = useState(today);
   const [start, setStart] = useState("09:00");
@@ -42,9 +45,15 @@ export function AddSessionSheet({ open, onClose, soNumber, primaryMachineNo }: P
   const [travel, setTravel] = useState(0);
   const [breakMin, setBreakMin] = useState(60);
   const [workDone, setWorkDone] = useState("");
+  const [machineNo, setMachineNo] = useState<string | null>(primary);
   const [submitNow, setSubmitNow] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  // Re-sync machine when sheet opens (in case machines changed)
+  useEffect(() => {
+    if (open) setMachineNo(primary);
+  }, [open, primary]);
 
   const duration = useMemo(() => {
     const d = toMin(end) - toMin(start) - breakMin;
@@ -62,7 +71,7 @@ export function AddSessionSheet({ open, onClose, soNumber, primaryMachineNo }: P
     startTransition(async () => {
       const r = await addSession({
         so_number: soNumber,
-        machine_no: primaryMachineNo,
+        machine_no: machineNo,
         engineer_code: ME,
         session_date: date,
         activity_type: activity,
@@ -117,6 +126,27 @@ export function AddSessionSheet({ open, onClose, soNumber, primaryMachineNo }: P
             ))}
           </div>
         </div>
+
+        {machines.length > 1 && (
+          <div>
+            <label className="fieldlbl">Machine</label>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {machines.map((m) => (
+                <button
+                  key={m.machine_no}
+                  type="button"
+                  className="fchip"
+                  data-on={machineNo === m.machine_no || undefined}
+                  onClick={() => setMachineNo(m.machine_no)}
+                  style={{ display: "flex", alignItems: "center", gap: 4 }}
+                >
+                  <CodeBadge>{m.machine_no}</CodeBadge>
+                  {m.is_primary && <span style={{ fontSize: 9, opacity: 0.7 }}>★</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div>
           <label className="fieldlbl">Date</label>

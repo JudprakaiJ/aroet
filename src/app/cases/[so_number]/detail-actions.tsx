@@ -9,10 +9,10 @@ import type { CaseStatus } from "./actions";
 type Props = {
   soNumber: string;
   status: string;
-  primaryMachineNo: string | null;
+  machines: { machine_no: string; is_primary: boolean }[];
 };
 
-export function DetailActions({ soNumber, status, primaryMachineNo }: Props) {
+export function DetailActions({ soNumber, status, machines }: Props) {
   const [addOpen, setAddOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const canChangeStatus = status !== "verified" && status !== "canceled";
@@ -42,7 +42,7 @@ export function DetailActions({ soNumber, status, primaryMachineNo }: Props) {
         open={addOpen}
         onClose={() => setAddOpen(false)}
         soNumber={soNumber}
-        primaryMachineNo={primaryMachineNo}
+        machines={machines}
       />
       <StatusMenu
         open={statusOpen}

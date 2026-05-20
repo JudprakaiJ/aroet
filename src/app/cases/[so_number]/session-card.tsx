@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { Avatar } from "@/components/primitives/avatar";
 import { TypeBlock } from "@/components/primitives/type-block";
+import { CodeBadge } from "@/components/primitives/code-badge";
 import { Icon } from "@/components/icons";
 import { activityBadge, fmtTime } from "@/lib/format";
 import { deleteSession } from "./session-actions";
@@ -48,13 +49,14 @@ export function SessionCard({ so_number, s }: Props) {
     <div className="card" style={{ padding: 10, display: "flex", gap: 10, alignItems: "stretch" }}>
       <TypeBlock t={s.type_code ?? "T"} style={{ minWidth: 28, padding: "4px 6px", alignSelf: "flex-start" }} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", gap: 6, alignItems: "baseline" }}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
           <Avatar code={s.engineer_code} size={20} />
           {activity && (
             <span className="chip" style={{ background: activity.bg, color: activity.text, borderColor: "transparent" }}>
               {activity.label}
             </span>
           )}
+          {s.machine_no && <CodeBadge>{s.machine_no}</CodeBadge>}
           <span className="mono" style={{ marginLeft: "auto", fontSize: 11, color: "var(--ink-2)", fontWeight: 600 }}>
             {fmtTime(total)}
           </span>

@@ -14,8 +14,6 @@ type Props = {
 };
 
 export function CaseHero({ c, aggregates }: Props) {
-  const primaryMachine =
-    c.machines.find((m) => m.is_primary)?.machine_no ?? c.machines[0]?.machine_no ?? null;
   const leadCode = c.assignees.find((a) => a.is_lead)?.engineer_code ?? null;
 
   return (
@@ -148,7 +146,7 @@ export function CaseHero({ c, aggregates }: Props) {
         </div>
       )}
 
-      <DetailActions soNumber={c.so_number} status={c.status} primaryMachineNo={primaryMachine} />
+      <DetailActions soNumber={c.so_number} status={c.status} machines={c.machines} />
     </div>
   );
 }
