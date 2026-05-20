@@ -105,7 +105,6 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
 
   const canSubmit =
     form.so_number.trim() &&
-    form.sr_number.trim() &&
     form.customer_code &&
     form.machine_nos.length > 0 &&
     form.service_type_code &&
@@ -289,12 +288,12 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
             placeholder="SO2606-09"
           />
         </Field>
-        <Field label="SR number" required>
+        <Field label="SR number">
           <input
             className="field mono"
             value={form.sr_number}
             onChange={(e) => setField("sr_number", e.target.value.toUpperCase())}
-            placeholder="SR26-AROET03450"
+            placeholder="SR26-AROET03450 (optional)"
           />
         </Field>
       </Section>
@@ -357,9 +356,18 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
             )}
           </div>
         </Field>
+
+        <Field label="Project code">
+          <input
+            className="field mono"
+            value={form.project_code}
+            onChange={(e) => setField("project_code", e.target.value.toUpperCase())}
+            placeholder="ESTH98 / Line#15 / Group 2"
+          />
+        </Field>
       </Section>
 
-      <Section title="Service type & project">
+      <Section title="Service type">
         <Field label="Service type" required>
           <select
             className="field"
@@ -372,14 +380,6 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
               </option>
             ))}
           </select>
-        </Field>
-        <Field label="Project code">
-          <input
-            className="field mono"
-            value={form.project_code}
-            onChange={(e) => setField("project_code", e.target.value.toUpperCase())}
-            placeholder="ESLA22 / Line#15 / Group 2"
-          />
         </Field>
       </Section>
 

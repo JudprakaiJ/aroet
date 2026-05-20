@@ -155,7 +155,6 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
 
   try {
     if (!input.so_number?.trim()) return { success: false, error: "SO number required" };
-    if (!input.sr_number?.trim()) return { success: false, error: "SR number required" };
     if (!input.customer_code?.trim()) return { success: false, error: "Customer required" };
     if (!input.machine_nos || input.machine_nos.length === 0)
       return { success: false, error: "At least 1 machine required" };
