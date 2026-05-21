@@ -12,14 +12,15 @@ import {
   type EmergencyCase,
 } from "@/app/clock/actions";
 
+type Step = "home" | "pick-case";
+
 type Props = {
   open: boolean;
   onClose: () => void;
   hasActive: boolean;
   paused: boolean;
+  defaultStep?: Step;
 };
-
-type Step = "home" | "pick-case";
 
 const BACKDATE_PRESETS = [
   { min: 0,   label: "Now" },
@@ -29,8 +30,8 @@ const BACKDATE_PRESETS = [
   { min: 120, label: "2h ago" },
 ];
 
-export function WhatsNextSheet({ open, onClose, hasActive, paused }: Props) {
-  const [step, setStep] = useState<Step>("home");
+export function WhatsNextSheet({ open, onClose, hasActive, paused, defaultStep = "home" }: Props) {
+  const [step, setStep] = useState<Step>(defaultStep);
   const [search, setSearch] = useState("");
   const [cases, setCases] = useState<EmergencyCase[]>([]);
   const [searching, setSearching] = useState(false);
@@ -41,13 +42,13 @@ export function WhatsNextSheet({ open, onClose, hasActive, paused }: Props) {
   // Reset when sheet opens
   useEffect(() => {
     if (open) {
-      setStep("home");
+      setStep(defaultStep);
       setSearch("");
       setCases([]);
       setError(null);
       setBackdateMin(0);
     }
-  }, [open]);
+  }, [open, defaultStep]);
 
   // Live search — runs whenever the case picker is open
   useEffect(() => {

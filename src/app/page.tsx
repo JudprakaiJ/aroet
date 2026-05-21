@@ -2,8 +2,7 @@ import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { SectionHeader } from "@/components/primitives/section-header";
 import { EmptyState } from "@/components/primitives/empty-state";
-import { SmartStartCTA } from "@/components/clock/smart-start-cta";
-import { ActiveSessionCard } from "@/components/clock/active-session-card";
+import { QuickActionsHero } from "@/components/clock/quick-actions-hero";
 import { StaleSessionBanner } from "@/components/clock/stale-session-banner";
 import { CaseCard } from "@/components/dashboard/case-card";
 import { SessionRow } from "@/components/dashboard/session-row";
@@ -56,11 +55,7 @@ export default async function DashboardPage() {
       <div className="scroll md:hidden">
         {activeSession && <StaleSessionBanner session={activeSession} />}
         <div className="page-px" style={{ paddingTop: 4 }}>
-          {activeSession ? (
-            <ActiveSessionCard session={activeSession} />
-          ) : (
-            <SmartStartCTA engineerCode={me} />
-          )}
+          <QuickActionsHero engineerCode={me} activeSession={activeSession} />
         </div>
 
         <SectionHeader
@@ -113,16 +108,9 @@ export default async function DashboardPage() {
       {/* Desktop content */}
       <div className="dt-body hidden md:block">
         {activeSession && <StaleSessionBanner session={activeSession} />}
-        {activeSession && (
-          <div style={{ marginBottom: 18 }}>
-            <ActiveSessionCard session={activeSession} />
-          </div>
-        )}
-        {!activeSession && (
-          <div style={{ marginBottom: 18 }}>
-            <SmartStartCTA engineerCode={me} />
-          </div>
-        )}
+        <div style={{ marginBottom: 18 }}>
+          <QuickActionsHero engineerCode={me} activeSession={activeSession} />
+        </div>
         <DesktopDashboard kpis={kpis} approvals={approvals} recent={recent} />
       </div>
     </>

@@ -406,6 +406,23 @@ textarea.field { padding: 10px 12px; resize: none; font-family: var(--sans); }
   background: var(--surface-2); border: 1px solid var(--line);
 }
 
+/* ── Quick-action button row (Dashboard hero) ─────────────────────────── */
+.quick-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.quick-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; min-height: var(--tap-lg); padding: 10px 8px;
+  background: var(--surface); border: 1px solid var(--line-strong);
+  border-radius: 12px; color: var(--ink); font-size: 12.5px; font-weight: 600;
+  letter-spacing: -0.005em;
+  transition: background .12s, border-color .12s, transform .08s;
+}
+.quick-btn:hover:not([disabled]) { background: var(--hover); border-color: var(--ink-4); }
+.quick-btn:active:not([disabled]) { transform: scale(.97); }
+.quick-btn[disabled] { opacity: .5; cursor: not-allowed; }
+.quick-btn[data-primary="true"] { background: var(--red); color: #fff; border-color: var(--red-700); }
+.quick-btn[data-primary="true"]:hover:not([disabled]) { background: var(--red-700); border-color: var(--red-700); }
+.quick-btn svg { color: inherit; }
+
 /* ── FAB pulse ────────────────────────────────────────────────────────── */
 @keyframes pulse-red {
   0%, 100% { box-shadow: 0 10px 26px rgba(200, 16, 46, .4), 0 0 0 0 rgba(200, 16, 46, .4); }
