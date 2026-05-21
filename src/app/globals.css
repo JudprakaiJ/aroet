@@ -304,6 +304,212 @@ textarea.field { padding: 10px 12px; resize: none; font-family: var(--sans); }
 .case-row { display: flex; gap: 12px; padding: 12px 14px; background: var(--surface); border-bottom: 1px solid var(--line-2); }
 .case-row .left { flex: 1; min-width: 0; }
 
+/* ── Case detail card v2 (cases list) ─────────────────────────────────── */
+.case-card-v2 {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color .12s, box-shadow .12s;
+}
+.case-card-v2:hover {
+  border-color: var(--line-strong);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+}
+.cc-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cc-so {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.cc-customer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cc-customer-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cc-customer-sub {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  font-weight: 500;
+  margin-top: 2px;
+}
+.cc-divider {
+  height: 1px;
+  background: var(--line-2);
+  margin: 0 -2px;
+}
+.cc-subject {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+  padding: 4px 0 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cc-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cc-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.cc-section-count {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--ink-4);
+  text-transform: none;
+}
+.cc-machine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 6px 8px;
+}
+.cc-machine-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.cc-machine-type {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+  letter-spacing: .02em;
+}
+.cc-machine-sn {
+  font-size: 10.5px;
+  color: var(--ink-3);
+  font-weight: 500;
+  letter-spacing: .02em;
+}
+.cc-empty-line {
+  font-size: 12px;
+  color: var(--ink-4);
+  font-style: italic;
+  padding: 4px 0;
+}
+.cc-empty-inline {
+  font-size: 12px;
+  color: var(--ink-4);
+  font-style: italic;
+}
+.cc-meta-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 8px;
+}
+.cc-meta {
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.cc-meta-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.cc-meta-value {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.cc-meta-line {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: var(--mono);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.cc-meta-sub {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+.cc-team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 2px;
+}
+.cc-lead-star {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--red);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--surface);
+}
+
+/* Desktop responsive grid for case cards */
+.cases-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 1024px) {
+  .cases-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1400px) {
+  .cases-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
 /* ── Avatar ───────────────────────────────────────────────────────────── */
 .avatar {
   width: 28px; height: 28px; border-radius: 14px;

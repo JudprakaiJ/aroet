@@ -9,6 +9,8 @@ export type CaseDetail = {
   service_type_name: string | null;
   customer_code: string | null;
   customer_name: string | null;
+  customer_city: string | null;
+  customer_country: string | null;
   contact_name: string | null;
   project_code: string | null;
   status: string;
@@ -17,7 +19,12 @@ export type CaseDetail = {
   created_at: string | null;
   source: string | null;
   customer_po: string | null;
-  machines: { machine_no: string; is_primary: boolean }[];
+  machines: {
+    machine_no: string;
+    is_primary: boolean;
+    product_code: string | null;
+    serial_no: string | null;
+  }[];
   assignees: { engineer_code: string; is_lead: boolean }[];
 };
 
@@ -110,7 +117,8 @@ export async function getCase(so_number: string): Promise<CaseDetail | null> {
     .maybeSingle();
   if (!c) return null;
 
-  const [machinesRes, assigneesRes] = await Promise.all([
+  const customerCode = (c as { customer_code: string | null }).customer_code;
+  const [machinesRes, assigneesRes, customerRes] = await Promise.all([
     supabase
       .from("case_machines")
       .select("machine_no, is_primary, created_at")
@@ -121,28 +129,68 @@ export async function getCase(so_number: string): Promise<CaseDetail | null> {
       .select("engineer_code, is_lead")
       .eq("so_number", so_number)
       .order("is_lead", { ascending: false }),
+    customerCode
+      ? supabase
+          .from("customers")
+          .select("city, country")
+          .eq("code", customerCode)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   if (machinesRes.error) {
     console.error("[getCase] case_machines:", machinesRes.error.message);
   }
 
-  // Legacy fallback: cases created before sql/05 only stored the single
-  // cases.machine_no — synthesize a primary entry so the UI doesn't
-  // misreport "no machine attached".
-  let machineList = (
+  let baseMachines = (
     (machinesRes.data ?? []) as { machine_no: string; is_primary: boolean | null }[]
   ).map((m) => ({
     machine_no: m.machine_no,
     is_primary: Boolean(m.is_primary),
   }));
   const cAny = c as { machine_no?: string | null };
-  if (machineList.length === 0 && cAny.machine_no) {
-    machineList = [{ machine_no: cAny.machine_no, is_primary: true }];
+  if (baseMachines.length === 0 && cAny.machine_no) {
+    // Legacy fallback: cases created before sql/05 only stored the single
+    // cases.machine_no — synthesize a primary entry so the UI doesn't
+    // misreport "no machine attached".
+    baseMachines = [{ machine_no: cAny.machine_no, is_primary: true }];
   }
+
+  const machineDetailMap = new Map<string, { product_code: string | null; serial_no: string | null }>();
+  if (baseMachines.length > 0) {
+    const { data: mRows } = await supabase
+      .from("machines")
+      .select("machine_no, product_code, serial_no")
+      .in(
+        "machine_no",
+        baseMachines.map((m) => m.machine_no)
+      );
+    for (const r of (mRows ?? []) as Array<{
+      machine_no: string;
+      product_code: string | null;
+      serial_no: string | null;
+    }>) {
+      machineDetailMap.set(r.machine_no, {
+        product_code: r.product_code,
+        serial_no: r.serial_no,
+      });
+    }
+  }
+
+  const machineList = baseMachines.map((m) => ({
+    ...m,
+    product_code: machineDetailMap.get(m.machine_no)?.product_code ?? null,
+    serial_no: machineDetailMap.get(m.machine_no)?.serial_no ?? null,
+  }));
+
+  const customerGeo = customerRes.data as
+    | { city: string | null; country: string | null }
+    | null;
 
   return {
     ...(c as unknown as CaseDetail),
+    customer_city: customerGeo?.city ?? null,
+    customer_country: customerGeo?.country ?? null,
     machines: machineList,
     assignees: ((assigneesRes.data ?? []) as { engineer_code: string; is_lead: boolean | null }[]).map((a) => ({
       engineer_code: a.engineer_code,
@@ -156,7 +204,7 @@ export async function getCaseAggregates(so_number: string): Promise<CaseAggregat
   const [sessionsRes, refsRes, adminRes] = await Promise.all([
     supabase
       .from("sessions")
-      .select("travel_minutes, work_minutes, office_minutes, approval_status")
+      .select("travel_minutes, work_minutes, office_minutes, approval_status, source")
       .eq("so_number", so_number),
     supabase
       .from("case_references")
@@ -174,16 +222,23 @@ export async function getCaseAggregates(so_number: string): Promise<CaseAggregat
       work_minutes: number | null;
       office_minutes: number | null;
       approval_status: string | null;
+      source: string | null;
     }>;
+  // hours_logged = ACTUAL time logged. Exclude source='planning' (forecasts)
+  // and 'returned' sessions (waiting on engineer to fix).
   const total = rows
-    .filter((r) => r.approval_status !== "returned")
+    .filter((r) => r.approval_status !== "returned" && r.source !== "planning")
     .reduce(
       (a, r) => a + (r.travel_minutes ?? 0) + (r.work_minutes ?? 0) + (r.office_minutes ?? 0),
       0
     );
 
+  // sessions_count = number of actually-logged sessions (planning entries
+  // are forecasts, not logged work, so they shouldn't bump the counter).
+  const loggedRows = rows.filter((r) => r.source !== "planning");
+
   return {
-    sessions_count: rows.length,
+    sessions_count: loggedRows.length,
     hours_logged: Math.round((total / 60) * 10) / 10,
     refs_count: refsRes.count ?? 0,
     admin_count: adminRes.count ?? 0,
@@ -192,6 +247,9 @@ export async function getCaseAggregates(so_number: string): Promise<CaseAggregat
 
 export async function getCaseSessions(so_number: string): Promise<CaseSession[]> {
   const supabase = await createClient();
+  // Sessions tab shows ACTUAL logged sessions (clock-in / manual / parser).
+  // Planning forecasts (source='planning') belong on the Plan view, not
+  // here — including them double-counts and confuses the engineer.
   const { data } = await supabase
     .from("sessions")
     .select(
@@ -201,6 +259,7 @@ export async function getCaseSessions(so_number: string): Promise<CaseSession[]>
        approved_by, approved_at, return_reason`
     )
     .eq("so_number", so_number)
+    .neq("source", "planning")
     .order("session_date", { ascending: false })
     .order("id", { ascending: false });
   return (data ?? []) as CaseSession[];
@@ -240,6 +299,19 @@ export async function getCustomerDetail(code: string | null): Promise<CustomerDe
 
 export type LiteCustomer = { code: string; name: string };
 export type LiteMachine = { machine_no: string; customer_code: string | null; product_code: string | null };
+export type LiteEngineer = { code: string; full_name: string | null };
+
+/**
+ * Existing planning entries for a case, grouped per (engineer, type_code)
+ * into contiguous date runs. Internal sessions remain per-day but the
+ * picker presents them as ranges so PPI can edit them more easily.
+ */
+export type PlanRangeEntry = {
+  engineer_code: string;
+  date_from: string;
+  date_to: string;
+  type_code: string;
+};
 
 export async function listLiteCustomers(): Promise<LiteCustomer[]> {
   const supabase = await createClient();
@@ -259,6 +331,81 @@ export async function listLiteMachines(): Promise<LiteMachine[]> {
     .order("machine_no", { ascending: true })
     .limit(2000);
   return (data ?? []) as LiteMachine[];
+}
+
+export async function listLiteEngineers(): Promise<LiteEngineer[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("engineers")
+    .select("code, full_name")
+    .eq("is_active", true)
+    .order("code", { ascending: true });
+  return (data ?? []) as LiteEngineer[];
+}
+
+/**
+ * Load existing source='planning' sessions for the case, grouped into
+ * contiguous-date runs per (engineer, type_code). The picker uses these
+ * as initial ranges. Returning ranges means we render fewer rows than
+ * raw sessions, which matches how PPI thinks of "Mon→Wed work then
+ * Thu→Fri travel".
+ */
+export async function getCasePlanRanges(so_number: string): Promise<PlanRangeEntry[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("sessions")
+    .select("engineer_code, session_date, type_code")
+    .eq("so_number", so_number)
+    .eq("source", "planning")
+    .is("clock_in_at", null)
+    .order("session_date", { ascending: true });
+
+  const rows = ((data ?? []) as Array<{
+    engineer_code: string;
+    session_date: string | null;
+    type_code: string | null;
+  }>).filter((r) => r.session_date);
+
+  // Bucket by engineer+type
+  const buckets = new Map<string, string[]>();
+  for (const r of rows) {
+    const key = `${r.engineer_code}::${r.type_code ?? "T"}`;
+    let dates = buckets.get(key);
+    if (!dates) {
+      dates = [];
+      buckets.set(key, dates);
+    }
+    dates.push(r.session_date as string);
+  }
+
+  // Collapse each bucket into contiguous runs
+  const ranges: PlanRangeEntry[] = [];
+  for (const [key, dates] of buckets) {
+    const [engineer_code, type_code] = key.split("::");
+    const sorted = dates.slice().sort();
+    let runStart = sorted[0];
+    let runEnd = sorted[0];
+    const oneDay = 24 * 60 * 60 * 1000;
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = new Date(runEnd + "T00:00:00Z");
+      const next = new Date(sorted[i] + "T00:00:00Z");
+      if (next.getTime() - prev.getTime() === oneDay) {
+        runEnd = sorted[i];
+      } else {
+        ranges.push({ engineer_code, type_code, date_from: runStart, date_to: runEnd });
+        runStart = sorted[i];
+        runEnd = sorted[i];
+      }
+    }
+    ranges.push({ engineer_code, type_code, date_from: runStart, date_to: runEnd });
+  }
+
+  ranges.sort(
+    (a, b) =>
+      a.date_from.localeCompare(b.date_from) ||
+      a.engineer_code.localeCompare(b.engineer_code)
+  );
+  return ranges;
 }
 
 export async function getMachineDetails(machineNos: string[]): Promise<MachineDetail[]> {

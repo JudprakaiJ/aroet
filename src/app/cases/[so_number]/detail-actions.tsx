@@ -7,19 +7,34 @@ import { StatusMenu } from "./status-menu";
 import { AddSessionSheet } from "./add-session-sheet";
 import { EditCaseSheet } from "./edit-case-sheet";
 import { deleteCase, type CaseStatus } from "./actions";
-import type { CaseDetail, LiteCustomer, LiteMachine } from "./queries";
+import type {
+  CaseDetail,
+  LiteCustomer,
+  LiteMachine,
+  LiteEngineer,
+  PlanRangeEntry,
+} from "./queries";
 
 type Props = {
   c: CaseDetail;
   customers: LiteCustomer[];
   allMachines: LiteMachine[];
+  engineers: LiteEngineer[];
+  planRanges: PlanRangeEntry[];
   /** Number of sessions logged on this case. Controls Delete visibility. */
   sessionsCount: number;
 };
 
 const EDITABLE: CaseStatus[] = ["planned", "in_progress"];
 
-export function DetailActions({ c, customers, allMachines, sessionsCount }: Props) {
+export function DetailActions({
+  c,
+  customers,
+  allMachines,
+  engineers,
+  planRanges,
+  sessionsCount,
+}: Props) {
   const router = useRouter();
   const [addOpen, setAddOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
@@ -166,6 +181,8 @@ export function DetailActions({ c, customers, allMachines, sessionsCount }: Prop
         c={c}
         customers={customers}
         machines={allMachines}
+        engineers={engineers}
+        initialPlanRanges={planRanges}
       />
     </>
   );

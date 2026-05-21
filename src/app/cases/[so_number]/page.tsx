@@ -23,6 +23,8 @@ import {
   getSimilar,
   listLiteCustomers,
   listLiteMachines,
+  listLiteEngineers,
+  getCasePlanRanges,
 } from "./queries";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +62,8 @@ export default async function CaseDetailPage({
     notifications,
     liteCustomers,
     liteMachines,
+    liteEngineers,
+    planRanges,
   ] = await Promise.all([
     getCaseAggregates(decoded),
     tab === "sessions" ? getCaseSessions(decoded) : Promise.resolve([]),
@@ -72,6 +76,8 @@ export default async function CaseDetailPage({
     getNotifications(ME),
     listLiteCustomers(),
     listLiteMachines(),
+    listLiteEngineers(),
+    getCasePlanRanges(decoded),
   ]);
 
   return (
@@ -100,16 +106,17 @@ export default async function CaseDetailPage({
           aggregates={aggregates}
           customers={liteCustomers}
           allMachines={liteMachines}
+          engineers={liteEngineers}
+          planRanges={planRanges}
         />
         <TabsStrip
           soNumber={c.so_number}
           active={tab}
           tabs={[
             { id: "sessions", label: "Sessions", count: aggregates.sessions_count },
+            { id: "tasks", label: "Checklist", count: null },
             { id: "refs", label: "Refs", count: aggregates.refs_count },
             { id: "admin", label: "Admin", count: aggregates.admin_count },
-            { id: "tasks", label: "Checklist", count: null },
-            { id: "similar", label: "Similar", count: null },
           ]}
         />
         {tab === "sessions" && <SessionsTab so_number={c.so_number} sessions={sessions} />}
@@ -123,6 +130,24 @@ export default async function CaseDetailPage({
         {tab === "admin" && <AdminTab c={c} log={log} />}
         {tab === "tasks" && <ChecklistTab c={c} />}
         {tab === "similar" && <SimilarTab items={similar} />}
+        {tab !== "similar" && (
+          <div className="page-px" style={{ paddingTop: 16, paddingBottom: 32 }}>
+            <a
+              href={`/cases/${c.so_number}?tab=similar`}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 12,
+                color: "var(--ink-3)",
+                textDecoration: "none",
+                fontWeight: 500,
+              }}
+            >
+              See similar cases →
+            </a>
+          </div>
+        )}
       </div>
     </>
   );

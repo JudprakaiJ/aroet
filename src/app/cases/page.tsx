@@ -2,11 +2,10 @@ import Link from "next/link";
 import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { Icon } from "@/components/icons";
-import { CaseListRow } from "./list-row";
+import { CaseCard } from "./case-card";
 import { EmptyState } from "./empty-state";
 import { FilterRail } from "./filter-rail";
 import { DesktopFilterBar } from "./desktop-filter-bar";
-import { DesktopCasesTable } from "./desktop-cases-table";
 import { listCases, listAvailableYears, type CaseListFilters } from "./queries";
 import { getActiveSession } from "@/lib/clock/queries";
 import { getNotifications } from "@/components/notifications/queries";
@@ -88,9 +87,9 @@ export default async function CasesPage({
         {cases.length === 0 ? (
           <EmptyState q={filters.q ?? ""} hasFilters={hasFilters} />
         ) : (
-          <div className="card" style={{ margin: "8px 14px 14px", overflow: "hidden" }}>
+          <div className="page-px stack-lg" style={{ paddingBottom: 8 }}>
             {cases.map((c) => (
-              <CaseListRow key={c.so_number} c={c} />
+              <CaseCard key={c.so_number} c={c} />
             ))}
           </div>
         )}
@@ -104,10 +103,26 @@ export default async function CasesPage({
 
       {/* Desktop content */}
       <div className="dt-body hidden md:block">
-        <div className="dt-panel">
-          <DesktopFilterBar years={years} initial={{ scope: initial.scope, status: initial.status, year: initial.year, type: initial.type }} />
-          <DesktopCasesTable cases={cases} />
+        <div className="dt-panel" style={{ marginBottom: 14 }}>
+          <DesktopFilterBar
+            years={years}
+            initial={{
+              scope: initial.scope,
+              status: initial.status,
+              year: initial.year,
+              type: initial.type,
+            }}
+          />
         </div>
+        {cases.length === 0 ? (
+          <EmptyState q={filters.q ?? ""} hasFilters={hasFilters} />
+        ) : (
+          <div className="cases-grid">
+            {cases.map((c) => (
+              <CaseCard key={c.so_number} c={c} />
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

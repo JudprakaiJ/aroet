@@ -101,6 +101,7 @@ export async function getTodaySessions(): Promise<DashboardSession[]> {
     .eq("engineer_code", me)
     .eq("session_date", today)
     .neq("approval_status", "returned")
+    .neq("source", "planning")
     .order("id", { ascending: true });
 
   if (error || !data) return [];
@@ -285,13 +286,15 @@ export async function getDashboardKpis(): Promise<DashboardKpis> {
       .in("status", ["planned", "in_progress"]),
     supabase
       .from("sessions")
-      .select("work_minutes, travel_minutes, office_minutes, approval_status")
+      .select("work_minutes, travel_minutes, office_minutes, approval_status, source")
       .gte("session_date", weekStart)
-      .lte("session_date", today),
+      .lte("session_date", today)
+      .neq("source", "planning"),
     supabase
       .from("sessions")
       .select("id", { count: "exact", head: true })
-      .eq("session_date", today),
+      .eq("session_date", today)
+      .neq("source", "planning"),
   ]);
 
   const openRows = (openCases.data ?? []) as { status: string }[];
@@ -387,9 +390,10 @@ export async function getRecentCases(): Promise<RecentCaseRow[]> {
     const supabase2 = await createClient();
     const { data: hours } = await supabase2
       .from("sessions")
-      .select("so_number, work_minutes, travel_minutes, office_minutes, approval_status")
+      .select("so_number, work_minutes, travel_minutes, office_minutes, approval_status, source")
       .in("so_number", sos)
-      .neq("approval_status", "returned");
+      .neq("approval_status", "returned")
+      .neq("source", "planning");
     for (const h of (hours ?? []) as Array<{
       so_number: string | null;
       work_minutes: number | null;

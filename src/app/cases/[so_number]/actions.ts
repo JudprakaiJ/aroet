@@ -3,6 +3,57 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { parsePlannerNote } from "@/lib/planner/parser";
 import { revalidatePath } from "next/cache";
+import { getActingAs } from "@/app/me/role-actions";
+
+const LEAVE_TYPES = new Set(["AL", "SICK", "PERS"]);
+const NON_WORK_TYPES = new Set(["AL", "SICK", "PERS", "WFH", "OFF"]);
+
+function expandRange(from: string, to: string): string[] {
+  const out: string[] = [];
+  const start = new Date(from + "T00:00:00Z");
+  const end = new Date(to + "T00:00:00Z");
+  const cur = new Date(start);
+  while (cur <= end) {
+    out.push(cur.toISOString().slice(0, 10));
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+  return out;
+}
+
+function planningRowFromRange(
+  so_number: string,
+  engineer_code: string,
+  session_date: string,
+  type_code: string
+) {
+  const isLeave = LEAVE_TYPES.has(type_code);
+  const activity = isLeave ? "leave" : type_code === "OFF" ? "office" : type_code === "WFH" ? "remote" : "field";
+  let travel = 0,
+    work = 0,
+    office = 0;
+  if (!NON_WORK_TYPES.has(type_code)) work = 480;
+  else if (type_code === "WFH") work = 480;
+  else if (type_code === "OFF") office = 480;
+  const d = new Date(session_date + "T00:00:00Z");
+  const weekend = d.getUTCDay() === 0 || d.getUTCDay() === 6;
+  return {
+    so_number: isLeave ? null : so_number,
+    machine_no: null,
+    engineer_code,
+    session_date,
+    travel_minutes: travel,
+    work_minutes: work,
+    office_minutes: office,
+    break_minutes: 0,
+    activity_type: activity,
+    type_code,
+    is_weekend: weekend,
+    is_holiday: false,
+    work_done: null,
+    source: "planning",
+    approval_status: "draft",
+  };
+}
 
 function checkEnv() {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -218,6 +269,12 @@ export interface CasePatch {
   service_type_code?: string;
   due_date?: string | null;
   status?: CaseStatus;
+  /** Lead engineer code. Required when other_engineers is set. */
+  lead_engineer?: string | null;
+  /** Non-lead assignees. */
+  other_engineers?: string[];
+  /** Plan ranges (multi). undefined = don't touch; [] = clear all. */
+  plan_ranges?: { engineer_code: string; date_from: string; date_to: string; type_code: string }[];
 }
 
 export async function updateCase(
@@ -313,6 +370,95 @@ export async function updateCase(
         };
       }
     }
+  }
+
+  // Reconcile case_engineers when the patch provides assignees.
+  if (patch.lead_engineer !== undefined || patch.other_engineers !== undefined) {
+    const lead = patch.lead_engineer ?? null;
+    const others = (patch.other_engineers ?? []).filter((c) => c && c !== lead);
+    const desired = new Map<string, boolean>();
+    if (lead) desired.set(lead, true);
+    for (const c of others) desired.set(c, false);
+
+    const { data: currentEng } = await supabase
+      .from("case_engineers")
+      .select("engineer_code, is_lead")
+      .eq("so_number", so_number);
+    const haveMap = new Map<string, boolean>(
+      ((currentEng ?? []) as { engineer_code: string; is_lead: boolean | null }[]).map((r) => [
+        r.engineer_code,
+        Boolean(r.is_lead),
+      ])
+    );
+
+    const toRemove = Array.from(haveMap.keys()).filter((code) => !desired.has(code));
+    const toInsert: { so_number: string; engineer_code: string; is_lead: boolean }[] = [];
+    const toUpdate: { engineer_code: string; is_lead: boolean }[] = [];
+    for (const [code, isLead] of desired) {
+      if (!haveMap.has(code)) {
+        toInsert.push({ so_number, engineer_code: code, is_lead: isLead });
+      } else if (haveMap.get(code) !== isLead) {
+        toUpdate.push({ engineer_code: code, is_lead: isLead });
+      }
+    }
+
+    if (toRemove.length > 0) {
+      const { error: delErr } = await supabase
+        .from("case_engineers")
+        .delete()
+        .eq("so_number", so_number)
+        .in("engineer_code", toRemove);
+      if (delErr) return { success: false, error: `Couldn't remove engineer: ${delErr.message}` };
+    }
+    if (toInsert.length > 0) {
+      const { error: insErr } = await supabase.from("case_engineers").insert(toInsert);
+      if (insErr) return { success: false, error: `Couldn't add engineer: ${insErr.message}` };
+
+      // Notification per newly added engineer
+      const actor = await getActingAs();
+      const logRows = toInsert.map((r) => ({
+        so_number,
+        event_type: "engineer_assigned",
+        description: `Assigned ${r.engineer_code} as ${r.is_lead ? "lead" : "engineer"}`,
+        by_engineer: actor,
+        source: "manual",
+      }));
+      const { error: logErr } = await supabase.from("admin_log").insert(logRows);
+      if (logErr) console.error("[updateCase] admin_log:", logErr.message);
+    }
+    for (const u of toUpdate) {
+      await supabase
+        .from("case_engineers")
+        .update({ is_lead: u.is_lead })
+        .eq("so_number", so_number)
+        .eq("engineer_code", u.engineer_code);
+    }
+  }
+
+  // Reconcile planning sessions when patch provides plan_ranges. Full
+  // replacement: wipe existing source='planning' (engineer hasn't clocked
+  // into them yet — clock_in_at IS NULL guard) and insert fresh ones.
+  if (patch.plan_ranges !== undefined) {
+    const { error: delErr } = await supabase
+      .from("sessions")
+      .delete()
+      .eq("so_number", so_number)
+      .eq("source", "planning")
+      .is("clock_in_at", null);
+    if (delErr) return { success: false, error: `Couldn't clear plan: ${delErr.message}` };
+
+    const rows: ReturnType<typeof planningRowFromRange>[] = [];
+    for (const r of patch.plan_ranges) {
+      if (!r.engineer_code || !r.date_from || !r.date_to) continue;
+      for (const d of expandRange(r.date_from, r.date_to)) {
+        rows.push(planningRowFromRange(so_number, r.engineer_code, d, r.type_code || "T"));
+      }
+    }
+    if (rows.length > 0) {
+      const { error: insErr } = await supabase.from("sessions").insert(rows);
+      if (insErr) return { success: false, error: `Couldn't save plan: ${insErr.message}` };
+    }
+    revalidatePath("/planning");
   }
 
   revalidatePath(`/cases/${so_number}`);

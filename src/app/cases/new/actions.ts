@@ -16,6 +16,57 @@ export interface NewCaseInput {
   due_date?: string;
   lead_engineer?: string;
   other_engineers?: string[];
+  plan_ranges?: { engineer_code: string; date_from: string; date_to: string; type_code: string }[];
+}
+
+const LEAVE_TYPES = new Set(["AL", "SICK", "PERS"]);
+const NON_WORK_TYPES = new Set(["AL", "SICK", "PERS", "WFH", "OFF"]);
+
+function expandRange(from: string, to: string): string[] {
+  const out: string[] = [];
+  const start = new Date(from + "T00:00:00Z");
+  const end = new Date(to + "T00:00:00Z");
+  const cur = new Date(start);
+  while (cur <= end) {
+    out.push(cur.toISOString().slice(0, 10));
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+  return out;
+}
+
+function planningRowFromRange(
+  so_number: string,
+  engineer_code: string,
+  session_date: string,
+  type_code: string
+) {
+  const isLeave = LEAVE_TYPES.has(type_code);
+  const activity = isLeave ? "leave" : type_code === "OFF" ? "office" : type_code === "WFH" ? "remote" : "field";
+  let travel = 0,
+    work = 0,
+    office = 0;
+  if (!NON_WORK_TYPES.has(type_code)) work = 480;
+  else if (type_code === "WFH") work = 480;
+  else if (type_code === "OFF") office = 480;
+  const d = new Date(session_date + "T00:00:00Z");
+  const weekend = d.getUTCDay() === 0 || d.getUTCDay() === 6;
+  return {
+    so_number: isLeave ? null : so_number,
+    machine_no: null,
+    engineer_code,
+    session_date,
+    travel_minutes: travel,
+    work_minutes: work,
+    office_minutes: office,
+    break_minutes: 0,
+    activity_type: activity,
+    type_code,
+    is_weekend: weekend,
+    is_holiday: false,
+    work_done: null,
+    source: "planning",
+    approval_status: "draft",
+  };
 }
 
 const SERVICE_TYPE_NAMES: Record<string, string> = {
@@ -242,6 +293,22 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
         const { error: logErr } = await supabase.from("admin_log").insert(logRows);
         if (logErr) console.error("[createCase] admin_log:", logErr.message);
       }
+    }
+
+    // Plan ranges → planning sessions
+    if (input.plan_ranges && input.plan_ranges.length > 0) {
+      const rows: ReturnType<typeof planningRowFromRange>[] = [];
+      for (const r of input.plan_ranges) {
+        if (!r.engineer_code || !r.date_from || !r.date_to) continue;
+        for (const d of expandRange(r.date_from, r.date_to)) {
+          rows.push(planningRowFromRange(input.so_number, r.engineer_code, d, r.type_code || "T"));
+        }
+      }
+      if (rows.length > 0) {
+        const { error: planErr } = await supabase.from("sessions").insert(rows);
+        if (planErr) console.error("[createCase] planning sessions:", planErr.message);
+      }
+      revalidatePath("/planning");
     }
 
     revalidatePath("/cases");

@@ -12,6 +12,8 @@ import {
   type NewCaseInput,
   type ParseTitleResult,
 } from "./actions";
+import { PlanRangesPicker } from "../plan-ranges-picker";
+import type { PlanRangeEntry, LiteEngineer } from "../[so_number]/queries";
 
 type Customer = { code: string; name: string };
 type Machine = { machine_no: string; customer_code: string | null; name: string | null; product_code: string | null };
@@ -34,6 +36,7 @@ type Form = {
   subject: string;
   due_date: string;
   lead_engineer: string;
+  other_engineers: string[];
 };
 
 const SAMPLE_PASTE =
@@ -50,6 +53,7 @@ const EMPTY_FORM: Form = {
   subject: "",
   due_date: "",
   lead_engineer: "JKH",
+  other_engineers: [],
 };
 
 export function NewCaseClient({ customers, machines: initialMachines, engineers }: Props) {
@@ -62,6 +66,7 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [createMachineOpen, setCreateMachineOpen] = useState<{ machine_no: string } | null>(null);
+  const [planRanges, setPlanRanges] = useState<PlanRangeEntry[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const customerMachines = useMemo(
@@ -110,8 +115,16 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
     form.service_type_code &&
     form.lead_engineer;
 
+  const assignedCodes = useMemo(() => {
+    const set = new Set<string>();
+    if (form.lead_engineer) set.add(form.lead_engineer);
+    for (const c of form.other_engineers) set.add(c);
+    return Array.from(set);
+  }, [form.lead_engineer, form.other_engineers]);
+
   const onSubmit = () => {
     setError(null);
+    const cleanRanges = planRanges.filter((r) => assignedCodes.includes(r.engineer_code));
     const payload: NewCaseInput = {
       so_number: form.so_number.trim(),
       sr_number: form.sr_number.trim(),
@@ -122,6 +135,8 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
       title: form.subject.trim() || undefined,
       due_date: form.due_date || undefined,
       lead_engineer: form.lead_engineer,
+      other_engineers: form.other_engineers,
+      plan_ranges: cleanRanges,
     };
     startTransition(async () => {
       const result = await createCase(payload);
@@ -394,7 +409,7 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
         </Field>
       </Section>
 
-      <Section title="Schedule & lead">
+      <Section title="Schedule & team">
         <Field label="Due date">
           <input
             className="field"
@@ -407,7 +422,13 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
           <select
             className="field mono"
             value={form.lead_engineer}
-            onChange={(e) => setField("lead_engineer", e.target.value)}
+            onChange={(e) => {
+              const next = e.target.value;
+              setField("lead_engineer", next);
+              if (next) {
+                setForm((f) => ({ ...f, other_engineers: f.other_engineers.filter((c) => c !== next) }));
+              }
+            }}
           >
             <option value="">Select engineer…</option>
             {engineers.map((e) => (
@@ -417,6 +438,43 @@ export function NewCaseClient({ customers, machines: initialMachines, engineers 
             ))}
           </select>
         </Field>
+        <Field label={`Other engineers (${form.other_engineers.length})`}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {engineers
+              .filter((e) => e.code !== form.lead_engineer)
+              .map((e) => {
+                const on = form.other_engineers.includes(e.code);
+                return (
+                  <button
+                    key={e.code}
+                    type="button"
+                    className="fchip"
+                    data-on={on || undefined}
+                    onClick={() => {
+                      setForm((f) => ({
+                        ...f,
+                        other_engineers: on
+                          ? f.other_engineers.filter((c) => c !== e.code)
+                          : [...f.other_engineers, e.code],
+                      }));
+                    }}
+                  >
+                    {e.code}
+                    {e.full_name && <span className="cnt">{e.full_name}</span>}
+                  </button>
+                );
+              })}
+          </div>
+        </Field>
+      </Section>
+
+      <Section title="Plan dates">
+        <PlanRangesPicker
+          engineerCodes={assignedCodes}
+          engineers={engineers.map<LiteEngineer>((e) => ({ code: e.code, full_name: e.full_name }))}
+          value={planRanges}
+          onChange={setPlanRanges}
+        />
       </Section>
 
       <div
