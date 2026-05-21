@@ -58,8 +58,12 @@ Current migrations:
 | `14_drop_cases_description.sql` | **⚠ pending — not applied yet (verified 2026-05-20).** Drops the legacy `cases.description` column. The code stopped reading/writing it in phase 6f (Subject field has been the only entry point since phase 5P). Safe to run any time. |
 | `15_drop_machines_version.sql` | Applied (verified 2026-05-20). Dropped the `machines.version` column. Phase 6g consolidated "machine type" onto `product_code` — MCVP8 V1/V2 distinction now lives in the product code itself (`MCVP8V1` vs `MCVP8V2`), which is what the checklist resolver already keyed on. |
 | `16_clean_checklist_text.sql` | Applied (verified 2026-05-20). Phase 6h-2 cleanup of the Belgian-English in `checklist_items.text` (322 of 460 items). Idempotent — keyed on `(machine_type, version, section_no, item_no)` with `text <> new_text` guard, so re-runs are no-ops. Engineer pass/fail results key off `item_id` so this is a pure text refresh. Canonical source is `sql/checklist-data.json`. |
+| `17_admin_log_assignment_event.sql` | **⚠ pending — not applied yet.** Phase 6k-4: extends `admin_log.event_type` CHECK to allow `'engineer_assigned'`. Without it, `createCase` / `updateCase` write the notification row that silently fails on the constraint — case is created but assigned engineers don't get the Bell notification. Re-runnable. |
+| `18_sessions_source_planning.sql` | **⚠ pending — not applied yet.** Phase 6l-2: extends `sessions.source` CHECK from `('manual','planner')` to `('manual','planner','planning')`. Without it, both the `/planning` grid (since Phase 5j!) AND the new case-form Plan dates picker fail with `sessions_source_check` violation. This is why no `source='planning'` rows existed in the DB before — the feature was silently broken. Re-runnable. |
 
 ⚠️ **Migration drift is a real footgun** — Supabase joins to a missing table return `[]` *silently* (no error). If a query that should return rows returns empty, verify the table actually exists in the DB before debugging code. Use the Supabase MCP `list_tables` or a SQL probe.
+
+⚠️ **Supabase nested selects need an FK** — `cases.customer_code` has no FK to `customers`, so a query like `cases.select(\"..., customers(city, country)\")` silently returns `data = null` with an error. Always query customers separately and join in JS for that relation. (Same caveat applies to any table without an explicit FK constraint.)
 
 ## Supabase client selection (important)
 
@@ -81,10 +85,10 @@ Top-level routes (redesign branch, all live):
 
 | Route | Owner | Purpose |
 |---|---|---|
-| `/` | engineer | Dashboard: SmartStartCTA, active session, stale-session banner, my cases, today, upcoming |
-| `/cases` | engineer | Card list (mobile) / table (desktop) with filter rail + scope chips |
+| `/` | engineer | Dashboard: QuickActionsHero (inline Case/Travel/Office + Planned-today + Continue-last suggestions), stale-session banner, my cases, today, upcoming |
+| `/cases` | engineer | Detail-card list (responsive grid 1/2/3 cols) with flag + customer/city, machine+serial list, collapsed planned-date ranges, hours logged, team avatars. Filter rail + scope chips. |
 | `/cases/new` | engineer | Smart-paste + manual create. Multi-machine + inline machine register |
-| `/cases/[so_number]` | engineer | Hero + 5 tabs (Sessions / Refs / Admin / Checklist / Similar) + Edit case sheet |
+| `/cases/[so_number]` | engineer | Card-style hero (SO + flag + customer/city + subject + machines/serials + Plan + Hours + Team) + 4 tabs (Sessions / Checklist / Refs / Admin) + footer "See similar →" link + Edit case sheet (mirrors create form: customer, machines, lead+team, service type, due, Plan dates) |
 | `/customers` + `/customers/[code]` | admin | List + detail with Contacts / Machines / Cases tabs. Admin: "+ New customer", Edit / Delete (guarded), Add/Edit/Delete contact, Add machine pre-filled with this customer |
 | `/machines` + `/machines/[machine_no]` | admin | List + service history per machine. Admin: "+ New machine" (customer picker), Edit / Delete (guarded) |
 | `/planning` | all | Engineer × N-day grid (1w/2w/4w). Click any cell to assign / edit |
@@ -109,7 +113,11 @@ Tailwind v4 with **CSS-first config** — design tokens are CSS custom propertie
 
 Dark mode is wired (`[data-theme="dark"]`) but the toggle is not exposed yet.
 
-**Component primitives** (`src/components/primitives/`): `Avatar`, `StatusPill`, `ServiceChip`, `CodeBadge`, `TypeBlock`, `SectionHeader`, `SyncChip`. Use these instead of redefining inline.
+**Component primitives** (`src/components/primitives/`): `Avatar`, `StatusPill`, `ServiceChip`, `CodeBadge`, `TypeBlock`, `SectionHeader`, `SyncChip`, `EmptyState`, `Skeleton` / `SkeletonRow` / `SkeletonCard` / `SkeletonAppBar`. Use these instead of redefining inline.
+
+**Cases primitives** (`src/app/cases/`): `case-card.tsx` (`CaseCard` — detail card used in list + hero), `plan-ranges-picker.tsx` (`PlanRangesPicker` — shared by `/cases/new` + edit sheet for multi-range planning), `empty-state.tsx` (delegates to the primitive).
+
+**Country flags** (`src/lib/country.ts`): `countryFlag()` / `countryIso()` / `countryLabel()` — map `customers.country` (UPPERCASE text) → ISO-2 → flag emoji. Covers all currently-in-DB countries plus likely additions.
 
 **Icons** (`src/components/icons.tsx`): single `<Icon name={...}/>` component with a typed `IconName` union — extend the union and the switch when adding glyphs.
 
@@ -138,14 +146,18 @@ State derived from sessions columns, no enum:
 - Sessions can have **null `so_number`** for office work or leave types — `sql/08`. Don't add a NOT NULL assumption back.
 
 **UI** (`src/components/clock/`):
-- `SmartStartCTA` — Dashboard hero when no active session. One button: "What's next?".
-- `WhatsNextSheet` — Four big options:
-  - 🔧 **Work on a case** → search step (yours first, then any active case)
+- `QuickActionsHero` — Dashboard hero. Shows inline action chips (no nested sheet for top-level actions):
+  - **Idle state**: greeting + backdate chip row (Now/15m/30m/1h/2h ago) + 3 buttons (🔧 Case / 🚗 Travel / 📄 Office). Case opens `WhatsNextSheet` at `pick-case` step directly.
+  - **Active state**: live timer (h:mm:ss, tap to edit start time) + status + case info + 3 buttons (🔄 Switch / ⏸ Break or ▶ Resume when paused / ✅ Done).
+  - **Above the hero (idle only)**: when there's a `source='planning'` session for today → blue "Planned today" suggestion with 1-tap Start. When no plan but last clock-out within 8h and case still open → "Continue SO123" suggestion.
+- `WhatsNextSheet` — Four big options (subset reached via Switch / Case picker):
+  - 🔧 **Work on a case** → search step (planned-today first, then recent 7d, then mine, then any). Picker chips show "Planned today" / "Today/Yesterday/Nd ago" / "Mine".
   - ✈ **Travelling** → close current, start a travel session
   - 🏢 **Office time** → close current, start an office session (no SO)
   - ⏸ **Take a break** (or "End break" when paused)
   - Plus a "Started: Now / 15m / 30m / 1h / 2h ago" chip row that backdates both close + start (no timeline gap).
-- `ActiveSessionCard` / `TimerChip` — Live counter (refresh every 1s via `setInterval`). Long-press TimerChip → WhatsNext.
+  - Accepts `defaultStep?: "home" | "pick-case"` so callers can open straight into the search step.
+- `TimerChip` — Live counter (refresh every 1s via `setInterval`). Long-press TimerChip → WhatsNext.
 - `ActiveSessionSheet` — Big timer + two primary actions ("What's next?" / "Done for today") + one secondary row (Edit start time).
 - `ClockOutReviewSheet` — Editable travel/break/notes + "Submit immediately" toggle (sets `approval_status='submitted'` + writes `session_approval_log`).
 - `StaleSessionBanner` — Red banner on Dashboard when active session started before today (Bangkok TZ). TimerChip turns amber + "· check?" suffix when elapsed > 10h.
@@ -165,7 +177,7 @@ State derived from sessions columns, no enum:
 
 ### Case detail (`src/app/cases/[so_number]/`)
 
-Five tabs via `?tab=sessions|refs|admin|tasks|similar`, with `tasks` rendered as "Checklist". Tab counts come from `getCaseAggregates` (sessions_count, refs_count, admin_count).
+Four tabs in the strip via `?tab=sessions|tasks|refs|admin`, with `tasks` rendered as "Checklist". A fifth state `?tab=similar` is still valid — reached via the "See similar cases →" footer link below the active tab. Tab counts come from `getCaseAggregates` (sessions_count + hours_logged now exclude `source='planning'` — Plan dates are forecasts, not logged work).
 
 **Hero card** (`hero.tsx`):
 - Status pill + service chip
@@ -383,29 +395,17 @@ select table_name from information_schema.tables
 - OFF → office_minutes = 480
 - AL/SICK/PERS → 0 ทั้งหมด (leave, ไม่ต้อง SO)
 
-### 🔖 Session handoff (2026-05-20)
+### 🔖 Session handoff (2026-05-21)
 
-**ค้างไว้ — pickup พรุ่งนี้:**
+**ค้างไว้ — pickup ครั้งหน้า:**
 
-- Job ตอบ option (c) สำหรับ 7 templates ที่ขาด → จะ paste content จาก PDF แต่ละไฟล์ใน `Checklist for Maintenance job/`, ผม gen `sql/17_add_missing_templates.sql`
-- ลำดับใน PDF dir: `12 MEVP`, `34 MITSF`, `42 Focovision SR2`, `D1 ProMapper`, `F1 MTVP4`, `F3 MCVP4-V3`, `H2 Focovision SR3`
-- **Machine_type code ที่ propose** (Job ยังไม่ confirm — ถ้าไม่ทักท้วงใช้ตามนี้):
-
-| PDF | machine_type | version | engineer ใส่ product_code |
-|---|---|---|---|
-| 12 MEVP | `MEVP` | null | `MEVP...` |
-| 34 MITSF | `MITSF` | null | `MITSF...` |
-| 42 Focovision SR2 | `SR2` | null | `SR2...` |
-| D1 ProMapper | `PROMAPPER` | null | `PROMAPPER...` |
-| F1 MTVP4 | `MTVP4` | null | `MTVP4...` |
-| F3 MCVP4-V3 | `MCVP4` | `V3` | `MCVP4V3...` |
-| H2 Focovision SR3 | `SR3` | null | `SR3...` |
-
-- ตอนเพิ่ม templates ใหม่ — ต้อง **update `src/lib/checklist.ts`** ด้วย (เพิ่ม branch `if (code.startsWith("MEVP")) return { machine_type: "MEVP", version: null }` etc.) ไม่งั้น resolver ไม่รู้จัก
-- **Job ยังต้องรัน `sql/14_drop_cases_description.sql`** เมื่อพร้อม (DB ตอนนี้ column ยังอยู่ — UI/code ไม่เขียนแล้ว แต่ pgsql ยังเก็บข้อมูลเก่าไว้)
-- PDFs 12 ไฟล์ใน `Checklist for Maintenance job/` (~1.5MB total) **ยัง untracked ใน git** — Job ตัดสินใจวันพรุ่งนี้ว่าจะ commit เก็บไว้เป็น reference หรือเปล่า
-- Vercel preview deploy ล่าสุด: `dpl_GCfLgeANYrrmnCDFMjaUQMy4rd4q` (commit `f0ed82d`, sin1, READY)
-- Dev server localhost:3000 อาจยังเปิดค้างไว้ (Job ปิดทิ้งได้ถ้าไม่ใช้)
+- **ต้องรัน 2 SQL migrations ก่อน feature ใหม่ใช้งานได้:**
+  - `sql/17_admin_log_assignment_event.sql` — ไม่งั้น notification "Assigned to case" จาก phase 6k-4 ตกเงียบ ๆ
+  - `sql/18_sessions_source_planning.sql` — **critical!** ไม่งั้น Plan dates picker (phase 6l) + /planning grid (phase 5j!) เขียน sessions ไม่ได้เลย. การที่ DB ตอนนี้ไม่มี `source='planning'` rows ก็เพราะ constraint นี้ block ตลอด
+- ยังต้องรัน sql/14 + sql/15 ค้างจากครั้งก่อน (drop legacy columns)
+- 7 templates ที่ขาด (12 MEVP, 34 MITSF, 42 SR2, D1 ProMapper, F1 MTVP4, F3 MCVP4-V3, H2 SR3) — ยังไม่ได้เพิ่ม
+- Job จะลอง **v0.dev + shadcn/ui** เพื่อ polish UI เพิ่ม. Repo state ปัจจุบันพร้อม import แล้ว
+- PDFs 12 ไฟล์ใน `Checklist for Maintenance job/` ยัง untracked
 
 ### Phase 6 (เสร็จแล้ว)
 
@@ -419,12 +419,25 @@ select table_name from information_schema.tables
 - [x] **6h-1** Rename "Product" → "Machine type" in Machine UI
 - [x] **6h-2** Clean Belgian-English in checklist items (sql/16, 322 of 460 changed)
 - [x] **6h-3** Admin checklist editor at `/admin/checklists` (templates / sections / items CRUD + duplicate + bulk paste)
+- [x] **6i** Polish — spacing tokens (`--page-px`, `--stack`, `.page-px`, `.stack-lg`), `<EmptyState>` primitive, `loading.tsx` skeletons for 8 routes. iconbtn = tap-size by default.
+- [x] **6j** Dashboard hero redesign — `<QuickActionsHero>` shows 3 inline action buttons (Case / Travel / Office when idle; Switch / Break / Done when active) + backdate chip row. Old `SmartStartCTA` + `ActiveSessionCard` deleted (subsumed). Case button opens WhatsNext at `pick-case` step via new `defaultStep` prop.
+- [x] **6k** Engineer-friendly dashboard:
+  - **6k-1** Hero "Planned today" suggestion strip (queries `source='planning'` for today × me, 1-tap Start)
+  - **6k-2** Smart case picker — sort planned_today → recent (7d) → mine → others; chips show "Planned today" / "Today/Yesterday/Nd ago" / "Mine"
+  - **6k-3** "Continue last" suggestion when last clock-out within 8h AND case still open
+  - **6k-4** Assignment notification — `createCase` + `updateCase` write `admin_log` with `event_type='engineer_assigned'` (needs sql/17)
+- [x] **6l** Cases overhaul:
+  - **6l-1** `/cases` list as detail cards (replaces `CaseListRow` + desktop table). Shows 🇹🇭 country flag (`src/lib/country.ts`), customer + city, machines with serial numbers, collapsed planned-date ranges ("19–21 May, 24–26 May" — handles non-contiguous holidays), hours logged, team avatars with lead ★. Responsive grid 1/2/3 cols.
+  - **6l-2** Edit case sheet refactored to mirror `/cases/new` (Sections + Fields + fchip multi-select). Adds engineer multi-edit (Lead select + Other chips) — previously could not change assignees post-create. Adds `<PlanRangesPicker>` (shared) — multi-range entries `{engineer × from → to × T/V/A}`. `updateCase` reconciles `case_engineers` (delete/insert + is_lead update) and planning sessions (full replacement on save).
+  - **6l-3** Hours bug fix — `hours_logged` and `sessions_count` everywhere now exclude `source='planning'` (forecasts shouldn't count as actuals). Planning rows also excluded from `getCaseSessions`, `getTodaySessions`, week minutes.
+  - **6l-4** Case detail hero rebuilt as `.case-card-v2` — matches list-card vocabulary. SO prominent, flag + city, subject line-clamp-4, machines list with product_code + serial_no, Plan + Hours stats, Team in one compact row. Actions row (Add session / Edit / Status) lives outside the info card. Tabs trimmed to 4 (Sessions / Checklist / Refs / Admin) + "See similar cases →" footer link. `getCase` extended to fetch customer city/country + per-machine details.
 - [x] **Codespaces fix** — `next.config.ts` allows `*.app.github.dev` for Server Actions
 
 ### เหลือก่อน merge → `main`
 
-- [ ] รัน sql/14 + sql/15 ใน Supabase SQL Editor (drop legacy columns)
-- [ ] เพิ่ม 7 templates ที่ขาด (12 MEVP, 34 MITSF, 42 SR2, D1 ProMapper, F1 MTVP4, F3 MCVP4-V3, H2 SR3) ผ่าน `/admin/checklists` (PDFs ใน `Checklist for Maintenance job/`)
+- [ ] **รัน sql/17 + sql/18** ใน Supabase SQL Editor — **critical!** Plan dates picker + /planning grid + assignment notifications ใช้ไม่ได้จนกว่าจะรัน
+- [ ] รัน sql/14 + sql/15 (drop legacy columns)
+- [ ] เพิ่ม 7 templates ที่ขาด (12 MEVP, 34 MITSF, 42 SR2, D1 ProMapper, F1 MTVP4, F3 MCVP4-V3, H2 SR3) ผ่าน `/admin/checklists`
 - [ ] Checklist photo upload (Supabase Storage)
 - [ ] Notification realtime (Supabase Realtime + persistent unread state)
 - [ ] RLS on (เปิดทุกตาราง + เขียน policies — ทำท้ายสุด)
