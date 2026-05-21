@@ -132,6 +132,127 @@ export async function getTodaySessions(): Promise<DashboardSession[]> {
   });
 }
 
+export type PlannedTodayRow = {
+  id: number;
+  so_number: string;
+  type_code: string | null;
+  case_title: string | null;
+  customer_name: string | null;
+  service_type_code: string | null;
+  machine_no: string | null;
+};
+
+/**
+ * Today's planned sessions for the current engineer (source='planning',
+ * non-leave, has so_number). Used by Dashboard hero to suggest 1-tap start.
+ */
+export async function getPlannedToday(): Promise<PlannedTodayRow[]> {
+  const supabase = await createClient();
+  const me = await meCode();
+  const today = bangkokToday();
+  const { data, error } = await supabase
+    .from("sessions")
+    .select(
+      `id, so_number, type_code,
+       cases(title, customer_name, service_type_code, case_machines(machine_no, is_primary))`
+    )
+    .eq("engineer_code", me)
+    .eq("session_date", today)
+    .eq("source", "planning")
+    .not("so_number", "is", null)
+    .is("clock_in_at", null)
+    .order("id", { ascending: true });
+
+  if (error || !data) return [];
+  return data.map((r) => {
+    const row = r as unknown as {
+      id: number;
+      so_number: string;
+      type_code: string | null;
+      cases: {
+        title: string | null;
+        customer_name: string | null;
+        service_type_code: string | null;
+        case_machines: { machine_no: string; is_primary: boolean | null }[] | null;
+      } | null;
+    };
+    const primary = (row.cases?.case_machines ?? []).find((m) => m.is_primary)?.machine_no
+      ?? row.cases?.case_machines?.[0]?.machine_no
+      ?? null;
+    return {
+      id: row.id,
+      so_number: row.so_number,
+      type_code: row.type_code,
+      case_title: row.cases?.title ?? null,
+      customer_name: row.cases?.customer_name ?? null,
+      service_type_code: row.cases?.service_type_code ?? null,
+      machine_no: primary,
+    };
+  });
+}
+
+export type LastSessionRow = {
+  so_number: string;
+  case_title: string | null;
+  customer_name: string | null;
+  case_status: string | null;
+  service_type_code: string | null;
+  machine_no: string | null;
+  clock_out_at: string;
+};
+
+/**
+ * Most recent clocked-out session within the last 8 hours, IFF the case is
+ * still open (planned / in_progress). Used by Dashboard hero to offer a
+ * "Continue SO123" shortcut.
+ */
+export async function getLastSession(): Promise<LastSessionRow | null> {
+  const supabase = await createClient();
+  const me = await meCode();
+  const eightHoursAgo = new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supabase
+    .from("sessions")
+    .select(
+      `so_number, clock_out_at,
+       cases(title, customer_name, status, service_type_code, case_machines(machine_no, is_primary))`
+    )
+    .eq("engineer_code", me)
+    .not("so_number", "is", null)
+    .not("clock_out_at", "is", null)
+    .gte("clock_out_at", eightHoursAgo)
+    .order("clock_out_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  const row = data as unknown as {
+    so_number: string;
+    clock_out_at: string;
+    cases: {
+      title: string | null;
+      customer_name: string | null;
+      status: string | null;
+      service_type_code: string | null;
+      case_machines: { machine_no: string; is_primary: boolean | null }[] | null;
+    } | null;
+  };
+  const status = row.cases?.status ?? null;
+  // Only suggest "Continue" when the case is still open
+  if (status !== "planned" && status !== "in_progress") return null;
+  const primary = (row.cases?.case_machines ?? []).find((m) => m.is_primary)?.machine_no
+    ?? row.cases?.case_machines?.[0]?.machine_no
+    ?? null;
+  return {
+    so_number: row.so_number,
+    case_title: row.cases?.title ?? null,
+    customer_name: row.cases?.customer_name ?? null,
+    case_status: status,
+    service_type_code: row.cases?.service_type_code ?? null,
+    machine_no: primary,
+    clock_out_at: row.clock_out_at,
+  };
+}
+
 export type DashboardKpis = {
   pending_approvals: number;
   open_cases: number;

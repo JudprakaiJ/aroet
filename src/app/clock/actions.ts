@@ -367,25 +367,69 @@ export type EmergencyCase = {
   status: string | null;
   service_type_code: string | null;
   is_mine: boolean;
+  planned_today: boolean;
+  last_session_at: string | null;
 };
+
+function bangkokToday(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+}
 
 export async function searchCasesForEmergency(query: string): Promise<EmergencyCase[]> {
   const supabase = createServiceClient();
   const me = await meCode();
   const q = query.trim();
 
-  const { data: mySos } = await supabase
-    .from("case_engineers")
-    .select("so_number")
-    .eq("engineer_code", me);
-  const mySet = new Set(((mySos ?? []) as { so_number: string }[]).map((r) => r.so_number));
+  const today = bangkokToday();
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const [mineRes, plannedRes, recentRes] = await Promise.all([
+    supabase
+      .from("case_engineers")
+      .select("so_number")
+      .eq("engineer_code", me),
+    supabase
+      .from("sessions")
+      .select("so_number")
+      .eq("engineer_code", me)
+      .eq("session_date", today)
+      .eq("source", "planning")
+      .not("so_number", "is", null)
+      .is("clock_in_at", null),
+    supabase
+      .from("sessions")
+      .select("so_number, clock_out_at, session_date")
+      .eq("engineer_code", me)
+      .not("so_number", "is", null)
+      .gte("session_date", sevenDaysAgo.slice(0, 10))
+      .order("session_date", { ascending: false })
+      .limit(80),
+  ]);
+
+  const mySet = new Set(((mineRes.data ?? []) as { so_number: string }[]).map((r) => r.so_number));
+  const plannedSet = new Set(
+    ((plannedRes.data ?? []) as { so_number: string | null }[])
+      .map((r) => r.so_number)
+      .filter((s): s is string => Boolean(s))
+  );
+  const recencyMap = new Map<string, string>();
+  for (const r of (recentRes.data ?? []) as {
+    so_number: string | null;
+    clock_out_at: string | null;
+    session_date: string | null;
+  }[]) {
+    if (!r.so_number) continue;
+    const key = r.clock_out_at ?? r.session_date;
+    if (!key) continue;
+    const prev = recencyMap.get(r.so_number);
+    if (!prev || key > prev) recencyMap.set(r.so_number, key);
+  }
 
   let req = supabase
     .from("cases")
     .select("so_number, title, customer_name, machine_no, status, service_type_code")
     .in("status", ["planned", "in_progress"])
-    .order("due_date", { ascending: true, nullsFirst: false })
-    .limit(40);
+    .limit(60);
 
   if (q.length > 0) {
     const like = `%${q}%`;
@@ -395,9 +439,27 @@ export async function searchCasesForEmergency(query: string): Promise<EmergencyC
   }
 
   const { data } = await req;
-  return ((data ?? []) as Omit<EmergencyCase, "is_mine">[]).map((c) => ({
-    ...c,
-    is_mine: mySet.has(c.so_number),
-  }));
+  const rows = ((data ?? []) as Omit<EmergencyCase, "is_mine" | "planned_today" | "last_session_at">[])
+    .map((c) => ({
+      ...c,
+      is_mine: mySet.has(c.so_number),
+      planned_today: plannedSet.has(c.so_number),
+      last_session_at: recencyMap.get(c.so_number) ?? null,
+    }));
+
+  // Sort: planned today → most-recently-worked → mine → others
+  rows.sort((a, b) => {
+    if (a.planned_today !== b.planned_today) return a.planned_today ? -1 : 1;
+    if (a.last_session_at && b.last_session_at) {
+      if (a.last_session_at !== b.last_session_at)
+        return a.last_session_at > b.last_session_at ? -1 : 1;
+    } else if (a.last_session_at || b.last_session_at) {
+      return a.last_session_at ? -1 : 1;
+    }
+    if (a.is_mine !== b.is_mine) return a.is_mine ? -1 : 1;
+    return a.so_number.localeCompare(b.so_number);
+  });
+
+  return rows;
 }
 

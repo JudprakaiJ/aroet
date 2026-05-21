@@ -105,12 +105,9 @@ export function WhatsNextSheet({ open, onClose, hasActive, paused, defaultStep =
     });
   };
 
-  // Sort: my cases first
-  const caseList: EmergencyCase[] = [
-    ...cases.filter((c) => c.is_mine),
-    ...cases.filter((c) => !c.is_mine),
-  ];
-  const myCount = cases.filter((c) => c.is_mine).length;
+  // The server already returns cases sorted by:
+  //   planned_today → most-recently-worked → mine → others
+  const caseList: EmergencyCase[] = cases;
 
   return (
     <Sheet
@@ -241,7 +238,26 @@ export function WhatsNextSheet({ open, onClose, hasActive, paused, defaultStep =
                     <span className="mono" style={{ fontSize: 11, fontWeight: 700, color: "var(--ink-3)" }}>
                       {c.so_number}
                     </span>
-                    {c.is_mine && (
+                    {c.planned_today && (
+                      <span
+                        className="chip"
+                        style={{
+                          fontSize: 9,
+                          padding: "1px 5px",
+                          background: "var(--info-soft)",
+                          color: "var(--info)",
+                          borderColor: "rgba(14,165,233,.3)",
+                        }}
+                      >
+                        Planned today
+                      </span>
+                    )}
+                    {!c.planned_today && c.last_session_at && (
+                      <span className="chip chip-slate" style={{ fontSize: 9, padding: "1px 5px" }}>
+                        {recencyLabel(c.last_session_at)}
+                      </span>
+                    )}
+                    {c.is_mine && !c.planned_today && (
                       <span className="chip chip-red" style={{ fontSize: 9, padding: "1px 5px" }}>
                         Mine
                       </span>
@@ -281,6 +297,19 @@ export function WhatsNextSheet({ open, onClose, hasActive, paused, defaultStep =
       </div>
     </Sheet>
   );
+}
+
+function recencyLabel(iso: string): string {
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+  const isoDate = iso.length >= 10 ? iso.slice(0, 10) : iso;
+  if (isoDate === today) return "Today";
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yIso = yesterday.toLocaleDateString("en-CA", { timeZone: "Asia/Bangkok" });
+  if (isoDate === yIso) return "Yesterday";
+  const days = Math.floor((Date.now() - new Date(isoDate).getTime()) / (24 * 60 * 60 * 1000));
+  if (days <= 7) return `${days}d ago`;
+  return "Recent";
 }
 
 function BigOption({

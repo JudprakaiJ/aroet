@@ -6,12 +6,17 @@ import { TypeBlock } from "@/components/primitives/type-block";
 import { WhatsNextSheet } from "./whats-next-sheet";
 import { ClockOutReviewSheet } from "./clock-out-review-sheet";
 import { EditStartTimeSheet } from "./edit-start-time-sheet";
+import { ServiceChip } from "@/components/primitives/service-chip";
+import { CodeBadge } from "@/components/primitives/code-badge";
 import { chainNext, takeBreak, endBreak } from "@/app/clock/actions";
 import { computeElapsedMinutes, type ActiveSession } from "@/lib/clock/types";
+import type { PlannedTodayRow, LastSessionRow } from "@/app/dashboard/queries";
 
 type Props = {
   engineerCode: string;
   activeSession: ActiveSession | null;
+  plannedToday?: PlannedTodayRow[];
+  lastSession?: LastSessionRow | null;
 };
 
 type SheetMode = null | "pick-case" | "whats-next" | "clock-out" | "edit-time";
@@ -33,7 +38,12 @@ const ACTIVITY_ICON: Record<string, IconName> = {
   upgrade: "trending-up",
 };
 
-export function QuickActionsHero({ engineerCode, activeSession }: Props) {
+export function QuickActionsHero({
+  engineerCode,
+  activeSession,
+  plannedToday = [],
+  lastSession = null,
+}: Props) {
   const [sheet, setSheet] = useState<SheetMode>(null);
   const [backdateMin, setBackdateMin] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +63,19 @@ export function QuickActionsHero({ engineerCode, activeSession }: Props) {
     setError(null);
     startTransition(async () => {
       const r = await chainNext({ kind, backdate_minutes: isActive ? 0 : backdateMin });
+      if (!r.success) setError(r.error ?? "Could not start.");
+    });
+  };
+
+  const onStartCase = (so_number: string, machine_no: string | null) => {
+    setError(null);
+    startTransition(async () => {
+      const r = await chainNext({
+        kind: "case",
+        so_number,
+        machine_no,
+        backdate_minutes: isActive ? 0 : backdateMin,
+      });
       if (!r.success) setError(r.error ?? "Could not start.");
     });
   };
@@ -112,6 +135,38 @@ export function QuickActionsHero({ engineerCode, activeSession }: Props) {
               </div>
             </div>
           </div>
+
+          {plannedToday.length > 0 && (
+            <div className="stack" style={{ gap: 6 }}>
+              {plannedToday.map((p) => (
+                <SuggestionRow
+                  key={p.id}
+                  kind="planned"
+                  so_number={p.so_number}
+                  title={p.case_title}
+                  customer={p.customer_name}
+                  machine={p.machine_no}
+                  serviceType={p.service_type_code}
+                  onStart={() => onStartCase(p.so_number, p.machine_no)}
+                  disabled={pending}
+                />
+              ))}
+            </div>
+          )}
+
+          {plannedToday.length === 0 && lastSession && (
+            <SuggestionRow
+              kind="continue"
+              so_number={lastSession.so_number}
+              title={lastSession.case_title}
+              customer={lastSession.customer_name}
+              machine={lastSession.machine_no}
+              serviceType={lastSession.service_type_code}
+              hint={`Finished ${relativeTime(lastSession.clock_out_at)}`}
+              onStart={() => onStartCase(lastSession.so_number, lastSession.machine_no)}
+              disabled={pending}
+            />
+          )}
 
           <BackdateRow value={backdateMin} onChange={setBackdateMin} />
 
@@ -368,6 +423,99 @@ function QuickButton({
       <span>{label}</span>
     </button>
   );
+}
+
+function SuggestionRow({
+  kind,
+  so_number,
+  title,
+  customer,
+  machine,
+  serviceType,
+  hint,
+  onStart,
+  disabled,
+}: {
+  kind: "planned" | "continue";
+  so_number: string;
+  title: string | null;
+  customer: string | null;
+  machine: string | null;
+  serviceType: string | null;
+  hint?: string;
+  onStart: () => void;
+  disabled?: boolean;
+}) {
+  const planned = kind === "planned";
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "10px 12px",
+        background: "var(--surface)",
+        border: "1px solid var(--line)",
+        borderRadius: 12,
+      }}
+    >
+      <div
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 9,
+          background: planned ? "var(--info-soft)" : "var(--surface-2)",
+          color: planned ? "var(--info)" : "var(--ink-3)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flex: "none",
+        }}
+      >
+        <Icon name={planned ? "calendar" : "refresh"} size={15} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2, flexWrap: "wrap" }}>
+          <span
+            className="kicker"
+            style={{ color: planned ? "var(--info)" : "var(--ink-3)" }}
+          >
+            {planned ? "Planned today" : hint ?? "Continue"}
+          </span>
+          {serviceType && <ServiceChip typ={serviceType} />}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          <CodeBadge>{so_number}</CodeBadge>
+          {machine && <CodeBadge>{machine}</CodeBadge>}
+          <span
+            className="truncate"
+            style={{ fontSize: 12.5, color: "var(--ink-2)", fontWeight: 500, minWidth: 0 }}
+          >
+            {customer ?? title ?? "—"}
+          </span>
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onStart}
+        disabled={disabled}
+        className="btn btn-primary btn-sm"
+        style={{ flex: "none" }}
+      >
+        <Icon name="play" size={12} /> Start
+      </button>
+    </div>
+  );
+}
+
+function relativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min}m ago`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m === 0 ? `${h}h ago` : `${h}h${m}m ago`;
 }
 
 function ErrorRow({ text }: { text: string }) {

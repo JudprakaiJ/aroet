@@ -17,6 +17,8 @@ import {
   getDashboardKpis,
   getPendingApprovalsTeaser,
   getRecentCases,
+  getPlannedToday,
+  getLastSession,
 } from "@/app/dashboard/queries";
 import { meCode } from "@/lib/auth/current-user";
 
@@ -24,17 +26,29 @@ export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const me = await meCode();
-  const [myActive, today, upcoming, kpis, approvals, recent, activeSession, notifications] =
-    await Promise.all([
-      getMyActiveCases(),
-      getTodaySessions(),
-      getUpcomingThisWeek(),
-      getDashboardKpis(),
-      getPendingApprovalsTeaser(),
-      getRecentCases(),
-      getActiveSession(me),
-      getNotifications(me),
-    ]);
+  const [
+    myActive,
+    today,
+    upcoming,
+    kpis,
+    approvals,
+    recent,
+    activeSession,
+    notifications,
+    plannedToday,
+    lastSession,
+  ] = await Promise.all([
+    getMyActiveCases(),
+    getTodaySessions(),
+    getUpcomingThisWeek(),
+    getDashboardKpis(),
+    getPendingApprovalsTeaser(),
+    getRecentCases(),
+    getActiveSession(me),
+    getNotifications(me),
+    getPlannedToday(),
+    getLastSession(),
+  ]);
 
   return (
     <>
@@ -55,7 +69,12 @@ export default async function DashboardPage() {
       <div className="scroll md:hidden">
         {activeSession && <StaleSessionBanner session={activeSession} />}
         <div className="page-px" style={{ paddingTop: 4 }}>
-          <QuickActionsHero engineerCode={me} activeSession={activeSession} />
+          <QuickActionsHero
+            engineerCode={me}
+            activeSession={activeSession}
+            plannedToday={plannedToday}
+            lastSession={lastSession}
+          />
         </div>
 
         <SectionHeader
@@ -109,7 +128,12 @@ export default async function DashboardPage() {
       <div className="dt-body hidden md:block">
         {activeSession && <StaleSessionBanner session={activeSession} />}
         <div style={{ marginBottom: 18 }}>
-          <QuickActionsHero engineerCode={me} activeSession={activeSession} />
+          <QuickActionsHero
+            engineerCode={me}
+            activeSession={activeSession}
+            plannedToday={plannedToday}
+            lastSession={lastSession}
+          />
         </div>
         <DesktopDashboard kpis={kpis} approvals={approvals} recent={recent} />
       </div>

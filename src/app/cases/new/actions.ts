@@ -2,6 +2,7 @@
 
 import { createServiceClient } from "@/lib/supabase/service";
 import { revalidatePath } from "next/cache";
+import { getActingAs } from "@/app/me/role-actions";
 
 export interface NewCaseInput {
   so_number: string;
@@ -226,7 +227,21 @@ export async function createCase(input: NewCaseInput): Promise<{ success: boolea
         engineerRows.push({ so_number: input.so_number, engineer_code: code, is_lead: false });
       }
       const { error: ceError } = await supabase.from("case_engineers").insert(engineerRows);
-      if (ceError) console.error("[createCase] case_engineers:", ceError.message);
+      if (ceError) {
+        console.error("[createCase] case_engineers:", ceError.message);
+      } else {
+        // Notification row per assigned engineer — surfaces in their Bell.
+        const actor = await getActingAs();
+        const logRows = engineerRows.map((r) => ({
+          so_number: input.so_number,
+          event_type: "engineer_assigned",
+          description: `Assigned ${r.engineer_code} as ${r.is_lead ? "lead" : "engineer"}`,
+          by_engineer: actor,
+          source: "manual",
+        }));
+        const { error: logErr } = await supabase.from("admin_log").insert(logRows);
+        if (logErr) console.error("[createCase] admin_log:", logErr.message);
+      }
     }
 
     revalidatePath("/cases");

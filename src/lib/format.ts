@@ -38,6 +38,7 @@ export const adminEventLabel: Record<string, string> = {
   meeting:              "Meeting",
   phone_call:           "Phone call",
   other:                "Other",
+  engineer_assigned:    "Assigned to case",
 };
 
 export function fmtDate(d: string | null | undefined): string {
