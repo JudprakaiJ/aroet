@@ -82,20 +82,19 @@ export default async function MePage() {
         activeSession={activeSession}
         notifications={notifications}
       />
-      <div
-        className="scroll md:hidden"
-        style={{ padding: "12px 14px 32px", display: "flex", flexDirection: "column", gap: 12 }}
-      >
-        <ProfileCard
-          code={ME}
-          name={engineer?.full_name ?? "—"}
-          role={engineer?.role ?? "engineer"}
-          monthHours={monthHours}
-          casesCount={openCount ?? 0}
-          isActive={Boolean(activeSession)}
-        />
-        <RoleSwitcher code={ME} fullName={engineer?.full_name ?? null} role={me.role} />
-        <ShortcutsCard isAdmin={isAdmin} />
+      <div className="scroll md:hidden">
+        <div className="stack-lg" style={{ padding: "12px 14px 32px" }}>
+          <ProfileCard
+            code={ME}
+            name={engineer?.full_name ?? "—"}
+            role={engineer?.role ?? "engineer"}
+            monthHours={monthHours}
+            casesCount={openCount ?? 0}
+            isActive={Boolean(activeSession)}
+          />
+          <RoleSwitcher code={ME} fullName={engineer?.full_name ?? null} role={me.role} />
+          <ShortcutsCard isAdmin={isAdmin} />
+        </div>
       </div>
       <div className="dt-body hidden md:block">
         <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 14, maxWidth: 900 }}>
