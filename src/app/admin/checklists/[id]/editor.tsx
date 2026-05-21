@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { EmptyState } from "@/components/primitives/empty-state";
 import { TemplateHeader } from "./template-header";
 import { SectionCard } from "./section-card";
 import { AddSectionForm } from "./add-section-form";
@@ -29,18 +30,12 @@ export function Editor({ template, admin }: Props) {
       ))}
 
       {template.sections.length === 0 && (
-        <div
-          style={{
-            padding: 24,
-            textAlign: "center",
-            color: "var(--ink-3)",
-            border: "1px dashed var(--line-2)",
-            borderRadius: "var(--r-lg)",
-            fontSize: 13,
-          }}
-        >
-          No sections yet.
-        </div>
+        <EmptyState
+          icon="clip-list"
+          title="No sections yet"
+          body={admin ? "Add the first section using the + button below." : undefined}
+          compact
+        />
       )}
 
       {admin && (

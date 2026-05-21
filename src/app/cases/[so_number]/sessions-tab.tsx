@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { fmtDay, fmtTime } from "@/lib/format";
 import { CodeBadge } from "@/components/primitives/code-badge";
+import { EmptyState } from "@/components/primitives/empty-state";
 import { SessionCard } from "./session-card";
 import type { CaseSession } from "./queries";
 
@@ -76,13 +77,17 @@ export function SessionsTab({ so_number, sessions }: { so_number: string; sessio
 
   if (sessions.length === 0) {
     return (
-      <div className="card" style={{ margin: "8px 14px", padding: 18, textAlign: "center" }}>
-        <div
-          className="sub"
-          style={{ textTransform: "none", letterSpacing: 0, fontSize: 13, color: "var(--ink-3)" }}
-        >
-          No sessions logged yet. Tap <span style={{ color: "var(--red)", fontWeight: 600 }}>Add session</span> above.
-        </div>
+      <div style={{ margin: "8px var(--page-px)" }}>
+        <EmptyState
+          icon="clock"
+          title="No sessions logged yet"
+          body={
+            <>
+              Tap <span style={{ color: "var(--red)", fontWeight: 600 }}>Add session</span> above.
+            </>
+          }
+          compact
+        />
       </div>
     );
   }

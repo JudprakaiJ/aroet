@@ -9,6 +9,7 @@ import { MachineFilterBar } from "./filter-bar";
 import { MachineListRow } from "./list-row";
 import { DesktopMachinesTable } from "./desktop-machines-table";
 import { NewMachineButton } from "./new-machine-button";
+import { EmptyState } from "@/components/primitives/empty-state";
 
 
 export const dynamic = "force-dynamic";
@@ -48,24 +49,20 @@ export default async function MachinesPage({
 
       {/* Mobile */}
       <div className="scroll md:hidden">
-        <div style={{ padding: "0 14px 8px", display: "flex", gap: 8, alignItems: "center" }}>
+        <div className="page-px" style={{ paddingBottom: 8, display: "flex", gap: 8, alignItems: "center" }}>
           <div style={{ flex: 1 }}>
             <MachineFilterBar initialQ={q} />
           </div>
           {isAdmin && <NewMachineButton customers={customersLite} />}
         </div>
         {machines.length === 0 ? (
-          <div
-            style={{
-              margin: "8px 14px",
-              padding: 24,
-              textAlign: "center",
-              color: "var(--ink-3)",
-              border: "1px dashed var(--line-2)",
-              borderRadius: "var(--r-lg)",
-            }}
-          >
-            {q ? "No machines match." : "No machines yet."}
+          <div style={{ margin: "8px var(--page-px)" }}>
+            <EmptyState
+              icon="cube"
+              title={q ? "No machines match" : "No machines yet"}
+              body={q ? `Nothing matches "${q}".` : undefined}
+              compact
+            />
           </div>
         ) : (
           <div className="card" style={{ margin: "8px 14px 14px", overflow: "hidden" }}>

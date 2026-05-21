@@ -3,6 +3,7 @@ import { Avatar } from "@/components/primitives/avatar";
 import { StatusPill } from "@/components/primitives/status-pill";
 import { ServiceChip } from "@/components/primitives/service-chip";
 import { TypeBlock } from "@/components/primitives/type-block";
+import { EmptyState } from "@/components/primitives/empty-state";
 import { Icon } from "@/components/icons";
 import { fmtTime } from "@/lib/format";
 import type {
@@ -61,8 +62,8 @@ export function DesktopDashboard({ kpis, approvals, recent }: Props) {
               </Link>
             </div>
             {approvals.length === 0 ? (
-              <div style={{ padding: 18, fontSize: 12, color: "var(--ink-3)", textAlign: "center" }}>
-                No sessions awaiting approval.
+              <div style={{ padding: 16 }}>
+                <EmptyState icon="check" title="All caught up" body="No sessions awaiting approval." compact />
               </div>
             ) : (
               <table className="dt-table">
@@ -112,8 +113,8 @@ export function DesktopDashboard({ kpis, approvals, recent }: Props) {
               </Link>
             </div>
             {recent.length === 0 ? (
-              <div style={{ padding: 18, fontSize: 12, color: "var(--ink-3)", textAlign: "center" }}>
-                No cases yet.
+              <div style={{ padding: 16 }}>
+                <EmptyState icon="folder" title="No cases yet" compact />
               </div>
             ) : (
               <table className="dt-table">

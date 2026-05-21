@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { CodeBadge } from "@/components/primitives/code-badge";
+import { EmptyState } from "@/components/primitives/empty-state";
 import type { CustomerListItem } from "./queries";
 
 export function DesktopCustomersTable({ customers }: { customers: CustomerListItem[] }) {
   if (customers.length === 0) {
     return (
-      <div style={{ padding: 40, textAlign: "center", color: "var(--ink-3)" }}>
-        <div style={{ fontSize: 13, fontWeight: 500 }}>No customers match.</div>
+      <div style={{ padding: 24 }}>
+        <EmptyState icon="building" title="No customers match" body="Try clearing the search." />
       </div>
     );
   }

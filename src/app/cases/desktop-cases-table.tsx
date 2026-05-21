@@ -3,14 +3,19 @@ import { Avatar } from "@/components/primitives/avatar";
 import { StatusPill } from "@/components/primitives/status-pill";
 import { ServiceChip } from "@/components/primitives/service-chip";
 import { CodeBadge } from "@/components/primitives/code-badge";
+import { EmptyState } from "@/components/primitives/empty-state";
 import { fmtDate } from "@/lib/format";
 import type { CaseListItem } from "./queries";
 
 export function DesktopCasesTable({ cases }: { cases: CaseListItem[] }) {
   if (cases.length === 0) {
     return (
-      <div style={{ padding: 40, textAlign: "center", color: "var(--ink-3)" }}>
-        <div style={{ fontSize: 13, fontWeight: 500 }}>No cases match the current filters.</div>
+      <div style={{ padding: 24 }}>
+        <EmptyState
+          icon="search"
+          title="No cases match"
+          body="Try clearing some filters or the search term."
+        />
       </div>
     );
   }

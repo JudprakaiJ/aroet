@@ -1,23 +1,14 @@
 import Link from "next/link";
 import { CodeBadge } from "@/components/primitives/code-badge";
+import { EmptyState } from "@/components/primitives/empty-state";
 import { fmtDate } from "@/lib/format";
 import type { CustomerMachine } from "../queries";
 
 export function MachinesPanel({ machines }: { machines: CustomerMachine[] }) {
   if (machines.length === 0) {
     return (
-      <div style={{ padding: "0 14px" }}>
-        <div
-          style={{
-            padding: 24,
-            textAlign: "center",
-            color: "var(--ink-3)",
-            border: "1px dashed var(--line-2)",
-            borderRadius: "var(--r-lg)",
-          }}
-        >
-          No machines for this customer.
-        </div>
+      <div className="page-px">
+        <EmptyState icon="cube" title="No machines" body="No machines for this customer." compact />
       </div>
     );
   }

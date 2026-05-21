@@ -1,6 +1,7 @@
 import { AppBar } from "@/components/app-bar";
 import { DesktopTopBar } from "@/components/desktop-top";
 import { SectionHeader } from "@/components/primitives/section-header";
+import { EmptyState } from "@/components/primitives/empty-state";
 import { SmartStartCTA } from "@/components/clock/smart-start-cta";
 import { ActiveSessionCard } from "@/components/clock/active-session-card";
 import { StaleSessionBanner } from "@/components/clock/stale-session-banner";
@@ -54,7 +55,7 @@ export default async function DashboardPage() {
       {/* Mobile content */}
       <div className="scroll md:hidden">
         {activeSession && <StaleSessionBanner session={activeSession} />}
-        <div style={{ padding: "10px 14px 4px" }}>
+        <div className="page-px" style={{ paddingTop: 4 }}>
           {activeSession ? (
             <ActiveSessionCard session={activeSession} />
           ) : (
@@ -67,18 +68,16 @@ export default async function DashboardPage() {
           action={{ label: "View all", href: "/cases" }}
         />
         {myActive.length === 0 ? (
-          <div style={{ padding: "0 14px" }}>
-            <div className="card" style={{ padding: 18, textAlign: "center" }}>
-              <div
-                className="sub"
-                style={{ textTransform: "none", letterSpacing: 0, fontSize: 13, color: "var(--ink-3)" }}
-              >
-                No active cases assigned to {me}.
-              </div>
-            </div>
+          <div className="page-px">
+            <EmptyState
+              icon="folder"
+              title="No active cases"
+              body={`No active cases assigned to ${me}.`}
+              compact
+            />
           </div>
         ) : (
-          <div style={{ padding: "0 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="page-px stack">
             {myActive.map((c) => (
               <CaseCard key={c.so_number} c={c} />
             ))}
@@ -86,24 +85,25 @@ export default async function DashboardPage() {
         )}
 
         <SectionHeader title="Today's sessions" />
-        <div style={{ padding: "0 14px" }}>
+        <div className="page-px">
           {today.length === 0 ? (
-            <div className="card" style={{ padding: 18, textAlign: "center" }}>
-              <div
-                className="sub"
-                style={{ textTransform: "none", letterSpacing: 0, fontSize: 13, color: "var(--ink-3)" }}
-              >
-                No sessions today. Tap{" "}
-                <span style={{ color: "var(--red)", fontWeight: 600 }}>+</span> to log time.
-              </div>
-            </div>
+            <EmptyState
+              icon="clock"
+              title="No sessions today"
+              body={
+                <>
+                  Tap <span style={{ color: "var(--red)", fontWeight: 600 }}>+</span> to log time.
+                </>
+              }
+              compact
+            />
           ) : (
             today.map((s) => <SessionRow key={s.id} s={s} />)
           )}
         </div>
 
         <SectionHeader title="Upcoming · this week" />
-        <div style={{ padding: "0 14px" }}>
+        <div className="page-px">
           <UpcomingMini items={upcoming} />
         </div>
 

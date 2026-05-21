@@ -7,6 +7,7 @@ import { currentUser, isApprover, meCode } from "@/lib/auth/current-user";
 import { Icon } from "@/components/icons";
 import { listChecklistTemplatesAdmin } from "./queries";
 import { NewTemplateForm } from "./new-template-form";
+import { EmptyState } from "@/components/primitives/empty-state";
 
 
 export const dynamic = "force-dynamic";
@@ -68,17 +69,12 @@ export default async function ChecklistsAdminPage() {
 
         <div style={{ padding: "0 14px 24px" }}>
           {templates.length === 0 ? (
-            <div
-              style={{
-                padding: 24,
-                textAlign: "center",
-                color: "var(--ink-3)",
-                border: "1px dashed var(--line-2)",
-                borderRadius: "var(--r-lg)",
-              }}
-            >
-              No templates yet.
-            </div>
+            <EmptyState
+              icon="clip-list"
+              title="No templates yet"
+              body={isAdmin ? "Add the first template using the form above." : undefined}
+              compact
+            />
           ) : (
             <div className="card" style={{ overflow: "hidden" }}>
               {templates.map((t, i) => (

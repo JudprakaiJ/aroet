@@ -1,24 +1,15 @@
 import Link from "next/link";
 import { StatusPill } from "@/components/primitives/status-pill";
 import { ServiceChip } from "@/components/primitives/service-chip";
+import { EmptyState } from "@/components/primitives/empty-state";
 import { fmtDate } from "@/lib/format";
 import type { MachineCase } from "../queries";
 
 export function ServiceHistoryTable({ cases }: { cases: MachineCase[] }) {
   if (cases.length === 0) {
     return (
-      <div style={{ padding: "0 14px" }}>
-        <div
-          style={{
-            padding: 24,
-            textAlign: "center",
-            color: "var(--ink-3)",
-            border: "1px dashed var(--line-2)",
-            borderRadius: "var(--r-lg)",
-          }}
-        >
-          No service history yet.
-        </div>
+      <div className="page-px">
+        <EmptyState icon="history" title="No service history yet" compact />
       </div>
     );
   }

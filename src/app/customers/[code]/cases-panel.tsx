@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { StatusPill } from "@/components/primitives/status-pill";
 import { ServiceChip } from "@/components/primitives/service-chip";
+import { EmptyState } from "@/components/primitives/empty-state";
 import { Icon } from "@/components/icons";
 import { fmtDate } from "@/lib/format";
 import type { CustomerCase } from "../queries";
@@ -8,18 +9,8 @@ import type { CustomerCase } from "../queries";
 export function CasesPanel({ cases }: { cases: CustomerCase[] }) {
   if (cases.length === 0) {
     return (
-      <div style={{ padding: "0 14px" }}>
-        <div
-          style={{
-            padding: 24,
-            textAlign: "center",
-            color: "var(--ink-3)",
-            border: "1px dashed var(--line-2)",
-            borderRadius: "var(--r-lg)",
-          }}
-        >
-          No cases for this customer yet.
-        </div>
+      <div className="page-px">
+        <EmptyState icon="folder" title="No cases yet" body="No cases for this customer yet." compact />
       </div>
     );
   }

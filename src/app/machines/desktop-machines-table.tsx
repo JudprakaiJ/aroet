@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { CodeBadge } from "@/components/primitives/code-badge";
+import { EmptyState } from "@/components/primitives/empty-state";
 import { fmtDate } from "@/lib/format";
 import type { MachineListItem } from "./queries";
 
 export function DesktopMachinesTable({ machines }: { machines: MachineListItem[] }) {
   if (machines.length === 0) {
     return (
-      <div style={{ padding: 40, textAlign: "center", color: "var(--ink-3)" }}>
-        <div style={{ fontSize: 13, fontWeight: 500 }}>No machines match.</div>
+      <div style={{ padding: 24 }}>
+        <EmptyState icon="cube" title="No machines match" body="Try clearing the search." />
       </div>
     );
   }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Icon } from "@/components/icons";
+import { EmptyState } from "@/components/primitives/empty-state";
 import { ContactSheet } from "./contact-sheet";
 import type { CustomerContact } from "../queries";
 
@@ -33,17 +34,7 @@ export function ContactsPanel({ contacts, customerCode, admin }: Props) {
       )}
 
       {empty ? (
-        <div
-          style={{
-            padding: 24,
-            textAlign: "center",
-            color: "var(--ink-3)",
-            border: "1px dashed var(--line-2)",
-            borderRadius: "var(--r-lg)",
-          }}
-        >
-          No contacts yet.
-        </div>
+        <EmptyState icon="user" title="No contacts yet" compact />
       ) : (
         <div className="card" style={{ overflow: "hidden" }}>
           {contacts.map((c, i) => (

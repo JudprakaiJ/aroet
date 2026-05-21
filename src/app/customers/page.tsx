@@ -8,6 +8,7 @@ import { SearchBar } from "./search-bar";
 import { CustomerListRow } from "./list-row";
 import { DesktopCustomersTable } from "./desktop-customers-table";
 import { NewCustomerButton } from "./new-customer-button";
+import { EmptyState } from "@/components/primitives/empty-state";
 
 
 export const dynamic = "force-dynamic";
@@ -46,24 +47,20 @@ export default async function CustomersPage({
 
       {/* Mobile */}
       <div className="scroll md:hidden">
-        <div style={{ padding: "0 14px 8px", display: "flex", gap: 8, alignItems: "center" }}>
+        <div className="page-px" style={{ paddingBottom: 8, display: "flex", gap: 8, alignItems: "center" }}>
           <div style={{ flex: 1 }}>
             <SearchBar basePath="/customers" initialQ={q} placeholder="Search code, name, city…" />
           </div>
           {isAdmin && <NewCustomerButton />}
         </div>
         {customers.length === 0 ? (
-          <div
-            style={{
-              margin: "8px 14px",
-              padding: 24,
-              textAlign: "center",
-              color: "var(--ink-3)",
-              border: "1px dashed var(--line-2)",
-              borderRadius: "var(--r-lg)",
-            }}
-          >
-            {q ? "No customers match." : "No customers yet."}
+          <div style={{ margin: "8px var(--page-px)" }}>
+            <EmptyState
+              icon="building"
+              title={q ? "No customers match" : "No customers yet"}
+              body={q ? `Nothing matches "${q}".` : undefined}
+              compact
+            />
           </div>
         ) : (
           <div className="card" style={{ margin: "8px 14px 14px", overflow: "hidden" }}>
